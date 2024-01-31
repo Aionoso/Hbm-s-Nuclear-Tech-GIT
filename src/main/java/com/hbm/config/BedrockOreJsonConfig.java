@@ -45,14 +45,34 @@ public class BedrockOreJsonConfig {
 
 	public static void setDefaults() {
 		addEntry(0, 30, Arrays.asList(
-			"orePlutonium", 
-			"oreQuartz", 
-			"oreInfernalCoal", 
-			"oreRedPhosphorus", 
-			"oreSchrabidium", 
-			"oreNeodymium", 
-			"oreNitanium"
-		), false);
+			"oreCoal", 
+			"oreIron", 
+			"oreGold",
+			"oreRedstone",
+			"oreLapis",
+			"oreDiamond",
+			"oreEmerald",
+			"oreLignite",
+			"oreSulfur",
+			"oreSaltpeter",
+			"oreAsbestos",
+			"oreFluorite",
+			"oreCinnabar",
+			"oreCopper",
+			"oreAluminum",
+			"oreLead",
+			"oreLithium",
+			"oreBeryllium",
+			"oreTitanium",
+			"oreTungsten",
+			"oreCobalt",
+			"oreRareEarth",
+			"oreThorium",
+			"oreUranium",
+			"oreZirconium",
+			"oreVolcanic",
+			"oreBorax"
+		), true);
 		addEntry(-1, 60, Arrays.asList(
 			"orePlutonium", 
 			"oreQuartz", 
