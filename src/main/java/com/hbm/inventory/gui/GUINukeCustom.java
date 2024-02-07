@@ -40,20 +40,20 @@ public class GUINukeCustom extends GuiInfoContainer {
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		String[] text;
 
-		text = new String[] { TextFormatting.YELLOW + "Conventional Explosives (Radius " + testNuke.tnt + "/" + BombConfig.maxCustomTNTRadius + ")",
+		text = new String[] { TextFormatting.YELLOW + "Conventional Explosives (Level " + testNuke.tnt + "/" + BombConfig.maxCustomTNTRadius + ")",
 				"Caps at " + BombConfig.maxCustomTNTRadius,
 				"N²-like above level 75",
 				TextFormatting.ITALIC + "\"Goes boom\"" };
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 16, guiTop + 88, 18, 18, mouseX, mouseY, text);
 		
-		text = new String[] { TextFormatting.YELLOW + "Nuclear (Radius " + testNuke.nuke + "(" + testNuke.getNukeAdj() + ")/"+ BombConfig.maxCustomNukeRadius + ")",
+		text = new String[] { TextFormatting.YELLOW + "Nuclear (Level " + testNuke.nuke + "(" + testNuke.getNukeAdj() + ")/"+ BombConfig.maxCustomNukeRadius + ")",
 				"Requires TNT level 16",
 				"Caps at " + BombConfig.maxCustomNukeRadius,
 				"Has fallout",
 				TextFormatting.ITALIC + "\"Now I am become death, destroyer of worlds.\"" };
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 34, guiTop + 88, 18, 18, mouseX, mouseY, text);
 		
-		text = new String[] { TextFormatting.YELLOW + "Thermonuclear (Radius " + testNuke.hydro + "(" + testNuke.getHydroAdj() + ")/" + BombConfig.maxCustomHydroRadius + ")",
+		text = new String[] { TextFormatting.YELLOW + "Thermonuclear (Level " + testNuke.hydro + "(" + testNuke.getHydroAdj() + ")/" + BombConfig.maxCustomHydroRadius + ")",
 				"Requires nuclear level 100",
 				"Caps at " + BombConfig.maxCustomHydroRadius,
 				"Reduces added fallout by salted stage by 75%",
@@ -61,13 +61,13 @@ public class GUINukeCustom extends GuiInfoContainer {
 				TextFormatting.ITALIC + "the island of Elugelab disappear!\"" };
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 52, guiTop + 88, 18, 18, mouseX, mouseY, text);
 		
-		text = new String[] { TextFormatting.YELLOW + "Balefire (Radius " + testNuke.bale + "/(" + testNuke.getBaleAdj() + ")/" + BombConfig.maxCustomBaleRadius + ")",
+		text = new String[] { TextFormatting.YELLOW + "Balefire (Level " + testNuke.bale + "/(" + testNuke.getBaleAdj() + ")/" + BombConfig.maxCustomBaleRadius + ")",
 				"Requires nuclear level 50",
 				"Caps at " + BombConfig.maxCustomBaleRadius,
 				TextFormatting.ITALIC + "\"Antimatter, Balefire, whatever.\"" };
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 70, guiTop + 88, 18, 18, mouseX, mouseY, text);
 		
-		text = new String[] { TextFormatting.YELLOW + "Salted (Radius " + testNuke.dirty + "/" + BombConfig.maxCustomDirtyRadius + ")",
+		text = new String[] { TextFormatting.YELLOW + "Salted (Level " + testNuke.dirty + "/" + BombConfig.maxCustomDirtyRadius + ")",
 				"Extends fallout of nuclear and",
 				"thermonuclear stages",
 				"Caps at " + BombConfig.maxCustomDirtyRadius,
@@ -75,14 +75,14 @@ public class GUINukeCustom extends GuiInfoContainer {
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 53, guiTop + 83, 25, 5, mouseX, mouseY, text);
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 53, guiTop + 106, 25, 5, mouseX, mouseY, text);
 		
-		text = new String[] { TextFormatting.YELLOW + "Schrabidium (Radius " + testNuke.schrab + "(" + testNuke.getSchrabAdj() + ")/" + BombConfig.maxCustomSchrabRadius + ")",
+		text = new String[] { TextFormatting.YELLOW + "Schrabidium (Level " + testNuke.schrab + "(" + testNuke.getSchrabAdj() + ")/" + BombConfig.maxCustomSchrabRadius + ")",
 				"Requires nuclear level 50",
 				"Caps at " + BombConfig.maxCustomSchrabRadius,
 				TextFormatting.ITALIC + "\"For the hundredth time,",
 				TextFormatting.ITALIC + "you can't bypass these caps!\"" };
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 88, guiTop + 88, 18, 18, mouseX, mouseY, text);
 
-		text = new String[] { TextFormatting.YELLOW + "Solinium (Radius " + testNuke.sol + "(" + testNuke.getSolAdj() + ")/" + BombConfig.maxCustomSolRadius + ")",
+		text = new String[] { TextFormatting.YELLOW + "Solinium (Level " + testNuke.sol + "(" + testNuke.getSolAdj() + ")/" + BombConfig.maxCustomSolRadius + ")",
 				"Requires nuclear level 25",
 				"Caps at " + BombConfig.maxCustomSolRadius,
 				TextFormatting.ITALIC + "\"For the hundredth time,",

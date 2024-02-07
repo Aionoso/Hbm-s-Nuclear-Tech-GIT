@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.inventory.CentrifugeRecipes.CentrifugeRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IDrawableAnimated;
@@ -47,7 +48,7 @@ public class CentrifugeRecipeHandler implements IRecipeCategory<CentrifugeRecipe
 
 	@Override
 	public String getTitle() {
-		return "Centrifuge";
+		return I18nUtil.resolveKey("tile.machine_centrifuge.name");
 	}
 
 	@Override

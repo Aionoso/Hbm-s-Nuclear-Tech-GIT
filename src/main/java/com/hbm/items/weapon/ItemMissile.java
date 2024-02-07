@@ -6,6 +6,7 @@ import java.util.List;
 import com.hbm.items.ModItems;
 import com.hbm.items.special.ItemLootCrate;
 import com.hbm.main.MainRegistry;
+import com.hbm.util.I18nUtil;
 
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
@@ -106,12 +107,12 @@ public class ItemMissile extends Item {
 	
 	public enum Rarity {
 		
-		COMMON(TextFormatting.GRAY + "Common"),
-		UNCOMMON(TextFormatting.YELLOW + "Uncommon"),
-		RARE(TextFormatting.GREEN + "Rare"),
-		EPIC(TextFormatting.AQUA + "Epic"),
-		LEGENDARY(TextFormatting.LIGHT_PURPLE + "Legendary"),
-		SEWS_CLOTHES_AND_SUCKS_HORSE_COCK(TextFormatting.DARK_AQUA + "Strange");
+		COMMON(TextFormatting.GRAY + I18nUtil.resolveKey("rarity.common")),
+		UNCOMMON(TextFormatting.YELLOW + I18nUtil.resolveKey("rarity.uncommon")),
+		RARE(TextFormatting.GREEN + I18nUtil.resolveKey("rarity.rare")),
+		EPIC(TextFormatting.AQUA + I18nUtil.resolveKey("rarity.epic")),
+		LEGENDARY(TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("rarity.legendary")),
+		SEWS_CLOTHES_AND_SUCKS_HORSE_COCK(TextFormatting.DARK_AQUA + I18nUtil.resolveKey("rarity.strange"));
 		
 		String name;
 		
@@ -192,29 +193,29 @@ public class ItemMissile extends Item {
 		try {
 			switch(type) {
 			case CHIP:
-				list.add(TextFormatting.BOLD + "Inaccuracy: " + TextFormatting.GRAY + (Float)attributes[0] * 100 + "%");
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.inaccuracy") + " " + TextFormatting.GRAY + (Float)attributes[0] * 100 + "%");
 				break;
 			case WARHEAD:
-				list.add(TextFormatting.BOLD + "Size: " + TextFormatting.GRAY + getSize(bottom));
-				list.add(TextFormatting.BOLD + "Type: " + TextFormatting.GRAY + getWarhead((WarheadType)attributes[0]));
-				list.add(TextFormatting.BOLD + "Strength: " + TextFormatting.RED + (Float)attributes[1]);
-				list.add(TextFormatting.BOLD + "Weight: " + TextFormatting.GRAY + (Float)attributes[2] + "t");
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.size") + " " + TextFormatting.GRAY + getSize(bottom));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.GRAY + getWarhead((WarheadType)attributes[0]));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.strength") + " " + TextFormatting.RED + (Float)attributes[1]);
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.weight") + " " + TextFormatting.GRAY + (Float)attributes[2] + "t");
 				break;
 			case FUSELAGE:
-				list.add(TextFormatting.BOLD + "Top size: " + TextFormatting.GRAY + getSize(top));
-				list.add(TextFormatting.BOLD + "Bottom size: " + TextFormatting.GRAY + getSize(bottom));
-				list.add(TextFormatting.BOLD + "Fuel type: " + TextFormatting.GRAY + getFuel((FuelType)attributes[0]));
-				list.add(TextFormatting.BOLD + "Fuel amount: " + TextFormatting.GRAY + (Float)attributes[1] + "l");
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.topsize") + " " + TextFormatting.GRAY + getSize(top));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.botsize") + " " + TextFormatting.GRAY + getSize(bottom));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.fueltype") + " " + TextFormatting.GRAY + getFuel((FuelType)attributes[0]));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.fuelamnt") + " " + TextFormatting.GRAY + (Float)attributes[1] + "l");
 				break;
 			case FINS:
-				list.add(TextFormatting.BOLD + "Size: " + TextFormatting.GRAY + getSize(top));
-				list.add(TextFormatting.BOLD + "Inaccuracy: " + TextFormatting.GRAY + (Float)attributes[0] * 100 + "%");
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.size") + " " + TextFormatting.GRAY + getSize(top));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.inaccuracy") + " " + TextFormatting.GRAY + (Float)attributes[0] * 100 + "%");
 				break;
 			case THRUSTER:
-				list.add(TextFormatting.BOLD + "Size: " + TextFormatting.GRAY + getSize(top));
-				list.add(TextFormatting.BOLD + "Fuel type: " + TextFormatting.GRAY + getFuel((FuelType)attributes[0]));
-				list.add(TextFormatting.BOLD + "Fuel consumption: " + TextFormatting.GRAY + (Float)attributes[1] + "l/tick");
-				list.add(TextFormatting.BOLD + "Max. payload: " + TextFormatting.GRAY + (Float)attributes[2] + "t");
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.size") + " " + TextFormatting.GRAY + getSize(top));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.fuelamnt") + " " + TextFormatting.GRAY + getFuel((FuelType)attributes[0]));
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.fuelcon") + " " + TextFormatting.GRAY + (Float)attributes[1] + "l/tick");
+				list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.payload") + " " + TextFormatting.GRAY + (Float)attributes[2] + "t");
 				break;
 			}
 		} catch(Exception ex) {
@@ -222,12 +223,12 @@ public class ItemMissile extends Item {
 		}
 		
 		if(type != PartType.CHIP)
-			list.add(TextFormatting.BOLD + "Health: " + TextFormatting.GREEN + health + "HP");
+			list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.health") + " " + TextFormatting.GREEN + health + "HP");
 		
 		if(this.rarity != null)
-			list.add(TextFormatting.BOLD + "Rarity: " + TextFormatting.GRAY + this.rarity.name);
+			list.add(TextFormatting.BOLD + I18nUtil.resolveKey("desc.rarity") + " " + TextFormatting.GRAY + this.rarity.name);
 		if(author != null)
-			list.add(TextFormatting.WHITE + "   by " + author);
+			list.add(TextFormatting.WHITE + "  " + I18nUtil.resolveKey("desc.author") + " " + author);
 		if(witty != null)
 			list.add(TextFormatting.GOLD + "   " + TextFormatting.ITALIC + "\"" + witty + "\"");
 	}
@@ -236,7 +237,7 @@ public class ItemMissile extends Item {
 		
 		switch(size) {
 		case ANY:
-			return "Any";
+			return I18nUtil.resolveKey("desc.any");
 		case SIZE_10:
 			return "§e1.0m";
 		case SIZE_15:
@@ -244,7 +245,7 @@ public class ItemMissile extends Item {
 		case SIZE_20:
 			return "§c2.0m";
 		default:
-			return "None";
+			return I18nUtil.resolveKey("desc.none");
 		}
 	}
 	
@@ -252,33 +253,33 @@ public class ItemMissile extends Item {
 		
 		switch(type) {
 		case HE:
-			return TextFormatting.YELLOW + "HE";
+			return TextFormatting.YELLOW + I18nUtil.resolveKey("warhead.he");
 		case INC:
-			return TextFormatting.GOLD + "Incendiary";
+			return TextFormatting.GOLD + I18nUtil.resolveKey("warhead.inc");
 		case CLUSTER:
-			return TextFormatting.GRAY + "Cluster";
+			return TextFormatting.GRAY + I18nUtil.resolveKey("warhead.cluster");
 		case BUSTER:
-			return TextFormatting.WHITE + "Bunker Buster";
+			return TextFormatting.WHITE + I18nUtil.resolveKey("warhead.buster");
 		case NUCLEAR:
-			return TextFormatting.DARK_GREEN + "Nuclear";
+			return TextFormatting.DARK_GREEN + I18nUtil.resolveKey("warhead.nuclear");
 		case TX:
-			return TextFormatting.DARK_PURPLE + "Thermonuclear (TX)";
+			return TextFormatting.DARK_PURPLE + I18nUtil.resolveKey("warhead.tx");
 		case N2:
-			return TextFormatting.RED + "N²";
+			return TextFormatting.RED + I18nUtil.resolveKey("warhead.n2");
 		case BALEFIRE:
-			return TextFormatting.GREEN + "BF";
+			return TextFormatting.GREEN + I18nUtil.resolveKey("warhead.balefire");
 		case SCHRAB:
-			return TextFormatting.AQUA + "Schrabidium";
+			return TextFormatting.AQUA + I18nUtil.resolveKey("warhead.schrab");
 		case TAINT:
-			return TextFormatting.DARK_PURPLE + "Taint";
+			return TextFormatting.DARK_PURPLE + I18nUtil.resolveKey("warhead.taint");
 		case CLOUD:
-			return TextFormatting.LIGHT_PURPLE + "Cloud";
+			return TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("warhead.cloud");
 		case VOLCANO:
-			return TextFormatting.DARK_RED + "Volcano";
+			return TextFormatting.DARK_RED + I18nUtil.resolveKey("warhead.volcano");
 		case MIRV:
-			return TextFormatting.DARK_PURPLE + "MIRV";
+			return TextFormatting.DARK_PURPLE + I18nUtil.resolveKey("warhead.mirv");
 		default:
-			return TextFormatting.BOLD + "N/A";
+			return TextFormatting.BOLD + I18nUtil.resolveKey("desc.na");
 		}
 	}
 	
@@ -286,17 +287,17 @@ public class ItemMissile extends Item {
 		
 		switch(type) {
 		case KEROSENE:
-			return TextFormatting.LIGHT_PURPLE + "Kerosene / Peroxide";
+			return TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("fuel.kerosene");
 		case SOLID:
-			return TextFormatting.GOLD + "Solid Fuel";
+			return TextFormatting.GOLD + I18nUtil.resolveKey("fuel.solid");
 		case HYDROGEN:
-			return TextFormatting.DARK_AQUA + "Hydrogen / Oxygen";
+			return TextFormatting.DARK_AQUA + I18nUtil.resolveKey("fuel.hydrogen");
 		case XENON:
-			return TextFormatting.DARK_PURPLE + "Xenon Gas";
+			return TextFormatting.DARK_PURPLE + I18nUtil.resolveKey("fuel.xenon");
 		case BALEFIRE:
-			return TextFormatting.GREEN + "BF Rocket Fuel / Peroxide";
+			return TextFormatting.GREEN + I18nUtil.resolveKey("fuel.balefire");
 		default:
-			return TextFormatting.BOLD + "N/A";
+			return TextFormatting.BOLD + I18nUtil.resolveKey("desc.na");
 		}
 	}
 	

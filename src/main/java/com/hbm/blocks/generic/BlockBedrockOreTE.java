@@ -51,32 +51,29 @@ public class BlockBedrockOreTE extends BlockContainer implements ILookOverlay {
 	public void printHook(Pre event, World world, int x, int y, int z) {
 		
 		TileEntity te = world.getTileEntity(new BlockPos(x, y, z));
-		
+
 		if(!(te instanceof TileEntityBedrockOre))
 			return;
 		
 		TileEntityBedrockOre ore = (TileEntityBedrockOre) te;
 
 		List<String> text = new ArrayList();
-		text.add("Ore: "+BedrockOreRegistry.getOreName(ore.oreName));
-		text.add("Tier: " + ore.tier);
+		text.add(I18nUtil.resolveKey("desc.ore")+" "+(I18nUtil.resolveKey("desc.bedrock_ore."+BedrockOreRegistry.getOreName(ore.oreName))));
+		text.add(I18nUtil.resolveKey("desc.tier")+" " + ore.tier);
 		
 		if(ore.acidRequirement != null) {
-			text.add("Requires: " + ore.acidRequirement.amount + "mB " + ore.acidRequirement.getFluid().getLocalizedName(ore.acidRequirement));
+			text.add(I18nUtil.resolveKey("desc.requires")+" " + ore.acidRequirement.amount + "mB " + ore.acidRequirement.getFluid().getLocalizedName(ore.acidRequirement));
 		}
 		
 		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
 	}
-	
+
 	public static class TileEntityBedrockOre extends TileEntity {
-		
+
 		public String oreName;
 		public int color;
 		public int tier;
 		public FluidStack acidRequirement;
-		
-		public TileEntityBedrockOre() {
-		}
 
 		public TileEntityBedrockOre(String oreName) {
 			this.oreName = oreName;
@@ -93,6 +90,7 @@ public class BlockBedrockOreTE extends BlockContainer implements ILookOverlay {
 			this.markDirty();
 			return this;
 		}
+
 		
 		@Override
 		public void readFromNBT(NBTTagCompound nbt) {

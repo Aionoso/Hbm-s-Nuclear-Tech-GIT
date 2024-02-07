@@ -96,12 +96,7 @@ public class ControlEvent {
 		register(new ControlEvent("lever_toggle").setVar("isOn", false));
 		register(new ControlEvent("spinny_light_power").setVar("isOn", false));
 		register(new ControlEvent("siren_set_state").setVar("isOn", false));
-		register(new ControlEvent("tank_set_mode").setVar("mode", 0));
-		register(new ControlEvent("rbmk_ctrl_set_color").setVar("color", 0));
-		register(new ControlEvent("rbmk_ctrl_set_level").setVar("level", 0));
-		register(new ControlEvent("rbmk_crane_move").setVar("up", 0).setVar("down", 0).setVar("left", 0).setVar("right", 0));
-		register(new ControlEvent("rbmk_crane_load"));
-		register(new ControlEvent("ctrl_press").setVar("isSneaking", false));
+		register(new ControlEvent("ctrl_button_press"));
 		register(new ControlEvent("initialize"));
 	}
 }

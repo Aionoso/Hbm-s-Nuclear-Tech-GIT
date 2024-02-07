@@ -5,10 +5,8 @@ public enum NodeType {
 	INPUT(new float[]{0, 1, 0}),
 	//Intermediate node for math. Has a drop down menu for operations like add, multiply, sin, abs, etc.
 	MATH(new float[]{1, 1, 0}),
-	//for boolean functions: and, not, xor etc.
-	BOOLEAN(new float[]{1, 0, 1}),
 	//Intermediate nodes for logic such as for loops and if statements. Each contains child node systems, which possibly produce outputs.
-	LOGIC(new float[]{.4F, .4F, 1}),
+	LOGIC(new float[]{0, 0, 1}),
 	//The outputs that get evaluated, such as broadcasting a new event or setting an arbitrary variable
 	OUTPUT(new float[]{1, 0, 0});
 	

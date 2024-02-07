@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.handler.jei.JeiRecipes.HadronRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IDrawableAnimated;
@@ -40,7 +41,7 @@ public static final ResourceLocation gui_rl = new ResourceLocation(RefStrings.MO
 
 	@Override
 	public String getTitle() {
-		return "Particle Accelerator";
+		return I18nUtil.resolveKey("container.hadron");
 	}
 
 	@Override

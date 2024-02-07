@@ -44,24 +44,8 @@ public class BedrockOreJsonConfig {
 	}
 
 	public static void setDefaults() {
-		addEntry(0, 30, Arrays.asList(
-			"orePlutonium", 
-			"oreQuartz", 
-			"oreInfernalCoal", 
-			"oreRedPhosphorus", 
-			"oreSchrabidium", 
-			"oreNeodymium", 
-			"oreNitanium"
-		), false);
-		addEntry(-1, 60, Arrays.asList(
-			"orePlutonium", 
-			"oreQuartz", 
-			"oreInfernalCoal", 
-			"oreRedPhosphorus", 
-			"oreSchrabidium", 
-			"oreNeodymium", 
-			"oreNitanium"
-		), true);
+		addEntry(0, 30, Arrays.asList("orePlutonium", "oreQuartz", "oreInfernalCoal", "oreRedPhosphorus", "oreSchrabidium", "oreNeodymium", "oreNitanium"), false);
+		addEntry(-1, 60, Arrays.asList("orePlutonium", "oreQuartz", "oreInfernalCoal", "oreRedPhosphorus", "oreSchrabidium", "oreNeodymium", "oreNitanium"), true);
 	}
 
 	public static void addEntry(int dimID, int rarity, List<String> ores, Boolean isWhiteList){

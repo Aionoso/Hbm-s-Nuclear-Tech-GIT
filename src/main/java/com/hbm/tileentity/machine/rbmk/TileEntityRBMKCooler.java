@@ -1,8 +1,5 @@
 package com.hbm.tileentity.machine.rbmk;
 
-import com.hbm.inventory.control_panel.ControlEvent;
-import com.hbm.inventory.control_panel.DataValue;
-import com.hbm.inventory.control_panel.DataValueFloat;
 import com.hbm.lib.Library;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -17,7 +14,6 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
@@ -26,9 +22,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.common.capabilities.Capability;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class TileEntityRBMKCooler extends TileEntityRBMKBase implements IFluidHandler, ITankPacketAcceptor {
 
@@ -196,16 +190,4 @@ public class TileEntityRBMKCooler extends TileEntityRBMKBase implements IFluidHa
 			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
 		return super.getCapability(capability, facing);
 	}
-
-	// control panel
-
-	@Override
-	public Map<String, DataValue> getQueryData() {
-		Map<String, DataValue> data = super.getQueryData();
-
-		data.put("coolant", new DataValueFloat(tank.getFluidAmount()));
-
-		return data;
-	}
-
 }

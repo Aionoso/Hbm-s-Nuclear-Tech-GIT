@@ -30,6 +30,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
@@ -63,7 +64,7 @@ public class BlockFluidPipeMk2 extends BlockContainer implements IToolable, ILoo
 	
 	@Override
 	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		tooltip.add("Right click with screwdriver to toggle extraction");
+		tooltip.add(I18nUtil.resolveKey("desc.extraction"));
 	}
 	
 	@Override
@@ -236,7 +237,7 @@ public class BlockFluidPipeMk2 extends BlockContainer implements IToolable, ILoo
 		
 		List<String> text = new ArrayList();
 		if(ductFluid == null){
-			text.add("§7None");
+			text.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.none"));
 		} else{
 			int color = ModForgeFluids.getFluidColor(ductFluid);
 			text.add("&[" + color + "&]" +I18nUtil.resolveKey(ductFluid.getUnlocalizedName()));

@@ -1,0 +1,6 @@
+# Made in Blockbench 4.9.3
+newmtl m_f3b9132b-3651-2704-8942-4a27662c81cb
+map_Kd hbm:blocks/conveyor_side
+newmtl m_957e10ff-6904-f724-abc6-e7ba0f73b574
+map_Kd hbm:blocks/conveyor_express
+newmtl none

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import com.hbm.util.I18nUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.Level;
 
@@ -761,6 +762,12 @@ public class ModEventHandler {
 		}
 
 		if(event.getEntity().getUniqueID().toString().equals(Library.Alcater)) {
+			if(event.getSource() instanceof EntityDamageSource){
+				if(((EntityDamageSource)event.getSource()).getImmediateSource() instanceof EntityLivingBase){
+					EntityLivingBase attacker = (EntityLivingBase) ((EntityDamageSource)event.getSource()).getImmediateSource();
+					ContaminationUtil.contaminate(attacker, HazardType.RADIATION, ContaminationType.CREATIVE, 690F);
+				}
+			}
 			event.getEntity().entityDropItem(new ItemStack(ModItems.bottle_rad).setStackDisplayName("§aAlcater's §2Neo §aNuka§r"), 0.5F);
 		}
 
@@ -1021,15 +1028,15 @@ public class ModEventHandler {
 			PacketDispatcher.sendTo(new KeybindPacket(EnumKeybind.TOGGLE_JETPACK, props.getEnableBackpack()), playerMP);
 
 			if (GeneralConfig.enableWelcomeMessage) {
-				e.player.sendMessage(new TextComponentTranslation("§3Welcome back§r"));
+				e.player.sendMessage(new TextComponentTranslation(TextFormatting.DARK_AQUA + I18nUtil.resolveKey("chat.welcome")+"§r"));
 			}
 
 			if(HTTPHandler.newVersion && GeneralConfig.changelog) {
-				e.player.sendMessage(new TextComponentString("§aNew§e version §3" + HTTPHandler.versionNumber + "§e is available§r"));
-				e.player.sendMessage(new TextComponentString("§ePlaying on version §7" + RefStrings.VERSION + "§e right now§r"));
+				e.player.sendMessage(new TextComponentString(TextFormatting.GREEN + I18nUtil.resolveKey("chat.newver1") + TextFormatting.YELLOW + I18nUtil.resolveKey("chat.newver2") + "§3" + HTTPHandler.versionNumber + TextFormatting.YELLOW + I18nUtil.resolveKey("chat.newver3")+"§r"));
+				e.player.sendMessage(new TextComponentString(TextFormatting.YELLOW + I18nUtil.resolveKey("chat.curver1") +"§7" + RefStrings.VERSION + TextFormatting.YELLOW + I18nUtil.resolveKey("chat.curver2")+"§r"));
 				if(HTTPHandler.changes != ""){
 					String[] lines = HTTPHandler.changes.split("\\$");
-					e.player.sendMessage(new TextComponentString("§6[New Features]§r"));//RefStrings.CHANGELOG
+					e.player.sendMessage(new TextComponentString(TextFormatting.GOLD + "["+I18nUtil.resolveKey("chat.newfeat")+"]"+"§r"));//RefStrings.CHANGELOG
 					for(String w: lines){
 						e.player.sendMessage(new TextComponentString(w));//RefStrings.CHANGELOG
 					}
@@ -1041,7 +1048,7 @@ public class ModEventHandler {
 			}
 			if(GeneralConfig.duckButton){
 				if(e.player instanceof EntityPlayerMP && !e.player.getEntityData().getCompoundTag(EntityPlayer.PERSISTED_NBT_TAG).getBoolean("hasDucked")){
-	        		PacketDispatcher.sendTo(new PlayerInformPacket("Press O to Duck!"), (EntityPlayerMP)e.player);
+	        		PacketDispatcher.sendTo(new PlayerInformPacket(I18nUtil.resolveKey("chat.duck")), (EntityPlayerMP)e.player);
 				}
 	        }
 		}

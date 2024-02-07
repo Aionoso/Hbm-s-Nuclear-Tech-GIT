@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.hbm.items.ModItems;
+import com.hbm.util.I18nUtil;
 import com.hbm.world.FWatz;
 import com.hbm.world.FactoryAdvanced;
 import com.hbm.world.FactoryTitanium;
@@ -35,7 +36,7 @@ public class ItemWandS extends Item {
 	
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		tooltip.add("Creative-only item");
+		tooltip.add(I18nUtil.resolveKey("desc.creative"));
 		tooltip.add("\"Instant structures for everyone!\"");
 		tooltip.add("(Cycle with shift-right click,");
 		tooltip.add("spawn structures with right click!)");

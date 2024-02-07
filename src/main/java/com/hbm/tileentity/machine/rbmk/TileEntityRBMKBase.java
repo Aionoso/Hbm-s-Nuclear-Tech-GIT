@@ -1,8 +1,11 @@
 package com.hbm.tileentity.machine.rbmk;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import com.hbm.inventory.control_panel.*;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.blocks.ModBlocks;
@@ -11,7 +14,6 @@ import com.hbm.entity.effect.EntitySpear;
 import com.hbm.entity.projectile.EntityRBMKDebris;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
 import com.hbm.items.machine.ItemRBMKRod;
-import com.hbm.config.MachineConfig;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.main.MainRegistry;
@@ -46,7 +48,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacketReceiver, ITickable, IControllable {
+public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacketReceiver, ITickable {
 
 	public static int rbmkHeight = 4;
 	
@@ -54,6 +56,7 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 	public double jumpheight = 0.0D;
 	public float downwardSpeed = 0.0F;
 	public boolean falling = false;
+	public static final int jumpTemp = 1000;
 	public static final byte gravity = 5; //in blocks per s^2
 	
 	public int water;
@@ -118,14 +121,14 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 	}
 
 	private void jump(){
-		if(this.heat <= MachineConfig.rbmkJumpTemp && !falling)
+		if(this.heat <= jumpTemp && !falling)
 			return;
 
 		if(!falling){ // linear rise
-			if(this.heat > MachineConfig.rbmkJumpTemp){
-				if(this.jumpheight > 0 || world.rand.nextInt((int)(25D*maxHeat()/(this.heat-MachineConfig.rbmkJumpTemp+200D))) == 0){
-					double change = (this.heat-MachineConfig.rbmkJumpTemp)*0.0002D;
-					double heightLimit = (this.heat-MachineConfig.rbmkJumpTemp)*0.002D;
+			if(this.heat > jumpTemp){
+				if(this.jumpheight > 0 || world.rand.nextInt((int)(25D*maxHeat()/(this.heat-jumpTemp+200D))) == 0){
+					double change = (this.heat-jumpTemp)*0.0002D;
+					double heightLimit = (this.heat-jumpTemp)*0.002D;
 
 					this.jumpheight = this.jumpheight + change;
 					
@@ -556,40 +559,4 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 	public AxisAlignedBB getRenderBoundingBox() {
 		return new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 17, pos.getZ() + 1);
 	}
-
-	// control panel
-
-	@Override
-	public Map<String, DataValue> getQueryData() {
-		Map<String, DataValue> data = new HashMap<>();
-
-		data.put("heat", new DataValueFloat((float) heat));
-		data.put("RSIM_feed", new DataValueFloat(water));
-		data.put("RSIM_steam", new DataValueFloat(steam));
-
-		return data;
-	}
-
-	@Override
-	public void validate() {
-		super.validate();
-		ControlEventSystem.get(world).addControllable(this);
-	}
-
-	@Override
-	public void invalidate() {
-		super.invalidate();
-		ControlEventSystem.get(world).removeControllable(this);
-	}
-
-	@Override
-	public BlockPos getControlPos() {
-		return getPos();
-	}
-
-	@Override
-	public World getControlWorld() {
-		return getWorld();
-	}
-
 }

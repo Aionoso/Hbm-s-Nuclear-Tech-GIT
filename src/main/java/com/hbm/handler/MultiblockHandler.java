@@ -1,25 +1,15 @@
 package com.hbm.handler;
 
 import com.hbm.interfaces.IDummy;
-import com.hbm.main.MainRegistry;
-import com.hbm.packet.NBTPacket;
-import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.machine.TileEntityDummy;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 public class MultiblockHandler {
 
@@ -138,7 +128,8 @@ public class MultiblockHandler {
 			for(int b = y - i[3]; b <= y + i[2]; b++) {
 				for(int c = z - i[5]; c <= z + i[4]; c++) {
 					if(!(a == x && b == y && c == z)) {
-						world.setBlockState(replace.setPos(a, b, c), block.getDefaultState());
+						if(!world.isRemote)
+							world.setBlockState(replace.setPos(a, b, c), block.getDefaultState());
 						TileEntity te = world.getTileEntity(replace.setPos(a, b, c));
 						if(te instanceof TileEntityDummy) {
 							TileEntityDummy dummy = (TileEntityDummy)te;

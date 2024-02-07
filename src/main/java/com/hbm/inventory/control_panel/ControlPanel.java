@@ -1,14 +1,12 @@
 package com.hbm.inventory.control_panel;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
-import com.hbm.main.MainRegistry;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
 import com.hbm.packet.ControlPanelUpdatePacket.VarUpdate;
@@ -29,30 +27,20 @@ public class ControlPanel {
 	//Variables that were changed in the last tick
 	public List<VarUpdate> changedVars = new ArrayList<>();
 	//Global variables, accessible by every control as well as the owner tile entity for state like redstone
-	public Map<String, DataValue> globalVars = new LinkedHashMap<>();
-	public Map<String, DataValue> globalVarsPrev = new LinkedHashMap<>();
+	public Map<String, DataValue> globalVars = new HashMap<>();
+	public Map<String, DataValue> globalVarsPrev = new HashMap<>();
 	//Client only transform for getting from panel local space to block space. Used for both rendering and figuring out which control a player clicks
 	@SideOnly(Side.CLIENT)
 	public Matrix4f transform;
 	@SideOnly(Side.CLIENT)
 	public Matrix4f inv_transform;
-
+	public float width;
 	public float height;
-	public float angle; // RADIANS
-	public float a_off;
-	public float b_off;
-	public float c_off;
-	public float d_off;
 
-	public ControlPanel(IControllable parent, float height, float angle, float a_off, float b_off, float c_off, float d_off) {
+	public ControlPanel(IControllable parent, float width, float height){
 		this.parent = parent;
+		this.width = width;
 		this.height = height;
-		this.angle = angle;
-		this.a_off = a_off;
-		this.b_off = b_off;
-		this.c_off = c_off;
-		this.d_off = d_off;
-
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -65,12 +53,7 @@ public class ControlPanel {
 
 	public void render(){
 		for(Control c : controls) {
-			float width = c.getSize()[0];
-			float length = c.getSize()[1];
-			GlStateManager.pushMatrix();
-				GlStateManager.translate(((width>1?Math.abs(1-width)/2:(width-1)/2)), 0, ((length>1)? Math.abs(1-length)/2 : (length-1)/2));
-				c.render();
-			GlStateManager.popMatrix();
+			c.render();
 		}
 	}
 
@@ -91,10 +74,10 @@ public class ControlPanel {
 				changedVars.add(new VarUpdate(idx, s, vars.get(s)));
 			}
 		}
-		for(String s : varsPrev.keySet()) {
+		for(String s : varsPrev.keySet()){
 			if(!vars.containsKey(s)){
-				changedVars.add(new VarUpdate(idx, s, null));
-			} else if(!varsPrev.get(s).equals(vars.get(s))){
+				changedVars.add(new VarUpdate(idx, null, null));
+			} else if(varsPrev.get(s).equals(vars.get(s))){
 				changedVars.add(new VarUpdate(idx, s, vars.get(s)));
 			}
 		}
@@ -115,12 +98,6 @@ public class ControlPanel {
 		
 		nbt.setTag("globalvars", globalVars);
 		nbt.setTag("controls", controls);
-		nbt.setFloat("height", height);
-		nbt.setFloat("angle", angle);
-		nbt.setFloat("a_offset", a_off);
-		nbt.setFloat("b_offset", b_off);
-		nbt.setFloat("c_offset", c_off);
-		nbt.setFloat("d_offset", d_off);
 		return nbt;
 	}
 
@@ -135,29 +112,15 @@ public class ControlPanel {
 				this.globalVars.put(k, val);
 			}
 		}
-
+		
 		NBTTagCompound controls = tag.getCompoundTag("controls");
 		for(int i = 0; i < controls.getKeySet().size(); i ++){
 			NBTTagCompound ct = controls.getCompoundTag("control" + i);
 			Control c = ControlRegistry.getNew(ct.getString("name"), this);
-
-			Map<String, DataValue> configs = new HashMap<>();
-			NBTTagCompound config_tag = ct.getCompoundTag("configs");
-			for (String s : config_tag.getKeySet()) {
-				configs.put(s, DataValue.newFromNBT(config_tag.getTag(s)));
-			}
-			c.applyConfigs(configs);
-
 			this.controls.add(c);
 			c.readFromNBT(ct);
 		}
-
-		height = tag.getFloat("height");
-		angle = tag.getFloat("angle");
-		a_off = tag.getFloat("a_offset");
-		b_off = tag.getFloat("b_offset");
-		c_off = tag.getFloat("c_offset");
-		d_off = tag.getFloat("d_offset");
+		
 	}
 
 	public void receiveEvent(BlockPos from, ControlEvent evt){
@@ -168,6 +131,12 @@ public class ControlPanel {
 				c.receiveEvent(evt);
 			}
 		}
+	}
+
+	public float[] getBox(){
+		float wHalf = width * 0.5F;
+		float hHalf = height * 0.5F;
+		return new float[] { -wHalf, -hHalf, wHalf, hHalf };
 	}
 
 	public DataValue getVar(String name){
@@ -188,25 +157,16 @@ public class ControlPanel {
 		double dist = Double.MAX_VALUE;
 		Control ctrl = null;
 		for(Control c : controls) {
-			if (c.getBoundingBox() != null) {
-				RayTraceResult r = c.getBoundingBox().calculateIntercept(start, end);
+			RayTraceResult r = c.getBoundingBox().calculateIntercept(start, end);
 
-				if (r != null && r.typeOfHit != Type.MISS) {
-					double newDist = r.hitVec.squareDistanceTo(start);
-					if (newDist < dist) {
-						dist = newDist;
-						ctrl = c;
-					}
+			if(r != null && r.typeOfHit != Type.MISS) {
+				double newDist = r.hitVec.squareDistanceTo(start);
+				if(newDist < dist) {
+					dist = newDist;
+					ctrl = c;
 				}
 			}
 		}
 		return ctrl;
 	}
-
-	public static float getSlopeHeightFromZ(float z, float height, float angle) {
-		double halfH = 0.5 * Math.tan(angle);
-
-		return (float) ((height - halfH) + Math.tan(angle) * z);
-	}
-
 }

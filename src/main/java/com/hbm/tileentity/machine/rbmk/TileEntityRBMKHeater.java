@@ -1,10 +1,6 @@
 package com.hbm.tileentity.machine.rbmk;
 
 import com.hbm.blocks.ModBlocks;
-import com.hbm.inventory.control_panel.ControlEvent;
-import com.hbm.inventory.control_panel.DataValue;
-import com.hbm.inventory.control_panel.DataValueFloat;
-import com.hbm.inventory.control_panel.DataValueString;
 import com.hbm.items.ModItems;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.items.machine.ItemForgeFluidIdentifier;
@@ -36,9 +32,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class TileEntityRBMKHeater extends TileEntityRBMKSlottedBase implements IFluidHandler, ITankPacketAcceptor {
 
@@ -266,19 +260,4 @@ public class TileEntityRBMKHeater extends TileEntityRBMKSlottedBase implements I
 			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
 		return super.getCapability(capability, facing);
 	}
-
-	// control panel
-
-	@Override
-	public Map<String, DataValue> getQueryData() {
-		Map<String, DataValue> data = super.getQueryData();
-
-		data.put("t0_fluidType", new DataValueString(tankTypes[0].getName()));
-		data.put("t0_fluidAmount", new DataValueFloat((float) tanks[0].getFluidAmount()));
-		data.put("t1_fluidType", new DataValueString(tankTypes[1].getName()));
-		data.put("t1_fluidAmount", new DataValueFloat((float) tanks[1].getFluidAmount()));
-
-		return data;
-	}
-
 }

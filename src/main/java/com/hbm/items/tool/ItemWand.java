@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.hbm.items.ModItems;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.util.ITooltipFlag;
@@ -18,6 +19,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 public class ItemWand extends Item {
@@ -31,7 +33,7 @@ public class ItemWand extends Item {
 	
 	@Override
 	public void addInformation(ItemStack itemstack, World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.add("Creative-only item");
+		list.add(I18nUtil.resolveKey("desc.creative"));
 		list.add("\"Destruction brings creation\"");
 		list.add("(Set positions with right click,");
 		list.add("set block with shift-right click!)");

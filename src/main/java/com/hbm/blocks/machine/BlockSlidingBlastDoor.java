@@ -13,6 +13,7 @@ import com.hbm.lib.ForgeDirection;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.TileEntitySlidingBlastDoorKeypad;
 import com.hbm.tileentity.machine.TileEntitySlidingBlastDoor;
+import com.hbm.util.I18nUtil;
 import com.hbm.util.KeypadClient;
 
 import net.minecraft.block.material.Material;
@@ -26,6 +27,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -48,16 +50,16 @@ public class BlockSlidingBlastDoor extends BlockDummyable implements IRadResista
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
+	public void addInformation(ItemStack stack, World player, List<String> list, ITooltipFlag advanced) {
 		float hardness = this.getExplosionResistance(null);
-		tooltip.add("§2[Radiation Shielding]§r");
+		list.add(TextFormatting.DARK_GREEN + "[" + I18nUtil.resolveKey("trait.radshield") + "]");
 		if(hardness > 50){
-			tooltip.add("§6Blast Resistance: "+hardness+"§r");
+			list.add(TextFormatting.GOLD + I18nUtil.resolveKey("trait.blastres") + " " + hardness);
 		}
 		if(this == ModBlocks.sliding_blast_door){
-			tooltip.add("Variant: Window");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.varwin") + " " + hardness);
 		} else if(this == ModBlocks.sliding_blast_door_2){
-			tooltip.add("Variant: Keypad");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.varkey") + " " + hardness);
 		}
 	}
 	

@@ -1509,38 +1509,22 @@ public class ItemRenderLibrary {
 				bindTexture(ResourceManager.fel_tex); ResourceManager.fel.renderAll();
 				GlStateManager.shadeModel(GL11.GL_FLAT);
 			}});
-		renderers.put(Item.getItemFromBlock(ModBlocks.control_panel_custom), new ItemRenderBase() {
+		renderers.put(Item.getItemFromBlock(ModBlocks.control0), new ItemRenderBase() {
 			public void renderInventory() {
 				GL11.glTranslated(-2.5, -1, 0);
 				GL11.glScaled(12, 12, 12);
 			}
 			public void renderCommon() {
 				GL11.glTranslated(1.5, 1, -1);
-				bindTexture(ResourceManager.control_panel_custom_tex);
+				bindTexture(ResourceManager.control_panel0_tex);
 				GlStateManager.shadeModel(GL11.GL_SMOOTH);
-				ResourceManager.control_panel_custom.renderAll();
+				ResourceManager.control_panel0.renderAll();
 				GlStateManager.shadeModel(GL11.GL_FLAT);
 			}
 			public boolean doNullTransform(){
 				return true;
 			}
 		});
-//		renderers.put(Item.getItemFromBlock(ModBlocks.control_panel_front), new ItemRenderBase() {
-//			public void renderInventory() {
-//				GL11.glTranslated(-1, -2, 0);
-//				GL11.glScaled(5, 5, 5);
-//			}
-//			public void renderCommon() {
-//				GL11.glTranslated(1.5, .5, -1);
-//				bindTexture(ResourceManager.white);
-//				GlStateManager.shadeModel(GL11.GL_SMOOTH);
-//				ResourceManager.control_panel_front.renderAll();
-//				GlStateManager.shadeModel(GL11.GL_FLAT);
-//			}
-//			public boolean doNullTransform(){
-//				return true;
-//			}
-//		});
 		renderers.put(Item.getItemFromBlock(ModBlocks.large_vehicle_door), new ItemRenderBase(){
 			public void renderInventory() {
 				GL11.glTranslated(0, -4, 0);

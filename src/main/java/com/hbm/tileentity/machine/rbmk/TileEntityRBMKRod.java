@@ -1,18 +1,12 @@
 package com.hbm.tileentity.machine.rbmk;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import com.hbm.config.MobConfig;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.machine.rbmk.RBMKBase;
 import com.hbm.blocks.machine.rbmk.RBMKRod;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
-import com.hbm.inventory.control_panel.ControlEvent;
-import com.hbm.inventory.control_panel.DataValue;
-import com.hbm.inventory.control_panel.DataValueFloat;
-import com.hbm.inventory.control_panel.DataValueString;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemRBMKRod;
 import com.hbm.lib.ForgeDirection;
@@ -415,26 +409,4 @@ public class TileEntityRBMKRod extends TileEntityRBMKSlottedBase implements IRBM
 		inventory.setStackInSlot(0, ItemStack.EMPTY);
 		this.markDirty();
 	}
-
-	// control panel
-
-	@Override
-	public Map<String, DataValue> getQueryData() {
-		Map<String, DataValue> data = super.getQueryData();
-
-		if (inventory.getStackInSlot(0).getItem() instanceof ItemRBMKRod) {
-			ItemRBMKRod rod = ((ItemRBMKRod)inventory.getStackInSlot(0).getItem());
-			data.put("rod_name", new DataValueString(rod.getUnlocalizedName()));
-			data.put("enrichment", new DataValueFloat((float) ItemRBMKRod.getEnrichment(inventory.getStackInSlot(0))));
-			data.put("xenon", new DataValueFloat((float) ItemRBMKRod.getPoison(inventory.getStackInSlot(0))));
-			data.put("c_heat", new DataValueFloat((float) ItemRBMKRod.getHullHeat(inventory.getStackInSlot(0))));
-			data.put("c_coreHeat", new DataValueFloat((float) ItemRBMKRod.getCoreHeat(inventory.getStackInSlot(0))));
-			data.put("c_maxHeat", new DataValueFloat((float) rod.meltingPoint));
-			data.put("meltdown", new DataValueFloat((float) ItemRBMKRod.getMeltdownPercent(inventory.getStackInSlot(0))));
-		}
-		data.put("flux", new DataValueFloat((float) this.fluxOut));
-
-		return data;
-	}
-
 }

@@ -7,6 +7,7 @@ import com.hbm.items.ModItems;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
 import com.hbm.main.MainRegistry;
+import com.hbm.util.I18nUtil;
 
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
@@ -22,6 +23,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 public class ItemBombCaller extends Item {
@@ -37,32 +39,32 @@ public class ItemBombCaller extends Item {
 
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.add("Aim & click to call an airstrike!");
+		list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.airstrike"));
 
 		switch (getTypeFromStack(stack)) {
 		case CARPET:
-			list.add("Type: Carpet bombing");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.YELLOW + I18nUtil.resolveKey("type.carpet"));
 			break;
 		case NAPALM:
-			list.add("Type: Napalm");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.GOLD + I18nUtil.resolveKey("type.napalm"));
 			break;
 		case POISON:
-			list.add("Type: Poison gas");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.GREEN + I18nUtil.resolveKey("type.poison"));
 			break;
 		case ORANGE:
-			list.add("Type: Agent orange");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.GOLD + I18nUtil.resolveKey("type.orange"));
 			break;
 		case ATOMIC:
-			list.add("Type: Atomic bomb");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.DARK_RED + TextFormatting.BOLD + I18nUtil.resolveKey("type.atomic"));
 			break;
 		case STINGER:
-			list.add("Type: VT stinger rockets");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.AQUA + I18nUtil.resolveKey("type.stinger"));
 			break;
 		case PIP:
-			list.add("Type: PIP OH GOD");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.AQUA + I18nUtil.resolveKey("type.pip"));
 			break;
 		case CLOUD:
-			list.add("Type: Cloud the cloud oh god the cloud");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("desc.type") + " " + TextFormatting.AQUA + I18nUtil.resolveKey("type.cloud"));
 			break;
 		default:
 			break;
@@ -117,7 +119,7 @@ public class ItemBombCaller extends Item {
 				break;
 			}
 			if (b) {
-				playerIn.sendMessage(new TextComponentTranslation("Called in airstrike!"));
+				playerIn.sendMessage(new TextComponentTranslation("chat.callas"));
 				if (!playerIn.capabilities.isCreativeMode)
 					stack.shrink(1);
 			}

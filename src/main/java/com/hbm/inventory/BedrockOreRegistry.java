@@ -16,7 +16,6 @@ import net.minecraft.init.Items;
 import net.minecraft.init.Blocks;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.util.WeightedRandom;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.fluids.FluidStack;
@@ -30,7 +29,6 @@ public class BedrockOreRegistry {
 
 	public static HashMap<String, String> oreResults = new HashMap();
 	public static HashMap<String, Integer> oreColors = new HashMap();
-	public static HashMap<String, String> oreNames = new HashMap();
 	public static HashMap<String, Integer> oreTiers = new HashMap();
 	
 	public static HashMap<Integer, List<WeightedRandomObject>> oreCasino = new HashMap();
@@ -40,19 +38,10 @@ public class BedrockOreRegistry {
 		fillOreCasino();
 	}
 
-	public static boolean is3DBlock(String ore){
-		boolean isBlock = false;
-		for(ItemStack item: OreDictionary.getOres(ore))
-			isBlock |= item.getItem() instanceof ItemBlock;
-			if(isBlock) return true;
-		return false;
-	}
-
 	public static void collectBedrockOres(){
 		int index = 0;
 		for(String oreName : OreDictionary.getOreNames()){
-			if(oreName.startsWith("ore") && is3DBlock(oreName)){
-
+			if(oreName.startsWith("ore")){
 				String resourceName = oreName.substring(3);
 				
 				String oreGem = "gem"+resourceName;
@@ -82,7 +71,6 @@ public class BedrockOreRegistry {
 					index++;
 					oreResults.put(oreName, oreIngot);
 					oreTiers.put(oreName, Math.max(1, 1+getDirectOreTier(oreName)));
-					continue;
 				}
 			}
 		}
@@ -158,7 +146,7 @@ public class BedrockOreRegistry {
 	}
 
 	public static String getOreName(String oreName){
-		return oreName.substring(3).replaceAll("([A-Z])", " $1").trim();
+		return oreName.substring(3).replaceAll("([A-Z])", "$1").trim();
 	}
 
 	public static void registerOreColors(){
@@ -183,6 +171,7 @@ public class BedrockOreRegistry {
 			}
 		}
 	}
+
 
 	public static int getOreScanColor(String ore){
 		Integer x = oreScanColors.get(ore);

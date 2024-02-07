@@ -6,7 +6,6 @@ import net.minecraft.nbt.NBTTagCompound;
 
 public class NodeElement {
 
-	public String name = "default";
 	public Node parent;
 	public int index;
 	public float offsetX;
@@ -17,14 +16,7 @@ public class NodeElement {
 		this.index = idx;
 		resetOffset();
 	}
-
-	public NodeElement(String name, Node parent, int idx){
-		this.name = name;
-		this.parent = parent;
-		this.index = idx;
-		resetOffset();
-	}
-
+	
 	public void render(float mX, float mY){
 	}
 	

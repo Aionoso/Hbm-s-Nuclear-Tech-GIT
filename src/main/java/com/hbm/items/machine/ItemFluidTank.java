@@ -117,7 +117,7 @@ public class ItemFluidTank extends Item implements IHasCustomModel {
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
 		
 		FluidStack f = FluidUtil.getFluidContained(stack);
-		String s = (f == null ? "0" : f.amount) + "/" + cap + " mB";
+		String s = (f == null ? "0" : f.amount) + "/" + cap + " mb";
 		if(stack.getCount() > 1)
 			s = stack.getCount() + "x " + s;
 		list.add(s);

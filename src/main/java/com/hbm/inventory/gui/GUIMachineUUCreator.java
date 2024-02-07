@@ -62,9 +62,9 @@ public class GUIMachineUUCreator extends GuiInfoContainer {
 
 		String producedmb = "";
 		if(this.uu_creator.producedmb * 20 > 1000)
-			producedmb = Library.getShortNumber((long)this.uu_creator.producedmb * 20) + " mB/s";
+			producedmb = Library.getShortNumber((long)this.uu_creator.producedmb * 20) + " mb/s";
 		else
-			producedmb = this.uu_creator.producedmb * 20 + " mB/s";
+			producedmb = this.uu_creator.producedmb * 20 + " mb/s";
 
 		this.fontRenderer.drawString(producedmb, 123 - this.fontRenderer.getStringWidth(producedmb), 40, 0xE700FF);
 		

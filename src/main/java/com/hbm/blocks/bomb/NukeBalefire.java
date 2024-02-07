@@ -6,6 +6,7 @@ import com.hbm.blocks.machine.BlockMachineBase;
 import com.hbm.interfaces.IBomb;
 import com.hbm.tileentity.bomb.TileEntityNukeBalefire;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
@@ -14,6 +15,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -82,7 +84,7 @@ public class NukeBalefire extends BlockMachineBase implements IBomb {
 
 	@Override
 	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		tooltip.add("§a[Balefire Bomb]§r");
-		tooltip.add(" §eRadius: 250m§r");
+		tooltip.add(TextFormatting.GREEN+"["+ I18nUtil.resolveKey("trait.balefirebomb")+"]"+"§r");
+		tooltip.add(TextFormatting.YELLOW+I18nUtil.resolveKey("desc.radius")+" 250m§r");
 	}
 }

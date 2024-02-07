@@ -120,14 +120,14 @@ public class ItemAssemblyTemplate extends Item implements IHasCustomModel {
     	ItemStack output = out.toStack();
 
     	list.add("§l" + I18nUtil.resolveKey("info.template_out"));
-		list.add(" §a"+ output.getCount() + "x " + output.getDisplayName());
+		list.add("§a"+ output.getCount() + "x " + output.getDisplayName());
 		list.add("§l" + I18nUtil.resolveKey("info.template_in_p"));
 
 		for(Object o : in) {
 
 			if(o instanceof ComparableStack)  {
 				ItemStack input = ((ComparableStack)o).toStack();
-	    		list.add(" §c"+ input.getCount() + "x " + input.getDisplayName());
+	    		list.add("§c"+ input.getCount() + "x " + input.getDisplayName());
 
 			} else if(o instanceof OreDictStack)  {
 				OreDictStack input = (OreDictStack) o;
@@ -135,7 +135,7 @@ public class ItemAssemblyTemplate extends Item implements IHasCustomModel {
 
 				if(ores.size() > 0) {
 					ItemStack inStack = ores.get((int) (Math.abs(System.currentTimeMillis() / 1000) % ores.size()));
-		    		list.add(" §c"+ input.count() + "x " + inStack.getDisplayName());
+		    		list.add("§c"+ input.count() + "x " + inStack.getDisplayName());
 				} else {
 		    		list.add("I AM ERROR - No OrdDict match found for "+o.toString());
 				}
@@ -143,7 +143,7 @@ public class ItemAssemblyTemplate extends Item implements IHasCustomModel {
 		}
 
 		list.add("§l" + I18nUtil.resolveKey("info.template_time"));
-    	list.add(" §3" + Math.floor((float)(getProcessTime(stack)) / 20 * 100) / 100 + " " + I18nUtil.resolveKey("info.template_seconds"));
+    	list.add("§3" + Math.floor((float)(getProcessTime(stack)) / 20 * 100) / 100 + " " + I18nUtil.resolveKey("info.template_seconds"));
 	}
 
 	public static int getProcessTime(ItemStack stack) {

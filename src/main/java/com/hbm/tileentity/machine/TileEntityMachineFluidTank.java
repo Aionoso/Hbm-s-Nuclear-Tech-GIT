@@ -3,8 +3,6 @@ package com.hbm.tileentity.machine;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.ITankPacketAcceptor;
-import com.hbm.inventory.control_panel.*;
-import com.hbm.main.MainRegistry;
 import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
@@ -14,8 +12,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -27,11 +23,8 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
-import scala.actors.threadpool.Arrays;
 
-import java.util.*;
-
-public class TileEntityMachineFluidTank extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor, IControllable {
+public class TileEntityMachineFluidTank extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor {
 
 	public FluidTank tank;
 
@@ -104,9 +97,6 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 	@Override
 	public void handleButtonPacket(int value, int meta) {
 		mode = (short) ((mode + 1) % modes);
-		if (!world.isRemote) {
-			broadcastControlEvt();
-		}
 		markDirty();
 	}
 
@@ -220,65 +210,6 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 		} else {
 			return super.hasCapability(capability, facing);
 		}
-	}
-
-	// control panel
-
-	@Override
-	public Map<String, DataValue> getQueryData() {
-		Map<String, DataValue> data = new HashMap<>();
-
-		if (tank.getFluid() != null) {
-			data.put("t0_fluidType", new DataValueString(tank.getFluid().getLocalizedName()));
-		}
-		data.put("t0_fluidAmount", new DataValueFloat(tank.getFluidAmount()));
-		data.put("mode", new DataValueFloat(mode));
-
-		return data;
-	}
-
-	@Override
-	public void receiveEvent(BlockPos from, ControlEvent e) {
-		if (e.name.equals("tank_set_mode")) {
-			mode = (short) (e.vars.get("mode").getNumber() % modes);
-			broadcastControlEvt();
-		}
-	}
-
-	public void broadcastControlEvt() {
-		ControlEventSystem.get(world).broadcastToSubscribed(this, ControlEvent.newEvent("tank_set_mode").setVar("mode", new DataValueFloat(mode)));
-	}
-
-	@Override
-	public List<String> getInEvents() {
-		return Collections.singletonList("tank_set_mode");
-	}
-
-	@Override
-	public List<String> getOutEvents() {
-		return Collections.singletonList("tank_set_mode");
-	}
-
-	@Override
-	public void validate() {
-		super.validate();
-		ControlEventSystem.get(world).addControllable(this);
-	}
-
-	@Override
-	public void invalidate() {
-		super.invalidate();
-		ControlEventSystem.get(world).removeControllable(this);
-	}
-
-	@Override
-	public BlockPos getControlPos() {
-		return getPos();
-	}
-
-	@Override
-	public World getControlWorld() {
-		return getWorld();
 	}
 
 }

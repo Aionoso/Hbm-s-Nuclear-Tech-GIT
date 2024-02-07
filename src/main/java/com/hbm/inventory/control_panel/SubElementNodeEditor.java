@@ -1,13 +1,22 @@
 package com.hbm.inventory.control_panel;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.hbm.inventory.control_panel.nodes.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 
+import com.hbm.inventory.control_panel.nodes.Node;
+import com.hbm.inventory.control_panel.nodes.NodeCancelEvent;
+import com.hbm.inventory.control_panel.nodes.NodeEventBroadcast;
+import com.hbm.inventory.control_panel.nodes.NodeGetVar;
+import com.hbm.inventory.control_panel.nodes.NodeInput;
+import com.hbm.inventory.control_panel.nodes.NodeMath;
+import com.hbm.inventory.control_panel.nodes.NodeSetVar;
 import com.hbm.lib.RefStrings;
 import com.hbm.main.ClientProxy;
 import com.hbm.render.RenderHelper;
@@ -19,17 +28,14 @@ import net.minecraft.util.math.MathHelper;
 
 public class SubElementNodeEditor extends SubElement {
 
-	public static ResourceLocation texture = new ResourceLocation(RefStrings.MODID + ":textures/gui/control_panel/gui_placement_front.png");
+	public static ResourceLocation texture = new ResourceLocation(RefStrings.MODID + ":textures/gui/control_panel/gui_control_grid.png");
 	public static ResourceLocation grid = new ResourceLocation(RefStrings.MODID + ":textures/gui/control_panel/grid.png");
 	
-	public GuiButton btn_back;
-	public GuiButton btn_variables;
-
+	public GuiButton back;
+	
 	public ItemList addMenu;
 	
 	private NodeSystem currentSystem;
-	private Deque<NodeSystem> systemHistoryStack = new ArrayDeque<>();
-
 	private ControlEvent currentEvent;
 	private List<ControlEvent> sendEvents;
 	private boolean gridGrabbed = false;
@@ -58,25 +64,12 @@ public class SubElementNodeEditor extends SubElement {
 		gridScale = 1;
 		this.sendEvents = sendEvents;
 	}
-
-	private void descendSubsystem(Node node) {
-		systemHistoryStack.push(currentSystem);
-		currentSystem = currentSystem.subSystems.get(node);
-
-		currentSystem.nodeEditor = this;
-		currentSystem.gui = gui;
-		currentSystem.activeNode = null;
-		currentSystem.selectedNodes = new ArrayList<>();
-		currentSystem.drag = false;
-		currentSystem.dragDist = 0;
-	}
 	
 	@Override
 	protected void initGui(){
 		int cX = gui.width/2;
 		int cY = gui.height/2;
-		btn_back = gui.addButton(new GuiButton(gui.currentButtonId(), gui.getGuiLeft()+7, gui.getGuiTop()+13, 30, 20, "Back"));
-		btn_variables = gui.addButton(new GuiButton(gui.currentButtonId(), gui.getGuiLeft()+54, gui.getGuiTop()+13, 58, 20, "Variables"));
+		back = gui.addButton(new GuiButton(gui.currentButtonId(), cX-104, cY-112, 20, 20, "<"));
 		super.initGui();
 	}
 	
@@ -98,8 +91,6 @@ public class SubElementNodeEditor extends SubElement {
 							node = new NodeInput(x, y, "Event Data").setVars(vars);
 						} else if(s2.equals("Get Variable")){
 							node = new NodeGetVar(x, y, gui.currentEditControl);
-						} else if (s2.equals("Query Block")) {
-							node = new NodeQueryBlock(x, y, gui.currentEditControl);
 						}
 						if(node != null){
 							addMenu.close();
@@ -111,7 +102,6 @@ public class SubElementNodeEditor extends SubElement {
 					});
 					list.addItems("Event Data");
 					list.addItems("Get Variable");
-					list.addItems("Query Block");
 					return list;
 				} else if(s.endsWith("Math")){
 					ItemList list = new ItemList(0, 0, 32, s2 -> {
@@ -130,50 +120,6 @@ public class SubElementNodeEditor extends SubElement {
 						return null;
 					});
 					list.addItems("Math Node");
-					return list;
-				} else if(s.endsWith("Boolean")){
-					ItemList list = new ItemList(0, 0, 32, s2 -> {
-						final float x = (gui.mouseX-gui.getGuiLeft())*gridScale + gui.getGuiLeft() + gridX;
-						final float y = (gui.mouseY-gui.getGuiTop())*gridScale + gui.getGuiTop() - gridY;
-						Node node = null;
-						if(s2.equals("Boolean Node")){
-							node = new NodeBoolean(x, y);
-						}
-						if(node != null){
-							addMenu.close();
-							addMenu = null;
-							currentSystem.addNode(node);
-							currentSystem.activeNode = node;
-						}
-						return null;
-					});
-					list.addItems("Boolean Node");
-					return list;
-				} else if(s.endsWith("Logic")){
-					ItemList list = new ItemList(0, 0, 32, s2 -> {
-						final float x = (gui.mouseX-gui.getGuiLeft())*gridScale + gui.getGuiLeft() + gridX;
-						final float y = (gui.mouseY-gui.getGuiTop())*gridScale + gui.getGuiTop() - gridY;
-						Node node = null;
-						if (s2.equals("Function")) {
-							node = new NodeFunction(x, y);
-						}
-						else if (s2.equals("Buffer")) {
-							node = new NodeBuffer(x, y);
-						}
-						else if (s2.equals("Conditional")) {
-							node = new NodeConditional(x, y);
-						}
-						if (node != null) {
-							addMenu.close();
-							addMenu = null;
-							currentSystem.addNode(node);
-							currentSystem.activeNode = node;
-						}
-						return null;
-					});
-					list.addItems("Function");
-					list.addItems("Buffer");
-					list.addItems("Conditional");
 					return list;
 				} else if(s.endsWith("Output")){
 					ItemList list = new ItemList(0, 0, 32, s2 -> {
@@ -206,7 +152,7 @@ public class SubElementNodeEditor extends SubElement {
 				}
 				return null;
 			});
-			addMenu.addItems("{expandable}Input", "{expandable}Output", "{expandable}Math", "{expandable}Boolean", "{expandable}Logic");
+			addMenu.addItems("{expandable}Input", "{expandable}Output", "{expandable}Math", "{expandable}Logic");
 		}
 		if(code == Keyboard.KEY_DELETE || code == Keyboard.KEY_X){
 			List<Node> selected = new ArrayList<>(currentSystem.selectedNodes);
@@ -251,10 +197,10 @@ public class SubElementNodeEditor extends SubElement {
 		GL11.glEnable(GL11.GL_SCISSOR_TEST);
 		int cX = gui.width/2;
 		int cY = gui.height/2;
-		int minX = (cX-72)*gui.res.getScaleFactor();
-		int minY = (cY-114)*gui.res.getScaleFactor();
-		int maxX = (cX+120)*gui.res.getScaleFactor();
-		int maxY = (cY+78)*gui.res.getScaleFactor();
+		int minX = (cX-78)*gui.res.getScaleFactor();
+		int minY = (cY-111)*gui.res.getScaleFactor();
+		int maxX = (cX+102)*gui.res.getScaleFactor();
+		int maxY = (cY+69)*gui.res.getScaleFactor();
 		//System.out.println(cY);
 		//System.out.println(Minecraft.getMinecraft().displayHeight/2);
 		GL11.glScissor(minX, minY, maxX-minX, maxY-minY);
@@ -306,15 +252,6 @@ public class SubElementNodeEditor extends SubElement {
 				addMenu = null;
 			}
 		} else if(button == 0){
-			// doing this here for now cus i want buttons to be able to make gui changes
-			NodeElement pressed = currentSystem.getNodeElementPressed(mouseX, mouseY);
-			if (pressed != null) {
-				switch (pressed.name) {
-					case "Edit Body": {
-						descendSubsystem(pressed.parent);
-					}
-				}
-			}
 			currentSystem.onClick(mouseX, mouseY);
 		}
 		if(button == 2){
@@ -336,21 +273,12 @@ public class SubElementNodeEditor extends SubElement {
 	
 	@Override
 	protected void actionPerformed(GuiButton button){
-		if(button == btn_back){
+		if(button == back){
 			if(currentSystem != null){
 				currentSystem.removeClientData();
 				currentSystem = null;
-
-				if (!systemHistoryStack.isEmpty()) {
-					currentSystem = systemHistoryStack.getFirst();
-					systemHistoryStack.pop();
-					return;
-				}
 			}
 			gui.popElement();
-		}
-		if (button == btn_variables) {
-			gui.pushElement(gui.variables);
 		}
 	}
 	
@@ -364,10 +292,8 @@ public class SubElementNodeEditor extends SubElement {
 	
 	@Override
 	protected void enableButtons(boolean enable){
-		btn_back.enabled = enable;
-		btn_back.visible = enable;
-		btn_variables.enabled = enable;
-		btn_variables.visible = enable;
+		back.enabled = enable;
+		back.visible = enable;
 	}
 	
 }

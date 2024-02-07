@@ -95,10 +95,11 @@ public class DummyBlockFluidTank extends BlockContainer implements IDummy {
 	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
 		return new ItemStack(ModBlocks.machine_fluidtank);
 	}
-
+	
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if(world.isRemote) {
+		if(world.isRemote)
+		{
 			return true;
 		} else if(!player.isSneaking())
 		{

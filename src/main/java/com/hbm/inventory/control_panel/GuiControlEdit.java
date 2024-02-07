@@ -24,7 +24,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class GuiControlEdit extends GuiContainer {
 
-	public static ResourceLocation texture = new ResourceLocation(RefStrings.MODID + ":textures/gui/control_panel/gui_placement_back.png");
+	public static ResourceLocation texture = new ResourceLocation(RefStrings.MODID + ":textures/gui/control_panel/gui_control.png");
 
 	public float mouseX, mouseY;
 	
@@ -37,22 +37,17 @@ public class GuiControlEdit extends GuiContainer {
 	public SubElementLinker linker;
 	public SubElementEventEditor eventEditor;
 	public SubElementNodeEditor nodeEditor;
-	public SubElementPanelResize panelResize;
-	public SubElementItemConfig itemConfig;
-	public SubElementVariables variables;
 
 	public Control currentEditControl;
-
+	
 	public ScaledResolution res;
-
-	public boolean isEditMode = false; // when editing an existing control
 	
 	public GuiControlEdit(InventoryPlayer i, TileEntityControlPanel te) {
 		super(new ContainerControlEdit(i, te));
 		container = (ContainerControlEdit)this.inventorySlots;
 		control = te;
-		this.xSize = 256;
-		this.ySize = 256;
+		this.xSize = 216;
+		this.ySize = 234;
 		res = new ScaledResolution(Minecraft.getMinecraft());
 	}
 	
@@ -63,15 +58,10 @@ public class GuiControlEdit extends GuiContainer {
 		linker.onClose();
 		eventEditor.onClose();
 		nodeEditor.onClose();
-		panelResize.onClose();
-		itemConfig.onClose();
-		variables.onClose();
 		NBTTagCompound tag = new NBTTagCompound();
 		control.panel.writeToNBT(tag);
 		tag.setString("full_set", "");
 		PacketDispatcher.wrapper.sendToServer(new NBTControlPacket(tag, control.getPos()));
-		control.updateTransform();
-		isEditMode = false;
 	}
 	
 	@Override
@@ -88,18 +78,12 @@ public class GuiControlEdit extends GuiContainer {
 		linker = new SubElementLinker(this);
 		eventEditor = new SubElementEventEditor(this);
 		nodeEditor = new SubElementNodeEditor(this);
-		panelResize = new SubElementPanelResize(this);
-		itemConfig = new SubElementItemConfig(this);
-		variables = new SubElementVariables(this);
 		placement.initGui();
 		choice.initGui();
 		linker.initGui();
 		eventEditor.initGui();
 		nodeEditor.initGui();
-		panelResize.initGui();
-		itemConfig.initGui();
-		variables.initGui();
-
+		
 		subElementStack.addFirst(placement);
 		placement.enableButtons(true);
 	}
@@ -112,7 +96,7 @@ public class GuiControlEdit extends GuiContainer {
 	public <T extends GuiButton> T addButton(T buttonIn) {
 		return super.addButton(buttonIn);
 	}
-
+	
 	public int currentButtonId(){
 		return this.buttonList.size();
 	}

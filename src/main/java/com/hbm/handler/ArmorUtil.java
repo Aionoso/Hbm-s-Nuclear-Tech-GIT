@@ -11,6 +11,7 @@ import com.hbm.util.ArmorRegistry.HazardClass;
 import com.hbm.util.Compat;
 
 import api.hbm.item.IGasMask;
+import com.hbm.util.I18nUtil;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -21,6 +22,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
@@ -441,11 +443,11 @@ public class ArmorUtil {
 		ItemStack filter = ((IGasMask)mask.getItem()).getFilter(mask);
 		
 		if(filter == null) {
-			list.add("§cNo filter installed!");
+			list.add(TextFormatting.RED + I18nUtil.resolveKey("desc.nofilter"));
 			return;
 		}
 		
-		list.add("§6Installed filter:");
+		list.add(TextFormatting.GOLD + I18nUtil.resolveKey("desc.infilter"));
 		
 		int meta = filter.getItemDamage();
 		int max = filter.getMaxDamage();

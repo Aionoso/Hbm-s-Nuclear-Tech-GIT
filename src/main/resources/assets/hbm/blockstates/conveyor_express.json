@@ -1,0 +1,16 @@
+{
+	"forge_marker": 1,
+	"defaults": {
+		"textures": {},
+		"model": "hbm:conveyor_express.obj"
+	},
+	"variants": {
+		"facing": {
+			"north": { },
+     	   		"south": { "y": 180 },
+      	  		"west":  { "y": 270 },
+      			"east":  { "y": 90 }
+		},
+		"inventory": [{ "transform": "forge:default-block" }]
+	}
+}

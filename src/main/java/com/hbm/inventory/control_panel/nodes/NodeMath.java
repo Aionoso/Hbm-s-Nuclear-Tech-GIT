@@ -9,7 +9,6 @@ import com.hbm.inventory.control_panel.NodeType;
 import com.hbm.inventory.control_panel.DataValue.DataType;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.MathHelper;
 
 public class NodeMath extends Node {
 
@@ -57,48 +56,39 @@ public class NodeMath extends Node {
 			if(evals[i] == null)
 				return null;
 		}
-		switch(op) {
-			case ADD:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber()+evals[1].getNumber());
-			case SUB:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber()-evals[1].getNumber());
-			case MULT:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber()*evals[1].getNumber());
-			case DIV:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber()/evals[1].getNumber());
-			case MOD:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber()%evals[1].getNumber());
-			case POW:
-				return evalCache[0] = new DataValueFloat((float)Math.pow(evals[0].getNumber(), evals[1].getNumber()));
-			case LOG:
-				return evalCache[0] = new DataValueFloat((float)(Math.log(evals[0].getNumber())/Math.log(evals[1].getNumber())));
-			case EXP:
-				return evalCache[0] = new DataValueFloat((float)Math.exp(evals[0].getNumber()));
-			case SQRT:
-				return evalCache[0] = new DataValueFloat((float)Math.sqrt(evals[0].getNumber()));
-			case ABS:
-				return evalCache[0] = new DataValueFloat(Math.abs(evals[0].getNumber()));
-			case EQUAL:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber() == evals[1].getNumber() ? 1 : 0);
-			case GREATER:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber() > evals[1].getNumber() ? 1 : 0);
-			case LESS:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber() < evals[1].getNumber() ? 1 : 0);
-			case GEQUAL:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber() >= evals[1].getNumber() ? 1 : 0);
-			case LEQUAL:
-				return evalCache[0] = new DataValueFloat(evals[0].getNumber() <= evals[1].getNumber() ? 1 : 0);
-			case CLAMP:
-				return evalCache[0] = new DataValueFloat(MathHelper.clamp(evals[0].getNumber(), evals[1].getNumber(), evals[2].getNumber()));
+		switch(op){
+		case ADD:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber()+evals[1].getNumber());
+		case SUB:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber()-evals[1].getNumber());
+		case MULT:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber()*evals[1].getNumber());
+		case DIV:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber()/evals[1].getNumber());
+		case POW:
+			return evalCache[0] = new DataValueFloat((float)Math.pow(evals[0].getNumber(), evals[1].getNumber()));
+		case LOG:
+			return evalCache[0] = new DataValueFloat((float)(Math.log(evals[0].getNumber())/Math.log(evals[1].getNumber())));
+		case EXP:
+			return evalCache[0] = new DataValueFloat((float)Math.exp(evals[0].getNumber()));
+		case SQRT:
+			return evalCache[0] = new DataValueFloat((float)Math.sqrt(evals[0].getNumber()));
+		case ABS:
+			return evalCache[0] = new DataValueFloat(Math.abs(evals[0].getNumber()));
+		case EQUAL:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber() == evals[1].getNumber() ? 1 : 0);
+		case GREATER:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber() > evals[1].getNumber() ? 1 : 0);
+		case LESS:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber() < evals[1].getNumber() ? 1 : 0);
+		case GEQUAL:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber() >= evals[1].getNumber() ? 1 : 0);
+		case LEQUAL:
+			return evalCache[0] = new DataValueFloat(evals[0].getNumber() <= evals[1].getNumber() ? 1 : 0);
 		}
 		return evalCache[0] = null;
 	}
-
-	public NodeMath setData(Operation op) {
-		setOperation(op);
-		return this;
-	}
-
+	
 	public void setOperation(Operation op){
 		this.op = op;
 		for(NodeConnection c : inputs){
@@ -107,39 +97,33 @@ public class NodeMath extends Node {
 		this.inputs.clear();
 		String s1 = "Input 1";
 		String s2 = "Input 2";
-		switch(op) {
-			case EQUAL:
-			case GREATER:
-			case LESS:
-			case GEQUAL:
-			case LEQUAL:
-			case ADD:
-			case SUB:
-			case MULT:
-			case DIV:
-			case MOD:
-			case POW:
-			case LOG:
-				if(op == Operation.POW){
-					s1 = "Base";
-					s2 = "Exponent";
-				} else if(op == Operation.LOG){
-					s1 = "Value";
-					s2 = "Base";
-				}
-				inputs.add(new NodeConnection(s1, this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
-				inputs.add(new NodeConnection(s2, this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
-				break;
-			case EXP:
-			case SQRT:
-			case ABS:
-				inputs.add(new NodeConnection("Input", this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
-				break;
-			case CLAMP:
-				inputs.add(new NodeConnection("Value", this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
-				inputs.add(new NodeConnection("Min", this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
-				inputs.add(new NodeConnection("Max", this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
-				break;
+		switch(op){
+		case EQUAL:
+		case GREATER:
+		case LESS:
+		case GEQUAL:
+		case LEQUAL:
+		case ADD:
+		case SUB:
+		case MULT:
+		case DIV:
+		case POW:
+		case LOG:
+			if(op == Operation.POW){
+				s1 = "Base";
+				s2 = "Exponent";
+			} else if(op == Operation.LOG){
+				s1 = "Value";
+				s2 = "Base";
+			}
+			inputs.add(new NodeConnection(s1, this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
+			inputs.add(new NodeConnection(s2, this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
+			break;
+		case EXP:
+		case SQRT:
+		case ABS:
+			inputs.add(new NodeConnection("Input", this, inputs.size(), true, DataType.NUMBER, new DataValueFloat(0)));
+			break;
 		}
 		recalcSize();
 	}
@@ -159,7 +143,6 @@ public class NodeMath extends Node {
 		SUB("Subtract"),
 		MULT("Multiply"),
 		DIV("Divide"),
-		MOD("Modulo"),
 		POW("Power"),
 		LOG("Logarithm"),
 		EXP("Exponent"),
@@ -169,9 +152,8 @@ public class NodeMath extends Node {
 		GREATER("Greater"),
 		LESS("Less"),
 		GEQUAL("Greater/equal"),
-		LEQUAL("Less/equal"),
-		CLAMP("Clamp");
-
+		LEQUAL("Less/equal");
+		
 		public String name;
 		private Operation(String name){
 			this.name = name;

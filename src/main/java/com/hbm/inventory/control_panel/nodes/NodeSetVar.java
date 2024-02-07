@@ -97,16 +97,6 @@ public class NodeSetVar extends NodeOutput {
 		return false;
 	}
 
-	public NodeSetVar setData(String varName, boolean isGlobal) {
-		this.varName = varName;
-		this.global = isGlobal;
-		DataValue val = global ? ctrl.getGlobalVar(varName) : ctrl.getVar(varName);
-		this.inputs.get(0).type = val.getType();
-		this.inputs.get(0).setDefault(val);
-		return this;
-	}
-
-
 	@Override
 	public NodeType getType(){
 		return NodeType.OUTPUT;
