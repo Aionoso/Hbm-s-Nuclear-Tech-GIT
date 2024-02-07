@@ -1,12 +1,13 @@
 package com.hbm.blocks.generic;
 
-import java.util.Map;
 import java.util.Random;
 
-import com.hbm.blocks.BlockControlPanelType;
+import org.lwjgl.opengl.GL11;
+
 import com.hbm.blocks.ModBlocks;
 import com.hbm.interfaces.ICustomSelectionBox;
-import com.hbm.inventory.control_panel.*;
+import com.hbm.inventory.control_panel.Control;
+import com.hbm.inventory.control_panel.ControlEvent;
 import com.hbm.items.ModItems;
 import com.hbm.main.ClientProxy;
 import com.hbm.main.MainRegistry;
@@ -18,8 +19,6 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
@@ -42,16 +41,11 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.opengl.GL11;
-
-import javax.annotation.Nonnull;
 
 public class BlockControlPanel extends BlockContainer implements ICustomSelectionBox {
 
-	public static final PropertyBool UP = PropertyBool.create("up");
-	public static final PropertyBool DOWN = PropertyBool.create("down");
-	public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
-
+	public static final PropertyEnum<EnumFacing> FACING = BlockHorizontal.FACING;
+	
 	public BlockControlPanel(Material materialIn, String s) {
 		super(materialIn);
 		this.setUnlocalizedName(s);
@@ -59,16 +53,16 @@ public class BlockControlPanel extends BlockContainer implements ICustomSelectio
 		
 		ModBlocks.ALL_BLOCKS.add(this);
 	}
-
+	
 	@Override
 	public TileEntity createNewTileEntity(World worldIn, int meta) {
-		TileEntityControlPanel te = new TileEntityControlPanel();
-		te.panel = new ControlPanel(te, 0.25F, (float) Math.toRadians(20), 0, 0, 0.25F, 0);
-		return te;
+		return new TileEntityControlPanel();
 	}
 	
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		if(playerIn.isSneaking())
+			return false;
 		if(!worldIn.isRemote){
 			if(playerIn.getHeldItem(hand).getItem() == ModItems.screwdriver || playerIn.getHeldItem(hand).getItem() == ModItems.screwdriver_desh)
 				playerIn.openGui(MainRegistry.instance, ModBlocks.guiID_control_panel, worldIn, pos.getX(), pos.getY(), pos.getZ());
@@ -76,9 +70,7 @@ public class BlockControlPanel extends BlockContainer implements ICustomSelectio
 			TileEntityControlPanel control = (TileEntityControlPanel)worldIn.getTileEntity(pos);
 			Control ctrl = control.panel.getSelectedControl(playerIn.getPositionEyes(1), playerIn.getLook(1));
 			if(ctrl != null){
-				ControlEvent evt = ControlEvent.newEvent("ctrl_press");
-				evt.setVar("isSneaking", new DataValueFloat(playerIn.isSneaking()));
-				NBTTagCompound dat = evt.writeToNBT(new NBTTagCompound());
+				NBTTagCompound dat = ControlEvent.newEvent("ctrl_button_press").writeToNBT(new NBTTagCompound());
 				dat.setInteger("click_control", ctrl.panel.controls.indexOf(ctrl));
 				PacketDispatcher.wrapper.sendToServer(new NBTControlPacket(dat, pos));
 				return true;
@@ -86,20 +78,23 @@ public class BlockControlPanel extends BlockContainer implements ICustomSelectio
 		}
 		return true;
 	}
-
-	@Nonnull
+	
 	@Override
 	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-		TileEntity te = source.getTileEntity(pos);
-		if (te instanceof TileEntityControlPanel) {
-			AxisAlignedBB ret = ((TileEntityControlPanel) te).getBoundingBox(state.getValue(UP), state.getValue(DOWN), state.getValue(FACING));
-			if (ret != null) {
-				return ret;
-			}
+		switch(state.getValue(FACING)){
+		case WEST:
+			return new AxisAlignedBB(0.5, 0, 0, 1, 0.3, 1);
+		case EAST:
+			return new AxisAlignedBB(0, 0, 0, 0.5, 0.3, 1);
+		case NORTH:
+			return new AxisAlignedBB(0, 0, 0.5, 1, 0.3, 1);
+		case SOUTH:
+			return new AxisAlignedBB(0, 0, 0, 1, 0.3, 0.5);
+		default:
+			return new AxisAlignedBB(0, 0, 0, 0, 0, 0);
 		}
-		return super.getBoundingBox(state, source, pos);
 	}
-
+	
 	@Override
 	public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face){
 		return BlockFaceShape.UNDEFINED;
@@ -107,10 +102,7 @@ public class BlockControlPanel extends BlockContainer implements ICustomSelectio
 	
 	@Override
 	public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand){
-		return this.getDefaultState()
-				.withProperty(FACING, placer.getHorizontalFacing().getOpposite())
-				.withProperty(UP, facing.getIndex() == 1)
-				.withProperty(DOWN, facing.getIndex() == 0);
+		return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
 	}
 	
 	@Override
@@ -121,11 +113,6 @@ public class BlockControlPanel extends BlockContainer implements ICustomSelectio
 	@Override
 	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
 		return Items.AIR;
-	}
-
-	@Override
-	public boolean isFullCube(IBlockState state) {
-		return false;
 	}
 	
 	@Override
@@ -165,9 +152,7 @@ public class BlockControlPanel extends BlockContainer implements ICustomSelectio
 			control.panel.transform.store(ClientProxy.AUX_GL_BUFFER);
 			ClientProxy.AUX_GL_BUFFER.rewind();
 			GL11.glMultMatrix(ClientProxy.AUX_GL_BUFFER);
-			if (ctrl.getBoundingBox() != null)
-				// offset to bury bottom lines
-				RenderGlobal.drawSelectionBoundingBox(ctrl.getBoundingBox().offset(0, -.01F, 0), 0, 0, 0, 0.4F);
+			RenderGlobal.drawSelectionBoundingBox(ctrl.getBoundingBox(), 0, 0, 0, 0.4F);
 			GL11.glPopMatrix();
 			return true;
 		}
@@ -176,23 +161,24 @@ public class BlockControlPanel extends BlockContainer implements ICustomSelectio
 	
 	@Override
 	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, UP, DOWN, FACING);
+		return new BlockStateContainer(this, new IProperty[]{FACING});
 	}
 	
 	@Override
 	public int getMetaFromState(IBlockState state) {
-		int up = state.getValue(UP) ? 1 : 0;
-		int down = state.getValue(DOWN) ? 1 : 0;
-		int facing = state.getValue(FACING).getIndex();
-		return (up << 3) | (down << 2) | (facing - 2);
+		return ((EnumFacing)state.getValue(FACING)).getIndex();
 	}
 	
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState()
-				.withProperty(UP, ((meta >> 3) & 1) > 0)
-				.withProperty(DOWN, ((meta >> 2) & 1) > 0)
-				.withProperty(FACING, EnumFacing.getFront((meta & 3) + 2));
+		EnumFacing enumfacing = EnumFacing.getFront(meta);
+
+        if (enumfacing.getAxis() == EnumFacing.Axis.Y)
+        {
+            enumfacing = EnumFacing.NORTH;
+        }
+
+        return this.getDefaultState().withProperty(FACING, enumfacing);
 	}
 	
 	@Override

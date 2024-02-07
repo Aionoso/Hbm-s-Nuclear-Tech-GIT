@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.hbm.tileentity.network.TileEntityCraneExtractor;
+import com.hbm.tileentity.network.TileEntityCraneInserter;
 import org.apache.logging.log4j.Logger;
 
 import com.hbm.blocks.ModBlocks;
@@ -603,6 +605,8 @@ public class MainRegistry {
 		aMatDNS.setRepairItem(new ItemStack(ModItems.plate_armor_dnt));
 		
 		NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
+		GameRegistry.registerTileEntity(TileEntityCraneExtractor.class, new ResourceLocation(RefStrings.MODID, "tileentity_craneejector"));
+		GameRegistry.registerTileEntity(TileEntityCraneInserter.class, new ResourceLocation(RefStrings.MODID, "tileentity_craneinserter"));
 		GameRegistry.registerTileEntity(TileEntityDummy.class, new ResourceLocation(RefStrings.MODID, "tileentity_dummy"));
 		GameRegistry.registerTileEntity(TileEntityMachineAssembler.class, new ResourceLocation(RefStrings.MODID, "tileentity_machine_assembler"));
 		GameRegistry.registerTileEntity(TileEntityDiFurnace.class, new ResourceLocation(RefStrings.MODID, "tileentity_machine_difurnace"));

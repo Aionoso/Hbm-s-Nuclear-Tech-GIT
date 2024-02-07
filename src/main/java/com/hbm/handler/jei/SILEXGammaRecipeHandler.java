@@ -2,6 +2,7 @@ package com.hbm.handler.jei;
 
 import com.hbm.handler.jei.SILEXRecipeHandler;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 
 public class SILEXGammaRecipeHandler extends SILEXRecipeHandler {
@@ -17,6 +18,6 @@ public class SILEXGammaRecipeHandler extends SILEXRecipeHandler {
 
 	@Override
 	public String getTitle(){
-		return "SILEX Gamma Recipes";
+		return I18nUtil.resolveKey("jei.silexgamma");
 	}
 }

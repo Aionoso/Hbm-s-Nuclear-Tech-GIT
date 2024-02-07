@@ -4,9 +4,11 @@ import java.util.List;
 
 import com.hbm.items.ModItems;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 public class ItemDrillbit extends Item {
@@ -27,11 +29,11 @@ public class ItemDrillbit extends Item {
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
 		EnumDrillType type = ((ItemDrillbit)stack.getItem()).drillType;
 		if(type == null) return;
-		list.add("§eSpeed: " + ((int) (type.speed * 100)) + "%");
-		list.add("§eTier: " + type.tier);
-		if(type.fortune > 0) list.add("§dFortune " + type.fortune);
-		if(type.vein) list.add("§aVein miner");
-		if(type.silk) list.add("§aSilk touch");
+		list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("desc.speed") + " " + ((int) (type.speed * 100)) + "%");
+		list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("desc.tier") + " " + type.tier);
+		if(type.fortune > 0) list.add(TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("desc.fortune") + " " + type.fortune);
+		if(type.vein) list.add(TextFormatting.GREEN + I18nUtil.resolveKey("desc.veinminer"));
+		if(type.silk) list.add(TextFormatting.GREEN + I18nUtil.resolveKey("desc.silktouch"));
 	}
 	
 	public static enum EnumDrillType {

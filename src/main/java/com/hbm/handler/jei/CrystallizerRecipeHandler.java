@@ -5,6 +5,7 @@ import com.hbm.inventory.CrystallizerRecipes.CrystallizerRecipe;
 import com.hbm.items.machine.ItemFluidIcon;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IDrawableAnimated;
@@ -44,7 +45,7 @@ public class CrystallizerRecipeHandler implements IRecipeCategory<CrystallizerRe
 
 	@Override
 	public String getTitle() {
-		return "Ore Acidizer";
+		return I18nUtil.resolveKey("tile.machine_crystallizer.name");
 	}
 
 	@Override

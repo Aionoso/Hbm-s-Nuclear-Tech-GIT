@@ -1,20 +1,13 @@
 package com.hbm.tileentity.machine.rbmk;
 
 import com.hbm.interfaces.IControlReceiver;
-import com.hbm.inventory.control_panel.ControlEvent;
-import com.hbm.inventory.control_panel.DataValue;
 import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKConsole.ColumnType;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKControlManual.RBMKColor;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 public class TileEntityRBMKControlAuto extends TileEntityRBMKControl implements IControlReceiver {
 	
@@ -135,5 +128,4 @@ public class TileEntityRBMKControlAuto extends TileEntityRBMKControl implements 
 	public ColumnType getConsoleType() {
 		return ColumnType.CONTROL_AUTO;
 	}
-
 }

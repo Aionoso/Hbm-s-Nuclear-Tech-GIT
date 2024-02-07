@@ -5,6 +5,7 @@ import java.util.List;
 import com.hbm.items.special.ItemHazard;
 import com.hbm.lib.Library;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -31,15 +32,15 @@ public class ItemFuelRod extends ItemHazard {
 	
 	@Override
 	public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flagIn) {
-		tooltip.add(TextFormatting.GREEN + "[Radioactive]");
-		tooltip.add(TextFormatting.YELLOW + "" + this.irad + " RAD/s");
+		tooltip.add(TextFormatting.GREEN + "["+ I18nUtil.resolveKey("trait.radioactive") +"]");
+		tooltip.add(TextFormatting.YELLOW + "" + this.irad + " "+I18nUtil.resolveKey("desc.rads"));
 		if(this.iblind){
-			tooltip.add(TextFormatting.DARK_AQUA + "[Blinding]");
+			tooltip.add(TextFormatting.DARK_AQUA + "["+I18nUtil.resolveKey("trait.blinding")+"]");
 		}
-		tooltip.add(TextFormatting.GOLD + "[Reactor Fuel Rod]");
+		tooltip.add(TextFormatting.GOLD + "["+I18nUtil.resolveKey("trait.reactorrod")+"]");
 		
-		tooltip.add(TextFormatting.DARK_AQUA + "  Generates " + heat + " heat per tick");
-		tooltip.add(TextFormatting.DARK_AQUA + "  Lasts " + Library.getShortNumber(lifeTime) + " ticks");
+		tooltip.add(TextFormatting.DARK_AQUA + "  "+I18nUtil.resolveKey("desc.generates")+" " + heat + " "+I18nUtil.resolveKey("desc.heatpt"));
+		tooltip.add(TextFormatting.DARK_AQUA + "  "+I18nUtil.resolveKey("desc.lasts")+" " + Library.getShortNumber(lifeTime) + " "+I18nUtil.resolveKey("desc.ticks"));
 	}
 	
 	@Override

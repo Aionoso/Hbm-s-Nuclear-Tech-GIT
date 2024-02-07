@@ -5,6 +5,7 @@ import java.util.List;
 import com.hbm.handler.jei.JeiRecipes.AlloyFurnaceRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IDrawableAnimated;
@@ -54,7 +55,7 @@ public class AlloyFurnaceRecipeHandler implements IRecipeCategory<AlloyFurnaceRe
 
 	@Override
 	public String getTitle() {
-		return "Blast Furnace";
+		return I18nUtil.resolveKey("tile.machine_difurnace_off.name");
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package com.hbm.blocks.generic;
 
 import java.util.List;
 import com.hbm.blocks.ModBlocks;
+import com.hbm.util.I18nUtil;
 
 import api.hbm.item.IDepthRockTool;
 import net.minecraft.block.Block;
@@ -11,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 public class BlockDepth extends Block {
@@ -37,13 +39,13 @@ public class BlockDepth extends Block {
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		super.addInformation(stack, player, tooltip, advanced);
+	public void addInformation(ItemStack stack, World world, List<String> list, ITooltipFlag flagIn) {
+		super.addInformation(stack, world, list, flagIn);
 		float hardness = this.getExplosionResistance(null);
-		tooltip.add("§d[Unmineable]§r");
-		tooltip.add("§eCan only be destroyed by explosions§r");
+		list.add(TextFormatting.LIGHT_PURPLE + "[" + I18nUtil.resolveKey("trait.unmineable") + "]");
+		list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("trait.destroybyexplosion"));
 		if(hardness > 50){
-			tooltip.add("§6Blast Resistance: "+hardness+"§r");
+			list.add(TextFormatting.GOLD + I18nUtil.resolveKey("trait.blastres") + " " + hardness);
 		}
 	}
 }

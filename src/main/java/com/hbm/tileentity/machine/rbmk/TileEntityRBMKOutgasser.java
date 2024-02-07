@@ -1,9 +1,6 @@
 package com.hbm.tileentity.machine.rbmk;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
@@ -12,9 +9,6 @@ import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RBMKOutgasserRecipes;
-import com.hbm.inventory.control_panel.ControlEvent;
-import com.hbm.inventory.control_panel.DataValue;
-import com.hbm.inventory.control_panel.DataValueFloat;
 import com.hbm.util.ContaminationUtil;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemFluidIcon;
@@ -302,18 +296,4 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 		inventory.setStackInSlot(1, ItemStack.EMPTY);
 		this.markDirty();
 	}
-
-	// control panel
-
-	@Override
-	public Map<String, DataValue> getQueryData() {
-		Map<String, DataValue> data = super.getQueryData();
-
-		data.put("gas", new DataValueFloat(this.gas.getFluidAmount()));
-		data.put("progress", new DataValueFloat((float) this.progress));
-		data.put("maxProgress", new DataValueFloat((float) this.duration));
-
-		return data;
-	}
-
 }

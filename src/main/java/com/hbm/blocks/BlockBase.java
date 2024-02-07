@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.hbm.main.MainRegistry;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
@@ -13,6 +14,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 public class BlockBase extends Block {
@@ -35,14 +37,14 @@ public class BlockBase extends Block {
 	}
 	
 	@Override
-	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
+	public void addInformation(ItemStack stack, World player, List<String> list, ITooltipFlag advanced) {
 		if(stack.getItem() == Item.getItemFromBlock(ModBlocks.meteor_battery)){
-			tooltip.add("Provides infinite charge to tesla coils");
+			list.add(I18nUtil.resolveKey("desc.teslacoils"));
 		}
 		
 		float hardness = this.getExplosionResistance(null);
 		if(hardness > 50){
-			tooltip.add("§6Blast Resistance: "+hardness+"§r");
+			list.add(TextFormatting.GOLD + I18nUtil.resolveKey("trait.blastres") + " " + hardness);
 		}
 	}
 

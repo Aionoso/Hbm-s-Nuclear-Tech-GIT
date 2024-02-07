@@ -17,6 +17,7 @@ import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.BlockBedrockOre;
 
 import api.hbm.item.IDepthRockTool;
+import com.hbm.util.I18nUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -283,7 +284,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
     	if(this.breakAbility.size() > 1) {
-    		list.add("Abilities: ");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("tool.ability.list"));
     		
     		for(ToolAbility ability : this.breakAbility) {
     			
@@ -296,13 +297,13 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     			}
     		}
 
-    		list.add("Right click to cycle through abilities!");
-    		list.add("Sneak-click to turn abilitty off!");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("tool.ability.rightclick"));
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("tool.ability.shiftclick"));
     	}
     	
     	if(!this.hitAbility.isEmpty()) {
-    		
-    		list.add("Weapon modifiers: ");
+
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("tool.ability.weaponlist"));
     		
     		for(WeaponAbility ability : this.hitAbility) {
 				list.add("  " + TextFormatting.RED + ability.getFullName());
@@ -310,7 +311,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     	}
 
     	if(this.rockBreaker){
-    		list.add("§d[Unmineable]§5 can be mined");
+			list.add(TextFormatting.LIGHT_PURPLE + "[" + I18nUtil.resolveKey("trait.unmineable") + "]" + TextFormatting.GRAY + I18nUtil.resolveKey("tool.ability.canmine"));
     	}
     }
     
@@ -349,9 +350,9 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     	while(getCurrentAbility(stack) != null && !getCurrentAbility(stack).isAllowed()) {
 
     		player.sendMessage(
-    				new TextComponentString("[Ability ")
+    				new TextComponentString("[" + I18nUtil.resolveKey("chat.ability") + " ")
     				.appendSibling(new TextComponentTranslation(getCurrentAbility(stack).getName(), new Object[0]))
-    				.appendSibling(new TextComponentString(getCurrentAbility(stack).getExtension() + " is blacklisted!]"))
+    				.appendSibling(new TextComponentString(getCurrentAbility(stack).getExtension() + " " + I18nUtil.resolveKey("chat.blacklist") +"]"))
     				.setStyle(new Style().setColor(TextFormatting.RED)));
 
         	i++;
@@ -360,12 +361,12 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     	
     	if(getCurrentAbility(stack) != null) {
     		player.sendMessage(
-    				new TextComponentString("[Enabled ")
+    				new TextComponentString("[" + I18nUtil.resolveKey("chat.abilenabled") + " ")
     				.appendSibling(new TextComponentTranslation(getCurrentAbility(stack).getName()))
     				.appendSibling(new TextComponentString(getCurrentAbility(stack).getExtension() + "]"))
     				.setStyle(new Style().setColor(TextFormatting.YELLOW)));
     	} else {
-    		player.sendMessage(new TextComponentString(TextFormatting.GOLD + "[Tool ability deactivated]"));
+    		player.sendMessage(new TextComponentString(TextFormatting.GOLD + "[" + I18nUtil.resolveKey("chat.abildisabled") + "]"));
     	}
 
     	//Drillgon200: I hope "random.orb" referred to the experience orb sound

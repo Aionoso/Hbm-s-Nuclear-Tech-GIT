@@ -35,7 +35,7 @@ public class SILEXRecipeHandler implements IRecipeCategory<SILEXRecipe> {
 
 	@Override
 	public String getTitle(){
-		return "SILEX";
+		return I18nUtil.resolveKey("container.machineSILEX");
 	}
 
 	@Override

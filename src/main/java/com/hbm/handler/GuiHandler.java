@@ -115,6 +115,8 @@ import com.hbm.tileentity.machine.rbmk.TileEntityRBMKOutgasser;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKRod;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKStorage;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKHeater;
+import com.hbm.tileentity.network.TileEntityCraneExtractor;
+import com.hbm.tileentity.network.TileEntityCraneInserter;
 import com.hbm.tileentity.turret.TileEntityTurretChekhov;
 import com.hbm.tileentity.turret.TileEntityTurretFriendly;
 import com.hbm.tileentity.turret.TileEntityTurretFritz;
@@ -177,6 +179,16 @@ public class GuiHandler implements IGuiHandler {
 		case ModBlocks.guiID_machine_assembler:
 			if(entity instanceof TileEntityMachineAssembler) {
 				return new ContainerMachineAssembler(player.inventory, (TileEntityMachineAssembler) entity);
+			}
+			return null;
+		case ModBlocks.guiID_crane_ejector:
+			if(entity instanceof TileEntityCraneExtractor){
+				return new ContainerCraneExtractor(player.inventory, (TileEntityCraneExtractor) entity);
+			}
+			return null;
+		case ModBlocks.guiID_crane_inserter:
+			if(entity instanceof TileEntityCraneInserter){
+				return new ContainerCraneInserter(player.inventory, (TileEntityCraneInserter) entity);
 			}
 			return null;
 		case ModBlocks.guiID_machine_chemplant:

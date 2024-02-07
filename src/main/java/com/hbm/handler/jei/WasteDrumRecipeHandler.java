@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.handler.jei.JeiRecipes.WasteDrumRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
@@ -28,7 +29,7 @@ public class WasteDrumRecipeHandler implements IRecipeCategory<WasteDrumRecipe> 
 
 	@Override
 	public String getTitle() {
-		return "Waste Drum";
+		return I18nUtil.resolveKey("jei.wastedrum");
 	}
 
 	@Override

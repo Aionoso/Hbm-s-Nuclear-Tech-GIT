@@ -141,7 +141,7 @@ public class MachineFluidTank extends BlockContainer implements IMultiBlock {
 			world.setBlockState(pos, world.getBlockState(pos).withProperty(FACING, EnumFacing.EAST), 2);
 			if(MultiblockHandler.checkSpace(world, pos, MultiblockHandler.fluidTankDimensionEW)) {
 				MultiblockHandler.fillUp(world, pos, MultiblockHandler.fluidTankDimensionEW, ModBlocks.dummy_block_fluidtank);
-
+				
 				//
 				DummyBlockFluidTank.safeBreak = true;
 				world.setBlockState(pos.add(1, 0, 1), ModBlocks.dummy_port_fluidtank.getDefaultState());

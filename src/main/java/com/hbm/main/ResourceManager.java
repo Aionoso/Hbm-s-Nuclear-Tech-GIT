@@ -535,50 +535,17 @@ public class ResourceManager {
 	public static final IModelCustom stopsign = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/weapons/stopsign.obj"));
 	public static final IModelCustom gavel = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/gavel.obj"));
 	public static final IModelCustom crucible = new HFRWavefrontObject(new ResourceLocation(RefStrings.MODID, "models/weapons/crucible.obj"));
-
-	// Control panel
-	public static final IModelCustom control_panel_custom = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/control_panel_custom.obj"));
-	public static final IModelCustom control_panel_front = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/control_panel_front.obj"));
-
-	public static final ResourceLocation control_panel_custom_tex = new ResourceLocation(RefStrings.MODID, "textures/models/misc/control_panel.png");
-
-	// Controls
-	public static final IModelCustom ctrl_button_push = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/button_push.obj"));
-	public static final IModelCustom ctrl_button_emergency_push = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/button_emergency_push.obj"));
-	public static final IModelCustom ctrl_button_encased_push = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/button_encased_push.obj"));
-	public static final IModelCustom ctrl_switch_toggle = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/switch_toggle.obj"));
-	public static final IModelCustom ctrl_switch_rotary_toggle = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/switch_rotary_toggle.obj"));
-	public static final IModelCustom ctrl_display_seven_seg = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/display_seven_seg.obj"));
-	public static final IModelCustom ctrl_indicator_lamp = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/indicator_lamp.obj"));
-	public static final IModelCustom ctrl_slider_vertical = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/slider_vertical.obj"));
-	public static final IModelCustom ctrl_knob_control = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/knob_control.obj"));
-	public static final IModelCustom ctrl_dial_square = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/dial_square.obj"));
-	public static final IModelCustom ctrl_dial_large = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/dial_large.obj"));
-
-	public static final ResourceLocation ctrl_button_push_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button_push.png");
-	public static final ResourceLocation ctrl_button_emergency_push_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button_emergency_push.png");
-	public static final ResourceLocation ctrl_button_encased_push_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button_encased_push.png");
-	public static final ResourceLocation ctrl_switch_toggle_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/switch_toggle.png");
-	public static final ResourceLocation ctrl_switch_rotary_toggle_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/switch_rotary_toggle.png");
-	public static final ResourceLocation ctrl_display_seven_seg_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/display_7seg.png");
-	public static final ResourceLocation ctrl_slider_vertical_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/slider_vertical.png");
-	public static final ResourceLocation ctrl_knob_control_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/knob_control.png");
-	public static final ResourceLocation ctrl_dial_square_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/dial_square.png");
-	public static final ResourceLocation ctrl_dial_large_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/dial_large.png");
-
-	public static final ResourceLocation ctrl_button_push_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button_push_gui.png");
-	public static final ResourceLocation ctrl_button_emergency_push_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button_emergency_push_gui.png");
-	public static final ResourceLocation ctrl_button_encased_push_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button_encased_push_gui.png");
-	public static final ResourceLocation ctrl_switch_toggle_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/switch_toggle_gui.png");
-	public static final ResourceLocation ctrl_switch_rotary_toggle_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/switch_rotary_toggle_gui.png");
-	public static final ResourceLocation ctrl_display_seven_seg_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/display_7seg_gui.png");
-	public static final ResourceLocation ctrl_indicator_lamp_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/indicator_lamp_gui.png");
-	public static final ResourceLocation ctrl_slider_vertical_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/slider_vertical_gui.png");
-	public static final ResourceLocation ctrl_knob_control_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/knob_control_gui.png");
-	public static final ResourceLocation ctrl_dial_square_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/dial_square_gui.png");
-	public static final ResourceLocation ctrl_dial_large_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/dial_large_gui.png");
-
+	
+	
+	//Control panel
+	public static final IModelCustom control_panel0 = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/control0.obj"));
+	public static final IModelCustom ctrl_button0 = AdvancedModelLoader.loadModel(new ResourceLocation(RefStrings.MODID, "models/control_panel/button0.obj"));
+	public static final ResourceLocation control_panel0_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/control0.png");
+	public static final ResourceLocation ctrl_button0_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button0.png");
+	public static final ResourceLocation ctrl_button0_gui_tex = new ResourceLocation(RefStrings.MODID, "textures/models/control_panel/button0_gui.png");
+	
 	//Textures TEs
+
 	public static final ResourceLocation universal = new ResourceLocation(RefStrings.MODID, "textures/models/TheGadget3_.png");
 
 	//Freons Turrets Textures

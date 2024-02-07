@@ -7,11 +7,13 @@ import com.hbm.lib.Library;
 import com.hbm.main.MainRegistry;
 
 import api.hbm.energy.IBatteryItem;
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 public class ItemBattery extends Item implements IBatteryItem {
@@ -46,14 +48,14 @@ public class ItemBattery extends Item implements IBatteryItem {
 				stack.getItem() != ModItems.energy_core)
 				
 		{
-			list.add("§6Energy stored: " + Library.getShortNumber(charge) + "/" + Library.getShortNumber(maxCharge) + "HE§r");
+			list.add(TextFormatting.GOLD + I18nUtil.resolveKey("desc.energystore") + " " + Library.getShortNumber(charge) + "/" + Library.getShortNumber(maxCharge) + "HE§r");
 		} else {
 			String charge1 = Library.getShortNumber((charge * 100) / this.maxCharge);
-			list.add("§2Charge: " + charge1 + "%§r");
+			list.add(TextFormatting.DARK_GREEN + I18nUtil.resolveKey("desc.energychargecur") + " " + charge1 + "%§r");
 			list.add("(" + Library.getShortNumber(charge) + "/" + Library.getShortNumber(maxCharge) + "HE)");
 		}
-		list.add("§aCharge rate: " + Library.getShortNumber(chargeRate * 20) + "HE/s§r");
-		list.add("§cDischarge rate: " + Library.getShortNumber(dischargeRate * 20) + "HE/s§r");
+		list.add(TextFormatting.GREEN + I18nUtil.resolveKey("desc.energychargerate") + " " + Library.getShortNumber(chargeRate * 20) + "HE/" + I18nUtil.resolveKey("desc.second") + "§r");
+		list.add(TextFormatting.RED + I18nUtil.resolveKey("desc.energydchargerate") + " " + Library.getShortNumber(dischargeRate * 20) + "HE/" + I18nUtil.resolveKey("desc.second") + "§r");
 	}
 	
 	@Override

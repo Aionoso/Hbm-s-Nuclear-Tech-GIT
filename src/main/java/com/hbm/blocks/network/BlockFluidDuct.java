@@ -8,6 +8,7 @@ import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.conductor.TileEntityFFDuctBase;
 import com.hbm.tileentity.conductor.TileEntityFFFluidDuct;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -62,7 +63,7 @@ public class BlockFluidDuct extends BlockContainer {
 	
 	@Override
 	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		tooltip.add("Don't use this, it may break your game");
+		tooltip.add(I18nUtil.resolveKey("desc.breakgame"));
 	}
 	
 	@Override

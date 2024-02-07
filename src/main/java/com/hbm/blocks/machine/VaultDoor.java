@@ -12,6 +12,7 @@ import com.hbm.items.ModItems;
 import com.hbm.items.tool.ItemLock;
 import com.hbm.tileentity.machine.TileEntityVaultDoor;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockHorizontal;
@@ -29,6 +30,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -337,11 +339,11 @@ public class VaultDoor extends BlockContainer implements IBomb, IMultiBlock, IRa
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
+	public void addInformation(ItemStack stack, World player, List<String> list, ITooltipFlag advanced) {
 		float hardness = this.getExplosionResistance(null);
-		tooltip.add("§2[Radiation Shielding]§r");
+		list.add(TextFormatting.DARK_GREEN + "[" + I18nUtil.resolveKey("trait.radshield") + "]");
 		if(hardness > 50){
-			tooltip.add("§6Blast Resistance: "+hardness+"§r");
+			list.add(TextFormatting.GOLD + I18nUtil.resolveKey("trait.blastres") + " " + hardness);
 		}
 	}
 }

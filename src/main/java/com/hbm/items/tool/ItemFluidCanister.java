@@ -71,7 +71,7 @@ public class ItemFluidCanister extends Item implements IHasCustomModel {
 		if (this == ModItems.canister_generic && f != null && f.getFluid() == ModForgeFluids.diesel) {
 			tooltip.add("All hail the spout!");
 		}
-		String s = (f == null ? "0" : f.amount) + "/" + cap + " mb";
+		String s = (f == null ? "0" : f.amount) + "/" + cap + " mB";
 		if(stack.getCount() > 1)
 			s = stack.getCount() + "x " + s;
 		tooltip.add(s);

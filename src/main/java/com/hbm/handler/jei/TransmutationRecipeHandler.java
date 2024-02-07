@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.handler.jei.JeiRecipes.TransmutationRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
@@ -28,7 +29,7 @@ public class TransmutationRecipeHandler implements IRecipeCategory<Transmutation
 
 	@Override
 	public String getTitle() {
-		return "Nuclear Transmutation";
+		return I18nUtil.resolveKey("tile.machine_schrabidium_transmutator.name");
 	}
 
 	@Override

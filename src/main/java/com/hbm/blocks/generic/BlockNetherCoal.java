@@ -17,8 +17,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockNetherCoal extends BlockOutgas {
 
-	public BlockNetherCoal(boolean randomTick, int rate, boolean onBreak, String s) {
-		super(randomTick, rate, onBreak, s);
+	public BlockNetherCoal(Material mat, boolean randomTick, int rate, boolean onBreak, String s) {
+		super(mat, randomTick, rate, onBreak, s);
 	}
 
 	@Override

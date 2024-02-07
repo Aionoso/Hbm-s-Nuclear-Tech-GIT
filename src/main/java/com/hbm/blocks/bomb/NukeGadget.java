@@ -13,6 +13,7 @@ import com.hbm.lib.InventoryHelper;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.bomb.TileEntityNukeGadget;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
@@ -34,6 +35,7 @@ import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -198,11 +200,11 @@ public class NukeGadget extends BlockContainer implements IBomb {
 
 	@Override
 	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		tooltip.add("§2[Nuclear Bomb]§r");
-		tooltip.add(" §eRadius: "+BombConfig.gadgetRadius+"m§r");
+		tooltip.add(TextFormatting.DARK_GREEN+"["+ I18nUtil.resolveKey("trait.nuclearbomb")+"]"+"§r");
+		tooltip.add(TextFormatting.YELLOW+I18nUtil.resolveKey("desc.radius")+" "+BombConfig.gadgetRadius+"m§r");
 		if(!BombConfig.disableNuclear){
-			tooltip.add("§2[Fallout]§r");
-			tooltip.add(" §aRadius: "+(int)BombConfig.gadgetRadius*(1+BombConfig.falloutRange/100)+"m§r");
+			tooltip.add(TextFormatting.DARK_GREEN+"["+ I18nUtil.resolveKey("trait.fallout")+"]"+"§r");
+			tooltip.add(TextFormatting.GREEN+I18nUtil.resolveKey("desc.radius")+" "+(int)BombConfig.gadgetRadius*(1+BombConfig.falloutRange/100)+"m§r");
 		}
 	}
 }

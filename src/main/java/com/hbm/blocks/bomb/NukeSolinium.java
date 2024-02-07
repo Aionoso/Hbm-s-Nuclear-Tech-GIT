@@ -11,6 +11,7 @@ import com.hbm.lib.InventoryHelper;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.bomb.TileEntityNukeSolinium;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
@@ -32,6 +33,7 @@ import net.minecraft.util.Mirror;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -195,10 +197,10 @@ public class NukeSolinium extends BlockContainer implements IBomb {
 
 	@Override
 	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		tooltip.add("§3[Solinium Bomb]§r");
-		tooltip.add(" §eRadius: "+BombConfig.soliniumRadius+"m§r");
+		tooltip.add(TextFormatting.DARK_AQUA+"["+ I18nUtil.resolveKey("trait.soliniumbomb")+"]"+"§r");
+		tooltip.add(TextFormatting.YELLOW+I18nUtil.resolveKey("desc.radius")+" "+BombConfig.soliniumRadius+"m§r");
 		tooltip.add("");
-		tooltip.add("§dThis Neutron Bomb is the weaponized daughter of the G.E.C.K.§r");
-		tooltip.add("§dIt emits so much neutron radiation that it transmutates all radioactive elements in range via alpha decay until only non-radioactive elements remain.§r");
+		tooltip.add(TextFormatting.LIGHT_PURPLE+I18nUtil.resolveKey("desc.nukesolinium1")+"§r");
+		tooltip.add(TextFormatting.LIGHT_PURPLE+I18nUtil.resolveKey("desc.nukesolinium2")+"§r");
 	}
 }

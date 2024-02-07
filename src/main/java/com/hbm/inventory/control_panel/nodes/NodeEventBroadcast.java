@@ -15,7 +15,6 @@ import com.hbm.inventory.control_panel.NodeDropdown;
 import com.hbm.inventory.control_panel.NodeSystem;
 import com.hbm.inventory.control_panel.NodeType;
 
-import com.hbm.main.MainRegistry;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.math.BlockPos;

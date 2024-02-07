@@ -24,19 +24,19 @@ public class ContainerControlEdit extends Container {
 	
 	public ContainerControlEdit(InventoryPlayer invPlayer, TileEntityControlPanel te) {
 		control = te;
-		input = this.addSlotToContainer(new SlotItemHandlerDisableable(te.inventory, 0, 8, 13));
+		input = this.addSlotToContainer(new SlotItemHandlerDisableable(te.inventory, 0, 5, 51));
 		
 		for(int i = 0; i < 3; i++)
 		{
 			for(int j = 0; j < 9; j++)
 			{
-				invSlots.add((SlotDisableable)this.addSlotToContainer(new SlotDisableable(invPlayer, j + i * 9 + 9, 73 + j * 18, 162 + i * 18)));
+				invSlots.add((SlotDisableable)this.addSlotToContainer(new SlotDisableable(invPlayer, j + i * 9 + 9, 48 + j * 18, 152 + i * 18)));
 			}
 		}
 		
 		for(int i = 0; i < 9; i++)
 		{
-			invSlots.add((SlotDisableable)this.addSlotToContainer(new SlotDisableable(invPlayer, i, 73 + i * 18, 220)));
+			invSlots.add((SlotDisableable)this.addSlotToContainer(new SlotDisableable(invPlayer, i, 48 + i * 18, 210)));
 		}
 	}
 	

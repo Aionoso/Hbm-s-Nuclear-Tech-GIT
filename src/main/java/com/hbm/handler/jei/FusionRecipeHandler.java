@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.handler.jei.JeiRecipes.FusionRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
@@ -28,7 +29,7 @@ public class FusionRecipeHandler implements IRecipeCategory<FusionRecipe> {
 
 	@Override
 	public String getTitle() {
-		return "Fusion Reactor";
+		return I18nUtil.resolveKey("container.machineITER");
 	}
 
 	@Override

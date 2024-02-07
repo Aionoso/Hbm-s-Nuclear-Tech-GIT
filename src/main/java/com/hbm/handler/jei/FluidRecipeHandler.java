@@ -4,6 +4,7 @@ import com.hbm.handler.jei.JeiRecipes.FluidRecipe;
 import com.hbm.handler.jei.JeiRecipes.FluidRecipeInverse;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiFluidStackGroup;
@@ -30,7 +31,7 @@ public class FluidRecipeHandler implements IRecipeCategory<FluidRecipe> {
 
 	@Override
 	public String getTitle() {
-		return "Fluids";
+		return I18nUtil.resolveKey("jei.fluids");
 	}
 
 	@Override

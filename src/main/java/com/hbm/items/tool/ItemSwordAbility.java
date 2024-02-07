@@ -9,6 +9,7 @@ import com.google.common.collect.Multimap;
 import com.hbm.handler.WeaponAbility;
 import com.hbm.items.ModItems;
 import com.hbm.lib.HBMSoundHandler;
+import com.hbm.util.I18nUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -170,7 +171,7 @@ public class ItemSwordAbility extends ItemSword implements IItemAbility {
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
 		if(!this.hitAbility.isEmpty()) {
 
-			list.add("Weapon modifiers: ");
+			list.add(TextFormatting.GRAY + I18nUtil.resolveKey("tool.ability.weaponlist"));
 
 			for(WeaponAbility ability : this.hitAbility) {
 				list.add("  " + TextFormatting.RED + ability.getFullName());

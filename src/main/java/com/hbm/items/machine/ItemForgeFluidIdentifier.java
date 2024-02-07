@@ -79,7 +79,7 @@ public class ItemForgeFluidIdentifier extends Item implements IHasCustomModel {
 		}
 		list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("info.templatefolder"));
 		list.add("");
-		list.add("Universal fluid identifier for:");
+		list.add(I18nUtil.resolveKey("desc.unfluidid"));
 		if (f != null)
 			list.add("   " + f.getLocalizedName(new FluidStack(f, 1000)));
 		else

@@ -47,6 +47,7 @@ import com.hbm.entity.grenade.EntityGrenadeZOMG;
 import com.hbm.items.ModItems;
 import com.hbm.config.BombConfig;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
@@ -235,17 +236,17 @@ public class ItemGrenade extends Item {
 	
 	private String translateFuse() {
 		if(fuse == -1)
-			return "Impact";
+			return I18nUtil.resolveKey("fuse.impact");
 		
 		if(fuse == 0)
-			return "Instant";
+			return I18nUtil.resolveKey("fuse.instant");
 		
 		return fuse + "s";
 	}
 	
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
-		list.add("Fuse: " + translateFuse());
+		list.add(I18nUtil.resolveKey("desc.fuse") + " " + translateFuse());
 
 		if (this == ModItems.grenade_if_generic) {
 			list.add("");
@@ -306,14 +307,14 @@ public class ItemGrenade extends Item {
 			list.add(TextFormatting.ITALIC + "If it didn't blow up it means it worked.");
 		}
 		if (this == ModItems.grenade_solinium) {
-			list.add("§3[Solinium Grenade]§r");
-			list.add(" §eRadius: "+(int)BombConfig.soliniumRadius/10+"m§r");
+			list.add(TextFormatting.DARK_AQUA + "[" + I18nUtil.resolveKey("trait.soliniumgrenade") + "]");
+			list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("desc.radius") + " "+(int)BombConfig.soliniumRadius/10+"m§r");
 		}
 		if (this == ModItems.grenade_nuclear) {
-			list.add("§2[Nuclear Grenade]§r");
-			list.add(" §eRadius: "+(int)BombConfig.fatmanRadius/2+"m§r");
-			list.add("§2[Fallout]§r");
-			list.add(" §aRadius: "+(int)(BombConfig.fatmanRadius/2*(1+BombConfig.falloutRange/100))+"m§r");
+			list.add(TextFormatting.DARK_GREEN + "[" + I18nUtil.resolveKey("trait.nucleargrenade") + "]");
+			list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("desc.radius") + " "+(int)BombConfig.fatmanRadius/2+"m§r");
+			list.add(TextFormatting.DARK_GREEN + "[" + I18nUtil.resolveKey("trait.fallout") + "]");
+			list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("desc.radius") + " "+(int)(BombConfig.fatmanRadius/2*(1+BombConfig.falloutRange/100))+"m§r");
 		}
 	}
 	

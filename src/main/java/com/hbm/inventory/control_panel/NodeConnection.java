@@ -48,35 +48,35 @@ public class NodeConnection extends NodeElement {
 	
 	public NBTTagCompound writeToNBT(NBTTagCompound tag, NodeSystem sys){
 		super.writeToNBT(tag, sys);
-//		tag.setString("eleType", "connection");
+		tag.setString("eleType", "connection");
 		tag.setString("name", name);
-		tag.setInteger("Ci", connectionIndex);
-		tag.setInteger("Ni", sys.nodes.indexOf(connection));
-		tag.setBoolean("in", isInput);
-		tag.setInteger("T", type.ordinal());
-		tag.setTag("D", defaultValue.writeToNBT());
-		tag.setBoolean("DL", drawsLine);
+		tag.setInteger("connectionIdx", connectionIndex);
+		tag.setInteger("nodeIdx", sys.nodes.indexOf(connection));
+		tag.setBoolean("isInput", isInput);
+		tag.setInteger("type", type.ordinal());
+		tag.setTag("default", defaultValue.writeToNBT());
+		tag.setBoolean("drawLine", drawsLine);
 		return tag;
 	}
 	
 	public void readFromNBT(NBTTagCompound tag, NodeSystem sys){
 		super.readFromNBT(tag, sys);
 		name = tag.getString("name");
-		connectionIndex = tag.getInteger("Ci");
-		int nodeIdx = tag.getInteger("Ni");
+		connectionIndex = tag.getInteger("connectionIdx");
+		int nodeIdx = tag.getInteger("nodeIdx");
 		if(nodeIdx == -1){
 			connection = null;
 		} else {
 			connection = sys.nodes.get(nodeIdx);
 		}
-		isInput = tag.getBoolean("in");
-		type = DataType.values()[tag.getInteger("T") % DataType.values().length];
-		defaultValue = DataValue.newFromNBT(tag.getTag("D"));
+		isInput = tag.getBoolean("isInput");
+		type = DataType.values()[tag.getInteger("type") % DataType.values().length];
+		defaultValue = DataValue.newFromNBT(tag.getTag("default"));
 		if(defaultValue == null){
 			type = DataType.NUMBER;
 			defaultValue = new DataValueFloat(0);
 		}
-		drawsLine = tag.getBoolean("DL");
+		drawsLine = tag.getBoolean("drawLine");
 		builder = null;
 		isTyping = false;
 	}
@@ -115,13 +115,6 @@ public class NodeConnection extends NodeElement {
 			return n;
 		}
 		return null;
-	}
-
-	public NodeConnection setData(Node connection, int connectionIndex, boolean drawsLine) {
-		this.connection = connection;
-		this.connectionIndex = connectionIndex;
-		this.drawsLine = drawsLine;
-		return this;
 	}
 	
 	@Override

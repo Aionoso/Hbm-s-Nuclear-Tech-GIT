@@ -5,6 +5,7 @@ import java.util.List;
 import com.hbm.items.ModItems;
 import com.hbm.main.MainRegistry;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -24,10 +25,10 @@ public class ItemTemplateFolder extends Item {
 	
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		tooltip.add("Machine Templates: Paper + Dye");
-		tooltip.add("Fluid IDs: Iron Plate + Dye");
-		tooltip.add("Press Stamps: Flat Stamp");
-		tooltip.add("Siren Tracks: Insulator + Steel Plate");
+		tooltip.add(I18nUtil.resolveKey("desc.templfolder1"));
+		tooltip.add(I18nUtil.resolveKey("desc.templfolder2"));
+		tooltip.add(I18nUtil.resolveKey("desc.templfolder3"));
+		tooltip.add(I18nUtil.resolveKey("desc.templfolder4"));
 	}
 	
 	@Override

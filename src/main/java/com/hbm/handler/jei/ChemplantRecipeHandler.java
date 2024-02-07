@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.handler.jei.JeiRecipes.ChemRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IDrawableAnimated;
@@ -40,7 +41,7 @@ public class ChemplantRecipeHandler implements IRecipeCategory<ChemRecipe> {
 
 	@Override
 	public String getTitle() {
-		return "Chemical Plant";
+		return I18nUtil.resolveKey("tile.machine_chemplant.name");
 	}
 
 	@Override

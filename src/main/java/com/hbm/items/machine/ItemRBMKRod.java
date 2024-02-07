@@ -268,15 +268,15 @@ public class ItemRBMKRod extends Item implements IItemHazard {
 	}
 	
 	public static enum EnumBurnFunc {
-		PASSIVE(TextFormatting.DARK_GREEN + "SAFE / PASSIVE"),			//const, no reactivity
-		PLATEU(TextFormatting.GREEN + "SAFE / EULER"),					//(1 - e^(-x/25)) * reactivity * 100
-		SIGMOID(TextFormatting.GREEN + "SAFE / SIGMOID"),				//100 / (1 + e^(-(x - 50) / 10)) <- tiny amount of reactivity at x=0 !
-		LOG_TEN(TextFormatting.YELLOW + "MEDIUM / LOGARITHMIC"),		//log10(x + 1) * reactivity * 50
-		SQUARE_ROOT(TextFormatting.YELLOW + "MEDIUM / SQUARE ROOT"),	//sqrt(x) * 10 * reactivity
-		ARCH(TextFormatting.GOLD + "RISKY / NEGATIVE-QUADRATIC"),		//x-(x²/archLength) * reactivity
-		LINEAR(TextFormatting.RED + "DANGEROUS / LINEAR"),				//x * reactivity
-		QUADRATIC(TextFormatting.DARK_RED + "DANGEROUS / QUADRATIC"),		//x^2 / 100 * reactivity
-		EXPERIMENTAL(TextFormatting.WHITE + "EXPERIMENTAL / SINE SLOPE");	//x * (sin(x) + 1)
+		PASSIVE(TextFormatting.DARK_GREEN + I18nUtil.resolveKey("trait.rbmx.safe1")),			//const, no reactivity
+		PLATEU(TextFormatting.GREEN + I18nUtil.resolveKey("trait.rbmx.safe2")),					//(1 - e^(-x/25)) * reactivity * 100
+		SIGMOID(TextFormatting.GREEN + I18nUtil.resolveKey("trait.rbmx.safe3")),				//100 / (1 + e^(-(x - 50) / 10)) <- tiny amount of reactivity at x=0 !
+		LOG_TEN(TextFormatting.YELLOW + I18nUtil.resolveKey("trait.rbmx.medium1")),		//log10(x + 1) * reactivity * 50
+		SQUARE_ROOT(TextFormatting.YELLOW + I18nUtil.resolveKey("trait.rbmx.medium2")),	//sqrt(x) * 10 * reactivity
+		ARCH(TextFormatting.GOLD + I18nUtil.resolveKey("trait.rbmx.risky")),		//x-(x²/archLength) * reactivity
+		LINEAR(TextFormatting.RED + I18nUtil.resolveKey("trait.rbmx.dangerous1")),				//x * reactivity
+		QUADRATIC(TextFormatting.DARK_RED + I18nUtil.resolveKey("trait.rbmx.dangerous2")),		//x^2 / 100 * reactivity
+		EXPERIMENTAL(TextFormatting.WHITE + I18nUtil.resolveKey("trait.rbmx.experimental"));	//x * (sin(x) + 1)
 		
 		public String title = "";
 		

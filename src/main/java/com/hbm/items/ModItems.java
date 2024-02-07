@@ -642,6 +642,12 @@ public class ModItems {
 	public static final Item upgrade_crystallizer = new ItemMachineUpgrade("upgrade_crystallizer").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
 	public static final Item upgrade_nullifier = new ItemMachineUpgrade("upgrade_nullifier", UpgradeType.NULLIFIER, 1).setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
 	public static final Item upgrade_screm = new ItemMachineUpgrade("upgrade_screm", UpgradeType.SCREAM, 1).setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item upgrade_ejector_1 = new ItemMachineUpgrade("upgrade_ejector_1").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item upgrade_ejector_2 = new ItemMachineUpgrade("upgrade_ejector_2").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item upgrade_ejector_3 = new ItemMachineUpgrade("upgrade_ejector_3").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item upgrade_stack_1 = new ItemMachineUpgrade("upgrade_stack_1", UpgradeType.SPEED, 1).setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item upgrade_stack_2 = new ItemMachineUpgrade("upgrade_stack_2", UpgradeType.SPEED, 1).setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item upgrade_stack_3 = new ItemMachineUpgrade("upgrade_stack_3", UpgradeType.SPEED, 1).setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
 	
 	
 	//Fluid handling items
@@ -706,7 +712,7 @@ public class ModItems {
 	public static final Item hazmat_paa_legs = new ArmorHazmat(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.LEGS, "hazmat_paa_legs").setMaxStackSize(1);
 	public static final Item hazmat_paa_boots = new ArmorHazmat(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.FEET, "hazmat_paa_boots").setMaxStackSize(1);
 	
-	public static final Item paa_helmet = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/paa_1.png", "paa_helmet").setCap(4F).setMod(0.2F).setBlastProtection(0.5F).addEffect(new PotionEffect(MobEffects.HASTE, 30, 0)).addEffect(new PotionEffect(MobEffects.SPEED, 30, 0)).addEffect(new PotionEffect(MobEffects.WATER_BREATHING, 30, 0)).setFireproof(true).setMaxStackSize(1);
+	public static final Item paa_helmet = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/paa_1.png", "paa_helmet").setCap(4F).setMod(0.2F).setBlastProtection(0.5F).addEffect(new PotionEffect(MobEffects.HASTE, 20, 0)).addEffect(new PotionEffect(MobEffects.SPEED, 20, 0)).addEffect(new PotionEffect(MobEffects.WATER_BREATHING, 20, 0)).setFireproof(true).setMaxStackSize(1);
 	public static final Item paa_plate = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.CHEST, RefStrings.MODID + ":textures/armor/paa_1.png", "paa_plate").cloneStats((ArmorFSB) paa_helmet).setMaxStackSize(1);
 	public static final Item paa_legs = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/paa_2.png", "paa_legs").cloneStats((ArmorFSB) paa_helmet).setMaxStackSize(1);
 	public static final Item paa_boots = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/paa_1.png", "paa_boots").cloneStats((ArmorFSB) paa_helmet).setMaxStackSize(1);
@@ -1680,6 +1686,9 @@ public class ModItems {
 	public static final Item ball_dynamite = new ItemHazard("ball_dynamite").addExplosive(2).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item ball_tnt = new ItemHazard("ball_tnt").addExplosive(3).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item ball_fireclay = new ItemBase("ball_fireclay").setCreativeTab(MainRegistry.partsTab);
+	public static final Item piston_pneumatic = new ItemBase("piston_pneumatic").setCreativeTab(MainRegistry.partsTab);
+	public static final Item piston_hydraulic = new ItemBase("piston_hydraulic").setCreativeTab(MainRegistry.partsTab);
+	public static final Item piston_electro = new ItemBase("piston_electro").setCreativeTab(MainRegistry.partsTab);
 
 	//BedrockOres
 	public static final Item ore_bedrock = new ItemBedrockOre("ore_bedrock").setCreativeTab(MainRegistry.partsTab);

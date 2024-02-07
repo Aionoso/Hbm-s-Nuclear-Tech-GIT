@@ -7,6 +7,7 @@ import com.hbm.items.ModItems;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.main.MainRegistry;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -15,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 
@@ -42,7 +44,7 @@ public class ItemTurretBiometry extends Item {
 		addName(stack, player.getDisplayName().getUnformattedText());
 
         if(world.isRemote)
-        	player.sendMessage(new TextComponentTranslation("Added player data!"));
+        	player.sendMessage(new TextComponentString(I18nUtil.resolveKey("chat.addpldata")));
 
     	world.playSound(player.posX, player.posY, player.posZ, HBMSoundHandler.techBleep, SoundCategory.PLAYERS, 1.0F, 1.0F, true);
 		

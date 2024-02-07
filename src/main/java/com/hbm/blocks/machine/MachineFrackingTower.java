@@ -4,6 +4,7 @@ import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.handler.MultiblockHandler;
 import com.hbm.handler.MultiblockHandlerXR;
+import com.hbm.interfaces.IMultiBlock;
 import com.hbm.lib.InventoryHelper;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.TileEntityProxyCombo;

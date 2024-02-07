@@ -1,10 +1,11 @@
 package com.hbm.inventory.control_panel;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
-import com.hbm.inventory.control_panel.nodes.NodeFunction;
-import com.hbm.main.MainRegistry;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -47,16 +48,12 @@ public class NodeSystem {
 	protected float lastMouseX;
 	@SideOnly(Side.CLIENT)
 	protected float lastMouseY;
-
+	
 	public Control parent;
 	public List<Node> nodes = new ArrayList<>();
 	public List<NodeOutput> outputNodes = new ArrayList<>();
 	private Map<String, DataValue> vars = new HashMap<>();
-
-	// an array of subsystems owned by the various nodes sharing a system layer (sublayering is then done recursively)
-	// ○|￣|_   <-- me
-	public Map<Node, NodeSystem> subSystems = new HashMap<>();
-
+	
 	public NodeSystem(Control parent){
 		this.parent = parent;
 	}
@@ -82,62 +79,46 @@ public class NodeSystem {
 		return val;
 	}
 	
-	public NBTTagCompound writeToNBT(NBTTagCompound tag) {
+	public NBTTagCompound writeToNBT(NBTTagCompound tag){
 		NBTTagCompound nodes = new NBTTagCompound();
-
-		for (int i = 0; i < this.nodes.size(); i ++) {
-			Node node = this.nodes.get(i);
-			NBTTagCompound nodeTag = node.writeToNBT(new NBTTagCompound(), this);
-			if (node instanceof NodeFunction) {
-				nodeTag.setTag("SS", subSystems.get(node).writeToNBT(new NBTTagCompound()));
-			}
-			nodes.setTag("n"+i, nodeTag);
+		for(int i = 0; i < this.nodes.size(); i ++){
+			nodes.setTag("node"+i, this.nodes.get(i).writeToNBT(new NBTTagCompound(), this));
 		}
-		tag.setTag("N", nodes);
-
+		tag.setTag("nodes", nodes);
+		
 		NBTTagCompound vars = new NBTTagCompound();
-		for (Entry<String, DataValue> e : this.vars.entrySet()) {
+		for(Entry<String, DataValue> e : this.vars.entrySet()) {
 			vars.setTag(e.getKey(), e.getValue().writeToNBT());
 		}
-		tag.setTag("V", vars);
-
+		tag.setTag("vars", vars);
+		
 		return tag;
 	}
-
-	public void readFromNBT(NBTTagCompound tag) {
+	
+	public void readFromNBT(NBTTagCompound tag){
 		this.nodes.clear();
 		this.outputNodes.clear();
-		this.subSystems.clear();
-
-		NBTTagCompound nodes = tag.getCompoundTag("N");
-		for (int i = 0; i < nodes.getKeySet().size(); i ++) {
-			NBTTagCompound nodeTag = nodes.getCompoundTag("n"+i);
-			Node node = Node.nodeFromNBT(nodeTag, this);
-
-			if (node instanceof NodeOutput) {
-				outputNodes.add((NodeOutput) node);
-			}
-			if (node instanceof NodeFunction && nodeTag.hasKey("SS")) {
-				NodeSystem subsystem = new NodeSystem(parent);
-				subsystem.readFromNBT(nodeTag.getCompoundTag("SS"));
-				subSystems.put(node, subsystem);
-			}
+		NBTTagCompound nodes = tag.getCompoundTag("nodes");
+		for(int i = 0; i < nodes.getKeySet().size(); i ++){
+			Node node = Node.nodeFromNBT(nodes.getCompoundTag("node"+i), this);
 			this.nodes.add(node);
+			if(node instanceof NodeOutput)
+				outputNodes.add((NodeOutput)node);
 		}
-		for (int i = 0; i < this.nodes.size(); i ++) {
-			this.nodes.get(i).readFromNBT(nodes.getCompoundTag("n"+i), this);
+		for(int i = 0; i < this.nodes.size(); i ++){
+			this.nodes.get(i).readFromNBT(nodes.getCompoundTag("node"+i), this);
 		}
-
-		NBTTagCompound vars = tag.getCompoundTag("V");
-		for (String k : vars.getKeySet()) {
+		
+		NBTTagCompound vars = tag.getCompoundTag("vars");
+		for(String k : vars.getKeySet()) {
 			NBTBase base = vars.getTag(k);
 			DataValue val = DataValue.newFromNBT(base);
-			if (val != null) {
+			if(val != null) {
 				this.vars.put(k, val);
 			}
 		}
 	}
-
+	
 	@SideOnly(Side.CLIENT)
 	public void removeClientData(){
 		nodeEditor = null;
@@ -147,7 +128,7 @@ public class NodeSystem {
 		connectionInProgress = null;
 		currentTypingBox = null;
 	}
-
+	
 	@SideOnly(Side.CLIENT)
 	public void render(float mX, float mY){
 		if(drag && !Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
@@ -156,9 +137,6 @@ public class NodeSystem {
 			dragDist += Math.sqrt(distX*distX + distY*distY);
 			for(Node n : selectedNodes){
 				n.setPosition(n.posX+(gui.mouseX-lastMouseX)*nodeEditor.gridScale, n.posY+(gui.mouseY-lastMouseY)*nodeEditor.gridScale);
-			}
-			for (Node n : nodes) {
-				n.setPosition(n.posX, n.posY); // to fix elements not rendering in edit mode
 			}
 			lastMouseX = gui.mouseX;
 			lastMouseY = gui.mouseY;
@@ -200,13 +178,8 @@ public class NodeSystem {
 	
 	public void addNode(Node n){
 		nodes.add(n);
-
-		if (n instanceof NodeFunction && !subSystems.containsKey(n)) {
-			subSystems.put(n, new NodeSystem(parent));
-		}
-		if (n instanceof NodeOutput) {
-			outputNodes.add((NodeOutput) n);
-		}
+		if(n instanceof NodeOutput)
+			outputNodes.add((NodeOutput)n);
 	}
 	
 	public void removeNode(Node n){
@@ -215,24 +188,6 @@ public class NodeSystem {
 		selectedNodes.remove(n);
 		outputNodes.remove(n);
 		nodes.remove(n);
-	}
-
-	@SideOnly(Side.CLIENT)
-	public NodeElement getNodeElementPressed(float x, float y) {
-		lastMouseX = gui.mouseX;
-		lastMouseY = gui.mouseY;
-		float gridMX = (gui.mouseX-gui.getGuiLeft())*nodeEditor.gridScale + gui.getGuiLeft() + nodeEditor.gridX;
-		float gridMY = (gui.mouseY-gui.getGuiTop())*nodeEditor.gridScale + gui.getGuiTop() - nodeEditor.gridY;
-		for (int i = nodes.size()-1; i >= 0; i--) {
-			for (NodeElement e : nodes.get(i).otherElements) {
-				if (e instanceof NodeButton) {
-					if (e.onClick(gridMX, gridMY)) {
-						return e;
-					}
-				}
-			}
-		}
-		return null;
 	}
 	
 	@SideOnly(Side.CLIENT)
@@ -320,7 +275,7 @@ public class NodeSystem {
 			activeNode = null;
 		}
 	}
-
+	
 	@SideOnly(Side.CLIENT)
 	public void clickReleased(float x, float y){
 		float gridMX = (gui.mouseX-gui.getGuiLeft())*nodeEditor.gridScale + gui.getGuiLeft() + nodeEditor.gridX;
@@ -380,19 +335,13 @@ public class NodeSystem {
 		}
 	}
 
-	public void receiveEvent(ControlPanel panel, Control ctrl, ControlEvent evt) {
-		resetCachedValues();
-		for (Node n : nodes) {
-			if (n instanceof NodeInput) {
+	public void receiveEvent(ControlPanel panel, Control ctrl, ControlEvent evt){
+		for(Node n : nodes){
+			if(n instanceof NodeInput){
 				((NodeInput)n).setOutputFromVars(evt.vars);
 			}
-			if (n instanceof NodeFunction) {
-				if (n.evaluate(0).getBoolean()) {
-					subSystems.get(n).receiveEvent(panel, ctrl, evt);
-				}
-			}
 		}
-		for (NodeOutput o : outputNodes) {
+		for(NodeOutput o : outputNodes){
 			o.doOutput(panel.parent, ctrl.sendNodeMap, ctrl.connectedSet);
 		}
 	}

@@ -1,0 +1,12 @@
+{
+	"parent": "block/cube",
+	"textures": {
+		"down": "hbm:blocks/crane_in_top",
+		"up": "hbm:blocks/crane_in_top",
+		"north": "hbm:blocks/crane_in",
+		"south": "hbm:blocks/crane_out",
+		"west": "hbm:blocks/crane_in_side_turn_right",
+		"east": "hbm:blocks/crane_in_side_turn_left",
+		"particle": "hbm:blocks/crane_in_top"
+	}
+}

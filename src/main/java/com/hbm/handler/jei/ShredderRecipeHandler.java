@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.inventory.ShredderRecipes.ShredderRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IDrawableAnimated;
@@ -42,7 +43,7 @@ public class ShredderRecipeHandler implements IRecipeCategory<ShredderRecipe> {
 
 	@Override
 	public String getTitle() {
-		return "Shredder";
+		return I18nUtil.resolveKey("tile.machine_shredder.name");
 	}
 
 	@Override

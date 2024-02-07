@@ -2,6 +2,7 @@ package com.hbm.handler.jei;
 
 import com.hbm.handler.jei.SILEXRecipeHandler;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 
 public class SILEXXRayRecipeHandler extends SILEXRecipeHandler {
@@ -17,6 +18,6 @@ public class SILEXXRayRecipeHandler extends SILEXRecipeHandler {
 
 	@Override
 	public String getTitle(){
-		return "SILEX X-Ray Recipes";
+		return I18nUtil.resolveKey("jei.silexxray");
 	}
 }

@@ -4,6 +4,7 @@ import com.hbm.handler.jei.JeiRecipes.SILEXRecipe;
 import com.hbm.handler.jei.JeiRecipes.SmithingRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IGuiItemStackGroup;
@@ -32,7 +33,7 @@ public class SmithingRecipeHandler implements IRecipeCategory<SmithingRecipe> {
 
 	@Override
 	public String getTitle(){
-		return "Anvil";
+		return I18nUtil.resolveKey("hbm.achievement.progress_anvil");
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class SmithingRecipeHandler implements IRecipeCategory<SmithingRecipe> {
 	@Override
 	public void drawExtras(Minecraft minecraft){
 		if(currentDrawHack != null){
-			minecraft.fontRenderer.drawString("Tier " + currentDrawHack.tier, 30, -12, 0x40404040);
+			minecraft.fontRenderer.drawString(I18nUtil.resolveKey("desc.tier") + " " + currentDrawHack.tier, 30, -12, 0x40404040);
 		}
 	}
 

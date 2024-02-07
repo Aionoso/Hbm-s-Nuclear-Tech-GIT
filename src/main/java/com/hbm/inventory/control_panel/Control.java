@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.hbm.inventory.control_panel.controls.ControlType;
 import com.hbm.render.amlfrom1710.IModelCustom;
 
 import net.minecraft.nbt.NBTBase;
@@ -36,28 +35,14 @@ public abstract class Control {
 	public Map<String, DataValue> varsPrev = new HashMap<>();
 	//A set of the custom variables the user is allowed to remove
 	public Set<String> customVarNames = new HashSet<>();
-	// map of (static) initial configurations for a control e.g. color, size
-	public Map<String, DataValue> configMap = new HashMap<>();
 	public float posX;
 	public float posY;
-
-
+	
 	public Control(String name, ControlPanel panel){
 		this.name = name;
 		this.panel = panel;
 	}
-
-	public abstract ControlType getControlType();
-
-	public abstract float[] getSize();
-
-	public Map<String, DataValue> getConfigs() {
-		return configMap;
-	}
-	public void applyConfigs(Map<String, DataValue> configs) {
-		configMap = configs;
-	}
-
+	
 	public void renderBatched(){};
 	public void render(){};
 	public List<String> getOutEvents(){return Collections.emptyList();};
@@ -66,26 +51,9 @@ public abstract class Control {
 	public abstract IModelCustom getModel();
 	@SideOnly(Side.CLIENT)
 	public abstract ResourceLocation getGuiTexture();
-
-	public AxisAlignedBB getBoundingBox() {
-		float width = getSize()[0];
-		float length = getSize()[1];
-		float height = getSize()[2];
-		// offset to fix placement position error for controls not 1x1.
-		return new AxisAlignedBB(-width/2, 0, -length/2, width/2, height, length/2).offset(posX+((width>1?Math.abs(1-width)/2:(width-1)/2)), 0, posY+((length>1)? Math.abs(1-length)/2 : (length-1)/2));
-//				.offset(posX+((width>1)?Math.abs(1-width/2):0), 0, posY+Math.abs(1-length)/2);
-//		GlStateManager.translate((width>1)? Math.abs(1-width)/2 : (width-1)/2, 0, (length>1)? Math.abs(1-length)/2 : 0);
-	}
-
-	public float[] getBox() {
-		float width = getSize()[0];
-		float length = getSize()[1];
-		return new float[] {posX, posY, posX + width, posY + length};
-	}
-
+	public abstract AxisAlignedBB getBoundingBox();
+	public abstract float[] getBox();
 	public abstract Control newControl(ControlPanel panel);
-
-	public abstract void populateDefaultNodes(List<ControlEvent> receiveEvents);
 
 	public void receiveEvent(ControlEvent evt){
 		NodeSystem sys = receiveNodeMap.get(evt.name);
@@ -102,7 +70,7 @@ public abstract class Control {
 	public DataValue getGlobalVar(String name){
 		return panel.getVar(name);
 	}
-
+	
 	public NBTTagCompound writeToNBT(NBTTagCompound tag){
 		tag.setString("name", ControlRegistry.getName(this.getClass()));
 		tag.setString("myName", name);
@@ -114,16 +82,15 @@ public abstract class Control {
 		
 		NBTTagCompound sendNodes = new NBTTagCompound();
 		for(Entry<String, NodeSystem> e : sendNodeMap.entrySet()){
-			NBTTagCompound eventNodeMap = e.getValue().writeToNBT(new NBTTagCompound());
-			sendNodes.setTag(e.getKey(), eventNodeMap);
+			sendNodes.setTag(e.getKey(), e.getValue().writeToNBT(new NBTTagCompound()));
 		}
-		tag.setTag("SN", sendNodes);
+		tag.setTag("sendNodes", sendNodes);
 		
 		NBTTagCompound receiveNodes = new NBTTagCompound();
 		for(Entry<String, NodeSystem> e : receiveNodeMap.entrySet()){
 			receiveNodes.setTag(e.getKey(), e.getValue().writeToNBT(new NBTTagCompound()));
 		}
-		tag.setTag("RN", receiveNodes);
+		tag.setTag("receiveNodes", receiveNodes);
 		
 		NBTTagCompound customVarNames = new NBTTagCompound();
 		int i = 0;
@@ -131,7 +98,7 @@ public abstract class Control {
 			customVarNames.setString("var" + i, s);
 			i++;
 		}
-		tag.setTag("customvars", customVarNames);
+		tag.setTag("customvarnames", customVarNames);
 		
 		NBTTagCompound connectedSet = new NBTTagCompound();
 		for(i = 0; i < this.connectedSet.size(); i ++){
@@ -139,17 +106,10 @@ public abstract class Control {
 			connectedSet.setInteger("py"+i, this.connectedSet.get(i).getY());
 			connectedSet.setInteger("pz"+i, this.connectedSet.get(i).getZ());
 		}
-		tag.setTag("conset", connectedSet);
+		tag.setTag("connectedset", connectedSet);
 		
-		tag.setFloat("X", posX);
-		tag.setFloat("Y", posY);
-
-		NBTTagCompound configs = new NBTTagCompound();
-		for (Entry<String, DataValue> e : configMap.entrySet()) {
-			configs.setTag(e.getKey(), e.getValue().writeToNBT());
-		}
-		tag.setTag("configs", configs);
-
+		tag.setFloat("posX", posX);
+		tag.setFloat("posY", posY);
 		return tag;
 	}
 	
@@ -166,25 +126,25 @@ public abstract class Control {
 		sendNodeMap.clear();
 		receiveNodeMap.clear();
 		
-		NBTTagCompound sendNodes = tag.getCompoundTag("SN");
+		NBTTagCompound sendNodes = tag.getCompoundTag("sendNodes");
 		for(String s : sendNodes.getKeySet()){
 			NodeSystem sys = new NodeSystem(this);
 			sendNodeMap.put(s, sys);
 			sys.readFromNBT(sendNodes.getCompoundTag(s));
 		}
-		NBTTagCompound receiveNodes = tag.getCompoundTag("RN");
+		NBTTagCompound receiveNodes = tag.getCompoundTag("receiveNodes");
 		for(String s : receiveNodes.getKeySet()){
 			NodeSystem sys = new NodeSystem(this);
 			receiveNodeMap.put(s, sys);
 			sys.readFromNBT(receiveNodes.getCompoundTag(s));
 		}
 		
-		NBTTagCompound customVarNames = tag.getCompoundTag("custonvars");
+		NBTTagCompound customVarNames = tag.getCompoundTag("customvarnames");
 		for(int i = 0; i < customVarNames.getKeySet().size(); i ++){
 			this.customVarNames.add(customVarNames.getString("var"+i));
 		}
 		
-		NBTTagCompound connectedSet = tag.getCompoundTag("conset");
+		NBTTagCompound connectedSet = tag.getCompoundTag("connectedset");
 		for(int i = 0; i < connectedSet.getKeySet().size()/3; i ++){
 			int x = connectedSet.getInteger("px"+i);
 			int y = connectedSet.getInteger("py"+i);
@@ -192,14 +152,7 @@ public abstract class Control {
 			this.connectedSet.add(new BlockPos(x, y, z));
 		}
 		
-		this.posX = tag.getFloat("X");
-		this.posY = tag.getFloat("Y");
-
-		NBTTagCompound configs = tag.getCompoundTag("configs");
-		for (String e : configs.getKeySet()) {
-			configMap.put(e, DataValue.newFromNBT(configs.getTag(e)));
-		}
+		this.posX = tag.getFloat("posX");
+		this.posY = tag.getFloat("posY");
 	}
-
-
 }

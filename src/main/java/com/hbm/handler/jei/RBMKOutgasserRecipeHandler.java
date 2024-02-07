@@ -3,6 +3,7 @@ package com.hbm.handler.jei;
 import com.hbm.inventory.RBMKOutgasserRecipes.RBMKOutgasserRecipe;
 import com.hbm.lib.RefStrings;
 
+import com.hbm.util.I18nUtil;
 import mezz.jei.api.IGuiHelper;
 import mezz.jei.api.gui.IDrawable;
 import mezz.jei.api.gui.IDrawableAnimated;
@@ -36,7 +37,7 @@ public class RBMKOutgasserRecipeHandler implements IRecipeCategory<RBMKOutgasser
 
 	@Override
 	public String getTitle() {
-		return "RBMK Irradiation Channel";
+		return I18nUtil.resolveKey("container.rbmkOutgasser");
 	}
 
 	@Override

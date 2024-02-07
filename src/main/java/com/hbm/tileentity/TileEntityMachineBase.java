@@ -2,8 +2,6 @@ package com.hbm.tileentity;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.interfaces.Spaghetti;
-import com.hbm.inventory.control_panel.ControlEventSystem;
-import com.hbm.inventory.control_panel.IControllable;
 import com.hbm.lib.ItemStackHandlerWrapper;
 import com.hbm.packet.NBTPacket;
 import com.hbm.packet.PacketDispatcher;
@@ -12,8 +10,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
@@ -24,6 +20,7 @@ import net.minecraftforge.items.ItemStackHandler;
 public abstract class TileEntityMachineBase extends TileEntityLoadedBase implements INBTPacketReceiver {
 
 	public ItemStackHandler inventory;
+	public ItemStack slots[];
 
 	private String customName;
 
@@ -71,6 +68,20 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
 		return new int[] {};
+	}
+
+
+	public void setInventorySlotContents(int i, ItemStack itemStack) {
+		slots[i] = itemStack;
+		if(itemStack != ItemStack.EMPTY && itemStack.getCount() > getInventoryStackLimit())
+		{
+			itemStack.setCount(getInventoryStackLimit());
+		}
+	}
+
+
+	public int getInventoryStackLimit() {
+		return 64;
 	}
 	
 	public int getGaugeScaled(int i, FluidTank tank) {
@@ -158,4 +169,5 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
 		return (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && inventory != null) || super.hasCapability(capability, facing);
 	}
+	
 }

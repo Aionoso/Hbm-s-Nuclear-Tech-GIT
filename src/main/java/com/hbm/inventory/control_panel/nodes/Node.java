@@ -3,11 +3,15 @@ package com.hbm.inventory.control_panel.nodes;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hbm.inventory.control_panel.*;
-import com.hbm.main.MainRegistry;
-import net.minecraft.util.math.BlockPos;
 import org.lwjgl.opengl.GL11;
 
+import com.hbm.inventory.control_panel.ControlEvent;
+import com.hbm.inventory.control_panel.DataValue;
+import com.hbm.inventory.control_panel.DataValueFloat;
+import com.hbm.inventory.control_panel.NodeConnection;
+import com.hbm.inventory.control_panel.NodeElement;
+import com.hbm.inventory.control_panel.NodeSystem;
+import com.hbm.inventory.control_panel.NodeType;
 import com.hbm.render.RenderHelper;
 
 import net.minecraft.client.Minecraft;
@@ -25,7 +29,7 @@ public abstract class Node {
 	public List<NodeElement> otherElements = new ArrayList<>();
 	public List<NodeConnection> inputs = new ArrayList<>();
 	public List<NodeConnection> outputs = new ArrayList<>();
-
+	
 	public boolean cacheValid = false;
 	public DataValue[] evalCache = null;
 	
@@ -42,41 +46,41 @@ public abstract class Node {
 		for(int i = 0; i < this.inputs.size(); i ++){
 			inputs.setTag("con"+i, this.inputs.get(i).writeToNBT(new NBTTagCompound(), sys));
 		}
-		tag.setTag("in", inputs);
+		tag.setTag("inputs", inputs);
 		
 		NBTTagCompound outputs = new NBTTagCompound();
 		for(int i = 0; i < this.outputs.size(); i ++){
 			outputs.setTag("con"+i, this.outputs.get(i).writeToNBT(new NBTTagCompound(), sys));
 		}
-		tag.setTag("out", outputs);
+		tag.setTag("outputs", outputs);
 		
-		tag.setInteger("T", getType().ordinal());
-		tag.setFloat("X", posX);
-		tag.setFloat("Y", posY);
-		tag.setFloat("S", size);
+		tag.setInteger("type", getType().ordinal());
+		tag.setFloat("posX", posX);
+		tag.setFloat("posY", posY);
+		tag.setFloat("size", size);
 		return tag;
 	}
 	
 	public void readFromNBT(NBTTagCompound tag, NodeSystem sys){
 		this.inputs.clear();
 		this.outputs.clear();
-		NBTTagCompound inputs = tag.getCompoundTag("in");
+		NBTTagCompound inputs = tag.getCompoundTag("inputs");
 		for(int i = 0; i < inputs.getKeySet().size(); i ++){
 			NodeConnection c = new NodeConnection(null, this, 0, false, null, new DataValueFloat(0));
 			c.readFromNBT(inputs.getCompoundTag("con"+i), sys);
 			this.inputs.add(c);
 		}
 		
-		NBTTagCompound outputs = tag.getCompoundTag("out");
+		NBTTagCompound outputs = tag.getCompoundTag("outputs");
 		for(int i = 0; i < outputs.getKeySet().size(); i ++){
 			NodeConnection c = new NodeConnection(null, this, 0, false, null, new DataValueFloat(0));
 			c.readFromNBT(outputs.getCompoundTag("con"+i), sys);
 			this.outputs.add(c);
 		}
 		
-		this.posX = tag.getFloat("X");
-		this.posY = tag.getFloat("Y");
-		this.size = tag.getFloat("S");
+		this.posX = tag.getFloat("posX");
+		this.posY = tag.getFloat("posY");
+		this.size = tag.getFloat("size");
 		cacheValid = false;
 	}
 	
@@ -98,24 +102,8 @@ public abstract class Node {
 			int ctrlIdx = tag.getInteger("controlIdx");
 			node = new NodeGetVar(0, 0, sys.parent.panel.controls.get(ctrlIdx));
 			break;
-		case "queryBlock":
-			ctrlIdx = tag.getInteger("controlIdx");
-			node = new NodeQueryBlock(0, 0, sys.parent.panel.controls.get(ctrlIdx));
-			break;
-			case "math":
+		case "math":
 			node = new NodeMath(0, 0);
-			break;
-		case "boolean":
-			node = new NodeBoolean(0, 0);
-			break;
-		case "function":
-			node = new NodeFunction(0, 0);
-			break;
-		case "buffer":
-			node = new NodeBuffer(0, 0);
-			break;
-		case "conditional":
-			node = new NodeConditional(0, 0);
 			break;
 		case "setVar":
 			int ctrlIdx2 = tag.getInteger("controlIdx");
@@ -165,7 +153,7 @@ public abstract class Node {
 			outputs.get(i).render(mX, mY);
 		for(int i = otherElements.size()-1; i >= 0; i --)
 			otherElements.get(i).render(mX, mY);
-
+		
 		FontRenderer font = Minecraft.getMinecraft().fontRenderer;
 		GL11.glPushMatrix();
 		GL11.glTranslated(posX, posY, 0);
@@ -194,7 +182,7 @@ public abstract class Node {
 		}
 		return false;
 	}
-
+	
 	public float[] getBoundingBox(){
 		return new float[]{posX, posY, posX+40, posY+6+size};
 	}
