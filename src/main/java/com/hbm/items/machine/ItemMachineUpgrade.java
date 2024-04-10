@@ -3,6 +3,7 @@ package com.hbm.items.machine;
 import java.util.Set;
 import java.util.List;
 
+import com.hbm.handler.jei.UpgradeDetailsDatabase;
 import com.hbm.items.ModItems;
 import com.hbm.blocks.ModBlocks;
 
@@ -36,6 +37,7 @@ public class ItemMachineUpgrade extends Item {
 		this.tier = tier;
 
 		ModItems.ALL_ITEMS.add(this);
+		UpgradeDetailsDatabase.tryAddUpgrade(type,tier,this);
 	}
 
 	public int getSpeed(){
@@ -62,168 +64,43 @@ public class ItemMachineUpgrade extends Item {
 		return 0;
 	}
 
+	private static void writeUpgrade(List<String> list,String category,String key) {
+		list.add(TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("desc.upgradenew.upgrade",I18nUtil.resolveKey(category)));
+		String[] descs = I18nUtil.resolveKey("desc.upgradenew."+key).split("__");
+		for (String desc:descs) {
+			list.add(desc);
+		}
+		list.add("");
+		list.add(TextFormatting.GREEN + I18nUtil.resolveKey("desc.upgradenew.jei")+"!"); // yay
+		list.add("");
+	}
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
-		if(this == ModItems.upgrade_speed_1)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp11"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade2"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp12"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade3"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp13"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade4"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp14"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp15"));
-		}
-		
-		if(this == ModItems.upgrade_speed_2)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp21"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade2"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp22"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade3"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp23"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade4"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp24"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp25"));
-		}
+		String res = this.getRegistryName().getResourcePath();
+		switch(res.substring(0,res.length()-2)) {
+			case "upgrade_speed":
+				writeUpgrade(list,"desc.upgradenew.general","speed");
+				return; // java why
+			case "upgrade_effect":
+				writeUpgrade(list,"desc.upgradenew.general","effect");
+				return; // java why
+			case "upgrade_power":
+				writeUpgrade(list,"desc.upgradenew.general","power");
+				return; // java why
+			case "upgrade_overdrive":
+				writeUpgrade(list,"desc.upgradenew.general","overdrive");
+				return; // java why
 
-		if(this == ModItems.upgrade_speed_3)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp31"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade2"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp32"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade3"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp33"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade4"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp34"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradesp35"));
-		}
-
-		if(this == ModItems.upgrade_effect_1)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef11"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade4"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef12"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef13"));
-		}
-
-		if(this == ModItems.upgrade_effect_2)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef21"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade4"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef22"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef23"));
-		}
-
-		if(this == ModItems.upgrade_effect_3)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef31"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade4"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef32"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeef33"));
-		}
-
-		if(this == ModItems.upgrade_power_1)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade2"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs11"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade3"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs11"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs12"));
-		}
-
-		if(this == ModItems.upgrade_power_2)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade2"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs21"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade3"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs21"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs22"));
-		}
-
-		if(this == ModItems.upgrade_power_3)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade2"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs31"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade3"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs31"));
-			list.add("");
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade5"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradecs32"));
-		}
-
-		if(this == ModItems.upgrade_fortune_1)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeft1"));
-		}
-
-		if(this == ModItems.upgrade_fortune_2)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeft2"));
-		}
-
-		if(this == ModItems.upgrade_fortune_3)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade1"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeft3"));
-		}
-
-		if(this == ModItems.upgrade_afterburn_1)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade6"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeaf1"));
-		}
-
-		if(this == ModItems.upgrade_afterburn_2)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade6"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeaf2"));
-		}
-
-		if(this == ModItems.upgrade_afterburn_3)
-		{
-			list.add(TextFormatting.GOLD+I18nUtil.resolveKey("desc.upgrade6"));
-			list.add(" "+I18nUtil.resolveKey("desc.upgradeaf3"));
+			case "upgrade_fortune":
+				list.add(TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("desc.upgradenew.upgrade",I18nUtil.resolveKey("tile.machine_mining_laser.name")));
+				list.add(I18nUtil.resolveKey("enchantment.lootBonusDigger"));
+				list.add("");
+				list.add(TextFormatting.GREEN + I18nUtil.resolveKey("desc.upgradenew.jei")+"!"); // yay
+				list.add("");
+				return; // java why
+			case "upgrade_afterburn":
+				writeUpgrade(list,"tile.machine_turbofan.name","afterburner");
+				return; // why
 		}
 
 		if(this == ModItems.upgrade_radius)
