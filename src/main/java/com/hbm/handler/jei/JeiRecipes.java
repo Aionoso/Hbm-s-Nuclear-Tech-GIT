@@ -42,6 +42,7 @@ import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.NbtComparableStack;
 import com.hbm.inventory.ChemplantRecipes;
+import com.hbm.handler.jei.UpgradeDetailsDatabase.UpgradeTabContent;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemAssemblyTemplate;
 import com.hbm.items.machine.ItemChemistryTemplate;
@@ -62,6 +63,7 @@ import mezz.jei.api.gui.IDrawableStatic;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.ingredients.VanillaTypes;
 import mezz.jei.api.recipe.IRecipeWrapper;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -92,6 +94,7 @@ public class JeiRecipes {
 	private static List<CrackingRecipe> crackingRecipes = null;
 	private static List<FractioningRecipe> fractioningRecipes = null;
 	private static List<FluidRecipe> fluidEquivalences = null;
+	private static Map<Block,List<UpgradeInfoRecipe>> upgradethingyaaaa = new HashMap<>();
 	private static List<BookRecipe> bookRecipes = null;
 	private static List<FusionRecipe> fusionByproducts = null;
 	private static List<SAFERecipe> safeRecipes = null;
@@ -452,6 +455,22 @@ public class JeiRecipes {
 			ingredients.setOutput(VanillaTypes.ITEM, input);
 		}
 		
+	}
+
+	public static class UpgradeInfoRecipe implements IRecipeWrapper {
+
+		List<ItemStack> upgrades;
+		UpgradeTabContent tabdat;
+
+		public UpgradeInfoRecipe(List<ItemStack> newUpgrades,UpgradeTabContent tabdat) {
+			this.upgrades = newUpgrades;
+			this.tabdat = tabdat;
+		}
+
+		@Override
+		public void getIngredients(IIngredients ingr) {
+			ingr.setInputs(VanillaTypes.ITEM,upgrades);
+		}
 	}
 	
 	public static class AssemblerRecipeWrapper implements IRecipeWrapper {
@@ -1074,6 +1093,24 @@ public class JeiRecipes {
 		}
 		
 		return fluidEquivalences;
+	}
+
+	public static List<UpgradeInfoRecipe> getUpgradeDetails(Block machine) {
+		if(upgradethingyaaaa.containsKey(machine)) return upgradethingyaaaa.get(machine);
+		List<UpgradeInfoRecipe> out = new ArrayList<>();
+
+		//MainRegistry.logger.info(machine.getRegistryName().toString());
+		for (UpgradeDetailsDatabase.UpgradeTabContent tabdat:UpgradeDetailsDatabase.supportedMachines.get(machine)) {
+			ArrayList<ItemStack> icons = new ArrayList<>();
+			for (ItemStack tier:UpgradeDetailsDatabase.upgrades.get(tabdat.upgrade).values()) {
+				icons.add(tier);
+			}
+			out.add(new UpgradeInfoRecipe(icons,tabdat));
+			//MainRegistry.logger.info(tabdat.upgrade.name());
+		}
+		upgradethingyaaaa.put(machine,out);
+
+		return out;
 	}
 	
 	public static List<FusionRecipe> getFusionByproducts(){

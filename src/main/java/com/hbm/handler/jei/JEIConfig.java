@@ -46,6 +46,7 @@ import mezz.jei.api.ISubtypeRegistry;
 import mezz.jei.api.JEIPlugin;
 import mezz.jei.api.ingredients.IIngredientBlacklist;
 import mezz.jei.api.recipe.IRecipeCategoryRegistration;
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -70,6 +71,7 @@ public class JEIConfig implements IModPlugin {
 	public static final String FRACTIONING = "hbm.fracturing";
 	public static final String SHREDDER = "hbm.shredder";
 	public static final String FLUIDS = "hbm.fluids";
+	public static final String UPGRADES = "hbm.upgradeinfo."; // for me who is dumbass: these are UIDs
 	public static final String CRYSTALLIZER = "hbm.crystallizer";
 	public static final String BOOK = "hbm.book_of";
 	public static final String FUSION_BYPRODUCT = "hbm.fusionbyproduct";
@@ -100,7 +102,9 @@ public class JEIConfig implements IModPlugin {
 		registry.addRecipeRegistryPlugin(new HbmJeiRegistryPlugin());
 
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_assembler), ASSEMBLY);
+		//registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_), ASSEMBLY); <= assembly factory pls
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_chemplant), CHEMPLANT);
+		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_chemfac), CHEMPLANT);
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_mixer), MIXER);
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_cyclotron), CYCLOTRON);
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_schrabidium_transmutator), TRANSMUTATION);
@@ -125,6 +129,17 @@ public class JEIConfig implements IModPlugin {
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_fraction_tower), FRACTIONING);
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_shredder), SHREDDER);
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_fluidtank), FLUIDS);
+
+		UpgradeDetailsDatabase.init();
+		for (Block machine:UpgradeDetailsDatabase.supportedMachines.keySet()) {
+			String newUID = UPGRADES + machine.getRegistryName().getResourcePath();
+			registry.addRecipeCatalyst(new ItemStack(ModItems.upgrade_template), newUID);
+			registry.addRecipeCatalyst(new ItemStack(machine), newUID);
+			registry.addRecipes(JeiRecipes.getUpgradeDetails(machine), newUID);
+		}
+		//registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_), UPGRADES + "machine_assembler"); <= assembly factory PLS
+		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_chemfac), UPGRADES + "machine_chemplant");
+
 		registry.addRecipeCatalyst(new ItemStack(ModBlocks.machine_crystallizer), CRYSTALLIZER);
 		//This recipe catalyst doesn't work, since the book of is blacklisted.
 		registry.addRecipeCatalyst(new ItemStack(ModItems.book_of_), BOOK);
@@ -320,6 +335,11 @@ public class JEIConfig implements IModPlugin {
 				new SAFERecipeHandler(help),
 				new DFCRecipeHandler(help),
 				new BookRecipeHandler(help));
+		// i have no idea how to unpack arrays into tuples so here's some crappy workaround that i assume will impact performance ;-;
+		UpgradeDetailsDatabase.init();
+		for (Block machine:UpgradeDetailsDatabase.supportedMachines.keySet()) {
+			registry.addRecipeCategories(new UpgradeInfoRecipeHandler(help,machine)); // ironically i'm the one needs HELP
+		}
 	}
 
 	@Override
