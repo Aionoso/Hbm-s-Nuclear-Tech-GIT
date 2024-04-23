@@ -48,7 +48,7 @@ public class MachineConfig {
 	public static int rbmkJumpTemp = 1250;
 
 	public static boolean chemplantKeepOilProcessing = false;
-	
+
 	public static boolean isFluidAllowed(Fluid f){
 		boolean isInList = blacklistedMixerFluids.contains(f.getName());
 		if(uuMixerFluidListIsWhitelist) return isInList;

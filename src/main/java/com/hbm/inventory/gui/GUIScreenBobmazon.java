@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.server.MinecraftServer;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.lib.RefStrings;
@@ -284,15 +285,14 @@ public class GUIScreenBobmazon extends GuiScreen {
 	
 	public enum Requirement {
 
-		STEEL(AdvancementManager.bobMetalworks, "bobmetalworks"),
-		ASSEMBLY(AdvancementManager.bobAssembly, "bobassembly"),
-		CHEMICS(AdvancementManager.bobChemistry, "bobchemistry"),
-		OIL(AdvancementManager.bobOil, "boboil"),
-		NUCLEAR(AdvancementManager.bobNuclear, "bobnuclear"),
-		HIDDEN(AdvancementManager.bobHidden, "bobhidden");
+		STEEL( "bobmetalworks"),
+		ASSEMBLY("bobassembly"),
+		CHEMICS("bobchemistry"),
+		OIL("boboil"),
+		NUCLEAR( "bobnuclear"),
+		HIDDEN("bobhidden");
 		
-		private Requirement(Advancement achievement, String advName) {
-			this.setAchievement(achievement);
+		private Requirement(String advName) {
 			this.advName = advName;
 		}
 		
@@ -303,6 +303,9 @@ public class GUIScreenBobmazon extends GuiScreen {
 		
 		public Advancement getAchievement() {
 			if(FMLCommonHandler.instance().getSide().isServer()){
+				if(achievement != null)
+					return achievement;
+				achievement = FMLCommonHandler.instance().getMinecraftServerInstance().getAdvancementManager().getAdvancement(new ResourceLocation(RefStrings.MODID, advName));
 				return achievement;
 			}
 			return getAchClient();
