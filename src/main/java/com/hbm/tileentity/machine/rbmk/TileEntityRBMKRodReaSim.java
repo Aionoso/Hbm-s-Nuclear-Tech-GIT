@@ -22,7 +22,7 @@ public class TileEntityRBMKRodReaSim extends TileEntityRBMKRod {
 		
 		Vec3 dir = Vec3.createVectorHelper(1, 0, 0);
 		
-		for(int i = 1; i < count; i++) {
+		for(int i = 1; i <= count; i++) {
 			
 			stream = type;
 			double flux = fluxOut * RBMKDials.getReaSimOutputMod(world);
