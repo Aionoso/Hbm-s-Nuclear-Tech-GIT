@@ -32,8 +32,8 @@ Now just wait for the build to finish and the new Jar file will be in `Hbm-s-Nuc
 
 #### Discords:
 
-scrap_metal_10011101 (Crazy dude who wants to code something (It is literally me))
-Alcater#2644 (GIGACHAD, thanks to him, the mod is still alive)
-Golem#9568 (Yeah idk who is that but he did some work and another fork)
-Drillgon200#0288 (LEGEND, has ported NTM on 1.12.2)
-The Bobcat#8817 (Literally god of NTM and original creator of this horror)
+scrap_metal_10011101 
+Alcater#2644 
+Golem#9568 
+Drillgon200#0288 
+The Bobcat#8817 
