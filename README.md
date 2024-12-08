@@ -32,7 +32,7 @@ Now just wait for the build to finish and the new Jar file will be in `Hbm-s-Nuc
 
 #### Discords:
 
-scrap_metal_10011101 
+aggressive_metallolom 
 Alcater#2644 
 Golem#9568 
 Drillgon200#0288 
