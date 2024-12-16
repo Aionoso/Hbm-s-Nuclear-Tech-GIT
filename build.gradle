@@ -4,21 +4,21 @@ buildscript {
         maven { url = "https://files.minecraftforge.net/maven" }
         mavenCentral()
         maven {
-    // location of the maven that hosts JEI files
-    name = "Progwml6 maven"
-    url = "https://dvs1.progwml6.com/files/maven/"
-  }
-  maven {
-    // location of a maven mirror for JEI files, as a fallback
-    name = "ModMaven"
-    url = "https://modmaven.k-4u.nl"
-  }
+            // location of the maven that hosts JEI files
+            name = "Progwml6 maven"
+            url = "https://dvs1.progwml6.com/files/maven/"
+        }
+        maven {
+            // location of a maven mirror for JEI files, as a fallback
+            name = "ModMaven"
+            url = "https://modmaven.k-4u.nl"
+        }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
     }
 }
-        
+
 apply plugin: 'net.minecraftforge.gradle'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
@@ -87,12 +87,12 @@ repositories {
         url = "http://maven.blamejared.com/"
     }
     maven { //GC
-        name = "galacticraft"
-        url = "https://maven.galacticraft.net/repository/legacy/"
+        name = "cursemaven"
+        url = "https://cursemaven.com"
     }
     maven { //  baubles
-        name = "mcmoddev"
-        url = "https://maven.mcmoddev.com"
+        name = "thiakil"
+        url = "https://maven.thiakil.com/"
     }
     maven {
         name = 'CoFH Maven'
@@ -114,7 +114,7 @@ dependencies {
     // compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     // compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
 
-    compile "li.cil.oc:OpenComputers:MC1.12.2-1.7.+:api" 
+    implementation("li.cil.oc:OpenComputers:MC1.12.2-1.7.+:api")
 
     // The 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
     // provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
@@ -123,40 +123,40 @@ dependencies {
     // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
 
     // compile against the JEI API but do not include it at runtime
-    compileOnly fg.deobf("mezz.jei:jei_1.12.2:${version_jei}:api")
+    implementation("mezz.jei:jei_1.12.2:${version_jei}:api")
     // at runtime, use the full JEI jar
-    runtimeOnly fg.deobf("mezz.jei:jei_1.12.2:${version_jei}")
+    implementation("mezz.jei:jei_1.12.2:${version_jei}")
 
     //compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api")
     //runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
 
-    compileOnly "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-${version_crafttweaker}"
+    implementation("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-${version_crafttweaker}")
 
-    compileOnly fg.deobf("dev.galacticraft:galacticraft-legacy:${version_gc}")
+    implementation("curse.maven:${version_gc}")
 
-    compileOnly fg.deobf("com.azanor:Baubles:${version_baubles}")
+    implementation("com.azanor.baubles:Baubles:${version_baubles}")
 
-    compileOnly fg.deobf("cofh:RedstoneFlux:1.12-${version_redstoneflux}:universal")
+    implementation("cofh:RedstoneFlux:1.12-${version_redstoneflux}:universal")
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
     manifest {
         attributes([
-            "Specification-Title": "examplemod",
-            "Specification-Vendor": "examplemodsareus",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"examplemodsareus",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title": "examplemod",
+                "Specification-Vendor": "examplemodsareus",
+                "Specification-Version": "1", // We are version 1 of ourselves
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor" :"examplemodsareus",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
 
 // Example configuration to allow publishing using the maven-publish task
 // This is the preferred method to reobfuscate your jar file
-jar.finalizedBy('reobfJar') 
+jar.finalizedBy('reobfJar')
 // However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing
 //publish.dependsOn('reobfJar')
 
