@@ -9,6 +9,7 @@ import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -18,6 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
+
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -26,10 +28,11 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.CapabilityItemHandler;
-import scala.actors.threadpool.Arrays;
+import org.apache.logging.log4j.Level;
+
 
 import java.util.*;
+
 
 public class TileEntityMachineFluidTank extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor, IControllable {
 
@@ -39,6 +42,7 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 	public static final short modes = 4;
 	public int age = 0;
 	public static int[] slots = { 2 };
+	public Fluid lastType = null;
 	
 	public TileEntityMachineFluidTank() {
 		super(6);
@@ -153,7 +157,7 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 
 	@Override
 	public int fill(FluidStack resource, boolean doFill) {
-		if (this.canFill(resource.getFluid())) {		
+		if (this.canFill(resource.getFluid())) {
 			return tank.fill(resource, doFill);
 		}
 		return 0;
