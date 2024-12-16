@@ -425,6 +425,7 @@ public class FFUtils {
 		ItemStack in = slots.getStackInSlot(slot1);
 		ItemStack out = slots.getStackInSlot(slot2);
 
+
 		// Fluid Tank override
 		if(in.getItem() == ModItems.fluid_tank_full && tank.fill(FluidUtil.getFluidContained(in), false) == 1000 && ((ItemFluidTank.isEmptyTank(out) && out.getCount() < 64) || out.isEmpty())) {
 			tank.fill(FluidUtil.getFluidContained(in), true);
@@ -491,6 +492,12 @@ public class FFUtils {
 			tank.fill(new FluidStack(ModForgeFluids.mercury, 125), true);
 			in.shrink(1);
 			return true;
+		}
+
+		//buildcraft dupe patch
+		if(in.getItem().getCreatorModId(in).contains("buildcraft")){
+			slots.setStackInSlot(slot1,ItemStack.EMPTY);
+			return false;
 		}
 
 		//That's it. I'm making a fluid container registry just so I don't have to make this method any worse.

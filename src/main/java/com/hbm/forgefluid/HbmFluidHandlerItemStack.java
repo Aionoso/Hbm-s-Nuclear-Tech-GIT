@@ -59,6 +59,7 @@ public class HbmFluidHandlerItemStack implements IFluidHandlerItem, ICapabilityP
 			return 0;
 		FluidStack contained = getFluid();
 		int filled;
+
 		if(contained == null){
 			filled = Math.min(cap, resource.amount);
 			if(doFill){
