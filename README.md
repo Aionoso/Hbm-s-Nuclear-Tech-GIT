@@ -12,7 +12,7 @@ which is ported from the original mod made by [HBMTheBobcat](https://github.com/
 
 The latest version can be found only here. 
 
-If you have question or suggestions you can ask me in Discord [#scrap_metal_10011101] (English isn't my best language))
+If you have question or suggestions you can ask me in Discord [aggressive_metallolom] (English isn't my best language))
 
 ### **Want to contribute?**
 
