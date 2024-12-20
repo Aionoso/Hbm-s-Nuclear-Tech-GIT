@@ -1,8 +1,8 @@
 # <u>**HBM Nuclear Tech Mod - 1.12.2 (Still unnamed) Edition**</u>
 
-Here im trying to make something good for Alcater's fork and my version of NTM (it's scary, i don't recommend you to even see it).
+Here im trying to make something good for Alcater's fork and my version of NTM.
 
-This is my 1.12.2 custom version of the Nuclear Tech Mod (Yeah, another one)
+This is my 1.12.2 custom version of the Nuclear Tech Mod (Yes, another one)
 
 which is forked from the fork made by [Alcater](https://github.com/Alcatergit/Hbm-s-Nuclear-Tech-GIT)
 which is forked from the fork made by [TheOriginalGolem](https://github.com/TheOriginalGolem/Hbm-s-Nuclear-Tech-GIT)
