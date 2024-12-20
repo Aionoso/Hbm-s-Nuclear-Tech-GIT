@@ -21,11 +21,6 @@ public class S_Face {
 	public float normalY;
 	public float normalZ;
 
-	/*public S_Face copy() {	
-		S_Face f = new S_Face();
-		return f;
-	}*/
-
 	public void addFaceForRender(BufferBuilder tessellator) {
 		addFaceForRender(tessellator, 0.0F);
 	}

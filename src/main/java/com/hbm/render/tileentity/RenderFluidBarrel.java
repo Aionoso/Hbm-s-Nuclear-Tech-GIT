@@ -1,5 +1,9 @@
 package com.hbm.render.tileentity;
 
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.render.misc.EnumSymbol;
+import net.minecraft.client.renderer.RenderHelper;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.forgefluid.FluidTypeHandler;
@@ -16,21 +20,30 @@ public class RenderFluidBarrel extends TileEntitySpecialRenderer<TileEntityBarre
 	public void render(TileEntityBarrel barrel, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
 		GL11.glPushMatrix();
 		GL11.glTranslated(x + 0.5, y + 0.5, z + 0.5);
-		GlStateManager.disableLighting();
+		GL11.glEnable(GL11.GL_LIGHTING);
+		FluidType type = barrel.tankNew.getTankType();
 
-		if(barrel.tank.getFluid() != null) {
-			FluidStack type = barrel.tank.getFluid();
-			FluidTypeHandler.FluidProperties p = FluidTypeHandler.getProperties(type);
+		if(type != null && type != Fluids.NONE) {
+			RenderHelper.disableStandardItemLighting();
+			GL11.glPushMatrix();
+
+			int poison = type.poison;
+			int flammability = type.flammability;
+			int reactivity = type.reactivity;
+			EnumSymbol symbol = type.symbol;
 
 			for(int j = 0; j < 4; j++) {
 
 				GL11.glPushMatrix();
 				GL11.glTranslated(0.4, 0.25, -0.15);
 				GL11.glScalef(1.0F, 0.35F, 0.35F);
-				DiamondPronter.pront(p.poison, p.flammability, p.reactivity, p.symbol);
+				DiamondPronter.pront(poison, flammability, reactivity, symbol);
 				GL11.glPopMatrix();
 				GL11.glRotatef(90, 0, 1, 0);
 			}
+
+			GL11.glPopMatrix();
+			RenderHelper.enableStandardItemLighting();
 		}
 
 		GL11.glPopMatrix();

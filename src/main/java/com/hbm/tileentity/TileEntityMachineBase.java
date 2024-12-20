@@ -3,9 +3,11 @@ package com.hbm.tileentity;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.interfaces.Spaghetti;
 import com.hbm.lib.ItemStackHandlerWrapper;
+import com.hbm.packet.BufPacket;
 import com.hbm.packet.NBTPacket;
 import com.hbm.packet.PacketDispatcher;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,7 +19,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 @Spaghetti("Not spaghetti in itself, but for the love of god please use this base class for all machines")
-public abstract class TileEntityMachineBase extends TileEntityLoadedBase implements INBTPacketReceiver {
+public abstract class TileEntityMachineBase extends TileEntityLoadedBase implements INBTPacketReceiver, IBufPacketReceiver {
 
 	public ItemStackHandler inventory;
 
@@ -44,6 +46,16 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 				return slotlimit;
 			}
 		};
+	}
+
+	// This is for cases like barrels - in 2.0.3 there are 6 slots instead of 4
+	public void resizeInventory(int newSlotCount) {
+		ItemStackHandler newInventory = getNewInventory(newSlotCount, inventory.getSlotLimit(0));
+		for (int i = 0; i < Math.min(inventory.getSlots(), newSlotCount); i++) {
+			newInventory.setStackInSlot(i, inventory.getStackInSlot(i));
+		}
+		this.inventory = newInventory;
+		markDirty();
 	}
 	
 	public String getInventoryName() {
@@ -78,12 +90,25 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	}
 	
 	public void networkPack(NBTTagCompound nbt, int range) {
-
+		nbt.setBoolean("muffled", muffled);
 		if(!world.isRemote)
 			PacketDispatcher.wrapper.sendToAllAround(new NBTPacket(nbt, pos), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), range));
 	}
 	
-	public void networkUnpack(NBTTagCompound nbt) { }
+	public void networkUnpack(NBTTagCompound nbt) {this.muffled = nbt.getBoolean("muffled");}
+
+	/** Sends a sync packet that uses ByteBuf for efficient information-cramming */
+	public void networkPackNT(int range) {
+		if(!world.isRemote) PacketDispatcher.wrapper.sendToAllAround(new BufPacket(pos.getX(), pos.getY(), pos.getZ(), this), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), range));
+	}
+
+	@Override public void serialize(ByteBuf buf) {
+		buf.writeBoolean(muffled);
+	}
+
+	@Override public void deserialize(ByteBuf buf) {
+		this.muffled = buf.readBoolean();
+	}
 	
 	public void handleButtonPacket(int value, int meta) { }
 	

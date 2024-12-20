@@ -80,6 +80,7 @@ public class PacketMobSlicer implements IMessage {
 						ItemCrucible.discharge(heldStack);
 				}
 				for(EntityLivingBase victim : attack){
+					victim.getEntityData().setBoolean("killedByMobSlicer", true); // this is for multiplayer cases - we don't want to make a Schrodinger death
 					Vec3d pos = m.pos.subtract(victim.posX, victim.posY, victim.posZ);
 					float[] data = new float[]{(float)m.norm.x, (float)m.norm.y, (float)m.norm.z, -(float)m.norm.dotProduct(pos), Float.intBitsToFloat(m.tex)};
 					DamageSource source = m.tex == 1 ? ModDamageSource.crucible : ModDamageSource.slicer;

@@ -37,15 +37,15 @@ public class Gun75BoltFactory {
 		config.gunMode = GunConfiguration.MODE_NORMAL;
 		config.firingMode = GunConfiguration.FIRE_AUTO;
 		config.hasSights = false;
-		config.reloadDuration = 40;
+		config.reloadDuration = 65;
 		config.firingDuration = 0;
 		config.ammoCap = 30;
 		config.reloadType = GunConfiguration.RELOAD_FULL;
 		config.allowsInfinity = true;
-		config.crosshair = Crosshair.NONE;
-		config.durability = 10000;
-		config.reloadSound = GunConfiguration.RSOUND_MAG;
-		config.firingSound = HBMSoundHandler.hksShoot;
+		config.crosshair = Crosshair.L_CROSS;
+		config.durability = 250000;
+		config.reloadSound = GunConfiguration.RSOUND_75;
+		config.firingSound = HBMSoundHandler.bolterShoot;
 		config.reloadSoundEnd = false;
 		config.showAmmo = false;
 
@@ -84,7 +84,7 @@ public class Gun75BoltFactory {
 		return config;
 	}
 
-	static float inaccuracy = 0.5F;
+	static float inaccuracy = 0.2F;
 	public static BulletConfiguration get75BoltConfig() {
 
 		BulletConfiguration bullet = BulletConfigFactory.standardBulletConfig();
@@ -92,8 +92,8 @@ public class Gun75BoltFactory {
 		bullet.ammo = ModItems.ammo_75bolt;
 		bullet.ammoCount = 30;
 		bullet.spread *= inaccuracy;
-		bullet.dmgMin = 24;
-		bullet.dmgMax = 32;
+		bullet.dmgMin = 75;
+		bullet.dmgMax = 95;
 		bullet.doesRicochet = false;
 		bullet.explosive = 0.25F;
 
@@ -127,8 +127,8 @@ public class Gun75BoltFactory {
 		bullet.ammo = ModItems.ammo_75bolt_incendiary;
 		bullet.ammoCount = 30;
 		bullet.spread *= inaccuracy;
-		bullet.dmgMin = 26;
-		bullet.dmgMax = 36;
+		bullet.dmgMin = 75;
+		bullet.dmgMax = 95;
 		bullet.doesRicochet = false;
 		bullet.explosive = 0.25F;
 
@@ -165,8 +165,8 @@ public class Gun75BoltFactory {
 		bullet.ammo = ModItems.ammo_75bolt_he;
 		bullet.ammoCount = 30;
 		bullet.spread *= inaccuracy;
-		bullet.dmgMin = 32;
-		bullet.dmgMax = 48;
+		bullet.dmgMin = 55;
+		bullet.dmgMax = 80;
 		bullet.doesRicochet = false;
 		bullet.explosive = 2.5F;
 		bullet.blockDamage = false;

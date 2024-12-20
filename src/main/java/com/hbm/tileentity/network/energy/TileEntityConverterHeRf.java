@@ -2,11 +2,11 @@ package com.hbm.tileentity.network.energy;
 
 import java.lang.NoSuchMethodError;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.tileentity.TileEntityLoadedBase;
 import com.hbm.config.GeneralConfig;
 import com.hbm.lib.ForgeDirection;
 
-import api.hbm.energy.IEnergyConnector;
 import cofh.redstoneflux.api.IEnergyProvider;
 import cofh.redstoneflux.api.IEnergyReceiver;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -18,7 +18,7 @@ import net.minecraft.util.ITickable;
 import net.minecraftforge.fml.common.Optional;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "cofh.redstoneflux.api.IEnergyProvider", modid = "redstoneflux")})
-public class TileEntityConverterHeRf extends TileEntityLoadedBase implements ITickable, IEnergyConnector, IEnergyProvider, IEnergyStorage {
+public class TileEntityConverterHeRf extends TileEntityLoadedBase implements ITickable, IEnergyReceiverMK2, IEnergyProvider, IEnergyStorage {
 
 	//Thanks to the great people of Fusion Warfare for helping me with the original implementation of the RF energy API
 	
@@ -29,7 +29,8 @@ public class TileEntityConverterHeRf extends TileEntityLoadedBase implements ITi
 	@Override
 	public void update() {
 		if (!world.isRemote) {
-			this.updateStandardConnections(world, pos);
+			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
+				this.trySubscribe(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
 		}
 	}
 	//RF
@@ -118,6 +119,7 @@ public class TileEntityConverterHeRf extends TileEntityLoadedBase implements ITi
 	public long getPower() {
 		return 0;
 	}
+	@Override public void setPower(long power) { }
 
 	@Override
 	public long getMaxPower() {
@@ -125,14 +127,14 @@ public class TileEntityConverterHeRf extends TileEntityLoadedBase implements ITi
 	}
 
 	private long lastTransfer = 0;
-	
+
 	@Override
-	public long getTransferWeight() {
-		
+	public long getReceiverSpeed() {
+
 		if(lastTransfer > 0) {
 			return lastTransfer * 2;
 		} else {
-			return 10000;
+			return getMaxPower();
 		}
 	}
 

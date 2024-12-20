@@ -318,6 +318,10 @@ public class Tessellator
     public void addVertexWithUV(double x, double y, double z, double u, double v)
     {
         BufferBuilder buf = net.minecraft.client.renderer.Tessellator.getInstance().getBuffer();
+        if (buf == null) {
+            System.out.println("BufferBuilder is null");
+            return;
+        }
         buf.pos(x+xOffset, y+yOffset, z+zOffset).tex(u, v);
         if(hasColor)
             buf.color(r, g, b, a);

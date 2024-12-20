@@ -70,8 +70,15 @@ public class ServerProxy
 	public void playSound(String sound, Object data) { }
 	
 	public void displayTooltip(String msg) { }
+
+	public void displayTooltipLegacy(String msg, int id) {
+		displayTooltipLegacy(msg, 1000, id);
+	}
+	public void displayTooltipLegacy(String msg, int time, int id) { }
 	
 	public void setRecoil(float rec){};
+
+	public void playSoundClient(double x, double y, double z, SoundEvent sound, SoundCategory category, float volume, float pitch) { }
 	
 	public boolean isVanished(Entity e) {
 		return false;

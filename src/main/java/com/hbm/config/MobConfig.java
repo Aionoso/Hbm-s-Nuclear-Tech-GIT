@@ -23,6 +23,7 @@ public class MobConfig {
 	public static int elementalChance = 2;
 	public static int elementalAmount = 10;
 	public static int elementalDistance = 32;
+	public static double pollutionMult = 3;
 	
 	public static void loadFromConfig(Configuration config) {
 
@@ -47,6 +48,8 @@ public class MobConfig {
 		elementalChance = CommonConfig.createConfigInt(config, CATEGORY, "12.E02_elementalChance", "1:x chance to spawn elementals, must be at least 1", 2);
 		elementalAmount = CommonConfig.createConfigInt(config, CATEGORY, "12.E03_elementalAmount", "How many elementals are spawned each raid", 10);
 		elementalDistance = CommonConfig.createConfigInt(config, CATEGORY, "12.E04_elementalAttackDistance", "How far away elementals will spawn from the targeted player", 32);
+
+		pollutionMult = CommonConfig.createConfigDouble(config, CATEGORY, "12.R08_pollutionMult", "A multiplier for soot emitted, whether you want to increase or decrease it", 1);
 
 	}
 }

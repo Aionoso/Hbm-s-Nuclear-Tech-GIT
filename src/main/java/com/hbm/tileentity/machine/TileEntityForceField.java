@@ -3,6 +3,7 @@ package com.hbm.tileentity.machine;
 import java.util.ArrayList;
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.items.ModItems;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
@@ -11,7 +12,6 @@ import com.hbm.packet.TEFFPacket;
 import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -25,7 +25,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemStackHandler;
 
-public class TileEntityForceField extends TileEntityLoadedBase implements ITickable, IEnergyUser {
+public class TileEntityForceField extends TileEntityLoadedBase implements ITickable, IEnergyReceiverMK2 {
 
 	public ItemStackHandler inventory;
 	
@@ -118,7 +118,7 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ITicka
 	@Override
 	public void update() {
 		if(!world.isRemote) {
-			this.updateStandardConnections(world, pos);
+			updateConnections();
 			int rStack = 0;
 			int hStack = 0;
 			radius = 16;
@@ -195,6 +195,14 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ITicka
 			health = 0;
 			cooldown = (int) (100 + radius);
 		}
+	}
+
+	private void updateConnections() {
+		this.trySubscribe(world, pos.getX() + 1, pos.getY(), pos.getZ(), Library.POS_X);
+		this.trySubscribe(world, pos.getX() - 1, pos.getY(), pos.getZ(), Library.NEG_X);
+		this.trySubscribe(world, pos.getX(), pos.getY(), pos.getZ() + 1, Library.POS_Z);
+		this.trySubscribe(world, pos.getX(), pos.getY(), pos.getZ() - 1, Library.NEG_Z);
+		this.trySubscribe(world, pos.getX(), pos.getY() - 1, pos.getZ(), Library.NEG_Y);
 	}
 
 	List<Entity> outside = new ArrayList<Entity>();

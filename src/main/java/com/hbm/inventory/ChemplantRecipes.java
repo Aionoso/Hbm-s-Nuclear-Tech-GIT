@@ -1,325 +1,573 @@
 package com.hbm.inventory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.io.IOException;
+import java.util.*;
 
 import static com.hbm.inventory.OreDictManager.*;
-import com.google.common.collect.Lists;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonWriter;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.GeneralConfig;
 import com.hbm.config.MachineConfig;
-import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.Spaghetti;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.OreDictStack;
+import com.hbm.inventory.fluid.FluidStack;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
-import com.hbm.items.machine.ItemBattery;
 import com.hbm.items.machine.ItemChemistryTemplate;
-import com.hbm.items.special.ItemCell;
-import com.hbm.items.tool.ItemFluidCanister;
 
+import com.hbm.main.MainRegistry;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.oredict.OreDictionary;
 
-//TODO: clean this shit up
-@Spaghetti("everything")
-public class ChemplantRecipes {
+public class ChemplantRecipes extends SerializableRecipe {
 
-	public static HashMap<Integer, AStack[]> recipeItemInputs = new HashMap<>();
-	public static HashMap<Integer, FluidStack[]> recipeFluidInputs = new HashMap<>();
-	public static HashMap<Integer, AStack[]> recipeItemOutputs = new HashMap<>();
-	public static HashMap<Integer, FluidStack[]> recipeFluidOutputs = new HashMap<>();
-	public static HashMap<Integer, Integer> recipeDurations = new HashMap<>();
+	public static HashMap<Integer, ChemRecipe> indexMapping = new HashMap();
+	public static List<ChemRecipe> recipes = new ArrayList();
 	public static LinkedHashMap<Integer, String> recipeNames = new LinkedHashMap<>();
 
-	public static void registerRecipes() {
+
+	@Override
+	public void registerDefaults() {
+		register(); // this is done for chemplant templates models
+	}
+
+	public static void registerOtherOil() {
+		recipes.add(new ChemRecipe(31, "BP_BIOGAS", 60)
+				.inputItems(new ComparableStack(ModItems.biomass, 16)) //if we assume 1B BF = 500k and translate that to 2B BG = 500k, then each biomass is worth ~31k or roughly 1.5 furnace operations
+				.outputFluids(new FluidStack(2000, Fluids.BIOGAS)));
+		recipes.add(new ChemRecipe(32, "BP_BIOFUEL", 60)
+				.inputFluids(new FluidStack(1500, Fluids.BIOGAS), new FluidStack(250, Fluids.ETHANOL))
+				.outputFluids(new FluidStack(1000, Fluids.BIOFUEL)));
+		recipes.add(new ChemRecipe(33, "LPG", 100)
+				.inputFluids(new FluidStack(2000, Fluids.PETROLEUM))
+				.outputFluids(new FluidStack(1000, Fluids.LPG)));
+		recipes.add(new ChemRecipe(34, "OIL_SAND", 200)
+				.inputItems(new ComparableStack(ModBlocks.ore_oil_sand, 16), new OreDictStack(ANY_TAR.any(), 1))
+				.outputItems(new ItemStack(Blocks.SAND, 16))
+				.outputFluids(new FluidStack(1000, Fluids.BITUMEN)));
+		recipes.add(new ChemRecipe(35, "ASPHALT", 100)
+				.inputItems(new ComparableStack(Blocks.GRAVEL, 2), new ComparableStack(Blocks.SAND, 6))
+				.inputFluids(new FluidStack(1000, Fluids.BITUMEN))
+				.outputItems(new ItemStack(ModBlocks.asphalt, 16)));
+	}
+
+	public static void register(){
 		if(MachineConfig.chemplantKeepOilProcessing){
-			makeRecipe(0, "FP_HEAVYOIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.heavyoil, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.bitumen, 300), new FluidStack(ModForgeFluids.smear, 700) }, 50);
-			
-			makeRecipe(10, "FP_SMEAR", null, new FluidStack[]{ new FluidStack(ModForgeFluids.smear, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.heatingoil, 600), new FluidStack(ModForgeFluids.lubricant, 400) }, 50);
-			
-			makeRecipe(20, "FP_NAPHTHA", null, new FluidStack[]{ new FluidStack(ModForgeFluids.naphtha, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.heatingoil, 400), new FluidStack(ModForgeFluids.diesel, 600) }, 50);
-			
-			makeRecipe(30, "FP_LIGHTOIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.lightoil, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.diesel, 400), new FluidStack(ModForgeFluids.kerosene, 600) }, 50);
+			recipes.add(new ChemRecipe(0, "FP_HEAVYOIL", 50).inputFluids(new FluidStack(Fluids.HEAVYOIL, 1000)).outputFluids(new FluidStack(Fluids.BITUMEN, 300), new FluidStack(Fluids.SMEAR, 700)));
+
+			recipes.add(new ChemRecipe(10, "FP_SMEAR", 50).inputFluids(new FluidStack(Fluids.SMEAR, 1000)).outputFluids(new FluidStack(Fluids.HEATINGOIL, 600), new FluidStack(Fluids.LUBRICANT, 400)));
+
+			recipes.add(new ChemRecipe(20, "FP_NAPHTHA", 50).inputFluids(new FluidStack(Fluids.NAPHTHA, 1000)).outputFluids(new FluidStack(Fluids.HEATINGOIL, 400), new FluidStack(Fluids.DIESEL, 600)));
+
+			recipes.add(new ChemRecipe(30, "FP_LIGHTOIL", 50).inputFluids(new FluidStack(Fluids.LIGHTOIL, 1000)).outputFluids(new FluidStack(Fluids.DIESEL, 400), new FluidStack(Fluids.KEROSENE, 600)));
 		}
-		makeRecipe(40, "FR_REOIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.smear, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.reclaimed, 800) }, 30);
-		
-		makeRecipe(50, "FR_PETROIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.reclaimed, 800), new FluidStack(ModForgeFluids.lubricant, 200) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.petroil, 1000) }, 30);
-		
-		makeRecipe(60, "FC_BITUMEN", null, new FluidStack[]{ new FluidStack(ModForgeFluids.bitumen, 1200), new FluidStack(ModForgeFluids.steam, 2400) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.oil, 1000), new FluidStack(ModForgeFluids.petroleum, 200) }, 100);
-		
-		makeRecipe(70, "FC_I_NAPHTHA", null, new FluidStack[]{ new FluidStack(ModForgeFluids.smear, 1400), new FluidStack(FluidRegistry.WATER, 800) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.naphtha, 800) }, 150);
-		
-		makeRecipe(80, "FC_GAS_PETROLEUM", null, new FluidStack[]{ new FluidStack(ModForgeFluids.gas, 1800), new FluidStack(FluidRegistry.WATER, 1200) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 800) }, 100);
-		
-		makeRecipe(90, "FC_DIESEL_KEROSENE", null, new FluidStack[]{ new FluidStack(ModForgeFluids.diesel, 1200), new FluidStack(ModForgeFluids.steam, 2000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.kerosene, 400) }, 150);
-		
-		makeRecipe(100, "FC_KEROSENE_PETROLEUM", null, new FluidStack[]{ new FluidStack(ModForgeFluids.kerosene, 1400), new FluidStack(ModForgeFluids.steam, 2000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 800) }, 150);
-		
-		makeRecipe(110, "CC_OIL", new AStack[] { new OreDictStack(COAL.dust(), 8), new ComparableStack(ModItems.oil_tar, 4) }, new FluidStack[]{ new FluidStack(ModForgeFluids.oil, 600), new FluidStack(ModForgeFluids.steam, 1400) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.oil, 2000) }, 150);
-		
-		makeRecipe(120, "CC_I", new AStack[] { new OreDictStack(COAL.dust(), 6), new ComparableStack(ModItems.oil_tar, 4) }, new FluidStack[]{ new FluidStack(ModForgeFluids.smear, 800), new FluidStack(FluidRegistry.WATER, 1800) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.smear, 1600) }, 200);
-		
-		makeRecipe(130, "CC_HEATING", new AStack[] { new OreDictStack(COAL.dust(), 6), new ComparableStack(ModItems.oil_tar, 4) }, new FluidStack[]{ new FluidStack(ModForgeFluids.heatingoil, 800), new FluidStack(ModForgeFluids.steam, 2000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.heatingoil, 1800) }, 250);
-		
-		makeRecipe(140, "CC_HEAVY", new AStack[] { new OreDictStack(COAL.dust(), 8), new ComparableStack(ModItems.oil_tar, 4) }, new FluidStack[]{ new FluidStack(ModForgeFluids.heavyoil, 600), new FluidStack(FluidRegistry.WATER, 1400) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.heavyoil, 1800) }, 200);
-		
-		makeRecipe(150, "CC_NAPHTHA", new AStack[] { new OreDictStack(COAL.dust(), 8), new ComparableStack(ModItems.oil_tar, 4) }, new FluidStack[]{ new FluidStack(ModForgeFluids.naphtha, 1200), new FluidStack(ModForgeFluids.steam, 2400) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.naphtha, 2000) }, 300);
-		
-		makeRecipe(160, "SF_OIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.oil, 350) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(170, "SF_HEAVYOIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.heavyoil, 250) }, new AStack[] { new ComparableStack(ModItems.oil_tar, 2) }, null, 20);
-		
-		makeRecipe(180, "SF_SMEAR", null, new FluidStack[]{ new FluidStack(ModForgeFluids.smear, 200) }, new AStack[] { new ComparableStack(ModItems.oil_tar, 2) }, null, 20);
-		
-		makeRecipe(190, "SF_HEATINGOIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.heatingoil, 100) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(200, "SF_RECLAIMED", null, new FluidStack[]{ new FluidStack(ModForgeFluids.reclaimed, 200) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(210, "SF_PETROIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.petroil, 250) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(220, "SF_LUBRICANT", null, new FluidStack[]{ new FluidStack(ModForgeFluids.lubricant, 250) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(230, "SF_NAPHTHA", null, new FluidStack[]{ new FluidStack(ModForgeFluids.naphtha, 300) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(240, "SF_DIESEL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.diesel, 400) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(250, "SF_LIGHTOIL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.lightoil, 450) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(260, "SF_KEROSENE", null, new FluidStack[]{ new FluidStack(ModForgeFluids.kerosene, 550) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(270, "SF_GAS", null, new FluidStack[]{ new FluidStack(ModForgeFluids.gas, 750) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(280, "SF_PETROLEUM", null, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 600) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(290, "SF_BIOGAS", null, new FluidStack[]{ new FluidStack(ModForgeFluids.biogas, 400) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(300, "SF_BIOFUEL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.biofuel, 300) }, new AStack[] { new ComparableStack(ModItems.solid_fuel, 2) }, null, 20);
-		
-		makeRecipe(310, "BP_BIOGAS", new AStack[] { new ComparableStack(ModItems.biomass, 16) }, null, null, new FluidStack[]{ new FluidStack(ModForgeFluids.biogas, 4000) }, 200);
-		
-		makeRecipe(320, "BP_BIOFUEL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.biogas, 1500), new FluidStack(ModForgeFluids.ethanol, 250) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.biofuel, 1000) }, 100);
-		
-		makeRecipe(330, "OIL_SAND", new AStack[] { new ComparableStack(ModBlocks.ore_oil_sand, 16), new OreDictStack(KEY_OIL_TAR, 1) }, null, new AStack[] { new ComparableStack(Blocks.SAND, 16) }, new FluidStack[]{ new FluidStack(ModForgeFluids.bitumen, 1000) }, 200);
-		
-		makeRecipe(340, "ASPHALT", new AStack[] { new OreDictStack(KEY_GRAVEL, 2), new OreDictStack(KEY_SAND, 6) }, new FluidStack[]{ new FluidStack(ModForgeFluids.bitumen, 8000) }, new AStack[] { new ComparableStack(ModBlocks.asphalt, 16) }, null, 100);
-		
-		makeRecipe(350, "GNEISS_GAS", new AStack[] { new ComparableStack(ModBlocks.ore_gneiss_gas, 2) }, new FluidStack[]{ new FluidStack(ModForgeFluids.superhotsteam, 1000) }, new AStack[]{ new ComparableStack(ModBlocks.stone_gneiss, 2) }, new FluidStack[]{ new FluidStack(ModForgeFluids.gas, 1000), new FluidStack(ModForgeFluids.spentsteam, 1000) }, 100);
-		
-		makeRecipe(360, "COOLANT", new AStack[] { new OreDictStack(KNO.dust(), 1) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 1800) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.coolant, 2000) }, 50);
-		
-		makeRecipe(370, "CRYOGEL", new AStack[] { new ComparableStack(ModItems.powder_ice, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.coolant, 1800) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.cryogel, 2000) }, 50);
-		
-		if(GeneralConfig.enableBabyMode) {
-			makeRecipe(380, "DESH", new AStack[] { new ComparableStack(ModItems.powder_desh_mix, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.lightoil, 200) }, new AStack[] { new ComparableStack(ModItems.ingot_desh, 1) }, null, 300);
-		} else {
-			makeRecipe(380, "DESH", new AStack[] { new ComparableStack(ModItems.powder_desh_mix, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.mercury, 200), new FluidStack(ModForgeFluids.lightoil, 200) }, new AStack[] { new ComparableStack(ModItems.ingot_desh, 1) }, null, 300);
-		}
-		
-		makeRecipe(390, "NITAN", new AStack[] { new ComparableStack(ModItems.powder_nitan_mix, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.kerosene, 600), new FluidStack(ModForgeFluids.mercury, 200) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.nitan, 1000) }, 50);
-		
-		makeRecipe(400, "PEROXIDE", null, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 800) }, 50);
-		
-		makeRecipe(410, "SULFURIC_ACID", new AStack[] { new OreDictStack(S.dust()) }, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 800) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.sulfuric_acid, 500) }, 50);
-		
-		makeRecipe(420, "NITRIC_ACID", new AStack[] { new OreDictStack(KNO.dust()) }, new FluidStack[]{ new FluidStack(ModForgeFluids.sulfuric_acid, 500) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.nitric_acid, 500) }, 50);
-		
-		makeRecipe(430, "SOLVENT", null, new FluidStack[]{ new FluidStack(ModForgeFluids.naphtha, 800), new FluidStack(ModForgeFluids.aromatics, 300) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.solvent, 1000) }, 50);
-		
-		makeRecipe(440, "RADIOSOLVENT", null, new FluidStack[]{ new FluidStack(ModForgeFluids.solvent, 500), new FluidStack(ModForgeFluids.watz, 500) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.radiosolvent, 1000) }, 50);
-		
-		makeRecipe(450, "CIRCUIT_4", new AStack[] { new ComparableStack(ModItems.circuit_red_copper, 1), new ComparableStack(ModItems.wire_gold, 4), new OreDictStack(LAPIS.dust(), 1), new OreDictStack(ANY_PLASTIC.ingot(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 400) }, new AStack[] { new ComparableStack(ModItems.circuit_gold, 1) }, null, 200);
-		
-		makeRecipe(460, "CIRCUIT_5", new AStack[] { new ComparableStack(ModItems.circuit_gold, 1), new ComparableStack(ModItems.wire_schrabidium, 4), new OreDictStack(DIAMOND.dust(), 1), new OreDictStack(DESH.ingot(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 800), new FluidStack(ModForgeFluids.petroleum, 400) }, new AStack[] { new ComparableStack(ModItems.circuit_schrabidium, 1) }, null, 250);
-		
-		makeRecipe(470, "POLYMER", new AStack[] { new OreDictStack(COAL.gem(), 2), new OreDictStack(F.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 600) }, new AStack[] { new ComparableStack(ModItems.ingot_polymer, 1) }, null, 100);
-		
-		makeRecipe(480, "BAKELITE", null, new FluidStack[]{ new FluidStack(ModForgeFluids.aromatics, 500), new FluidStack(ModForgeFluids.petroleum, 500) }, new AStack[] { new ComparableStack(ModItems.ingot_bakelite, 1) }, null, 100);
-		
-		makeRecipe(490, "RUBBER", new AStack[] { new OreDictStack(S.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.unsaturateds, 500) }, new AStack[] { new ComparableStack(ModItems.ingot_rubber, 1) }, null, 100);
-		
-		makeRecipe(500, "DYNAMITE", new AStack[] { new ComparableStack(Items.SUGAR), new OreDictStack(KNO.dust()), new OreDictStack(KEY_SAND) }, new FluidStack[]{ new FluidStack(ModForgeFluids.sulfuric_acid, 1000) }, new AStack[] { new ComparableStack(ModItems.ball_dynamite, 2) }, null, 50);
-		
-		makeRecipe(510, "TNT", new AStack[] { new OreDictStack(KNO.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.aromatics, 500) }, new AStack[] { new ComparableStack(ModItems.ball_tnt, 4) }, null, 150);
 
-		makeRecipe(520, "C4", new AStack[] { new OreDictStack(KNO.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.unsaturateds, 500) }, new AStack[] { new ComparableStack(ModItems.ingot_c4, 4) }, null, 150);
+		//6-30, formerly oil cracking, coal liquefaction and solidifciation
+		registerOtherOil();
+		recipes.add(new ChemRecipe(36, "COOLANT", 50)
+				.inputItems(new OreDictStack(KNO.dust()))
+				.inputFluids(new FluidStack(Fluids.WATER, 1800))
+				.outputFluids(new FluidStack(Fluids.COOLANT, 2000)));
+		recipes.add(new ChemRecipe(37, "CRYOGEL", 50)
+				.inputItems(new ComparableStack(ModItems.powder_ice))
+				.inputFluids(new FluidStack(Fluids.COOLANT, 1800))
+				.outputFluids(new FluidStack(Fluids.CRYOGEL, 2000)));
+		recipes.add(new ChemRecipe(38, "DESH", 300)
+				.inputItems(new ComparableStack(ModItems.powder_desh_mix))
+				.inputFluids(
+						(GeneralConfig.enableBabyMode) ?
+								new FluidStack[] {new FluidStack(Fluids.LIGHTOIL, 200)} :
+								new FluidStack[] {new FluidStack(Fluids.MERCURY, 200), new FluidStack(Fluids.LIGHTOIL, 200)})
+				.outputItems(new ItemStack(ModItems.ingot_desh)));
+		recipes.add(new ChemRecipe(39, "NITAN", 50)
+				.inputItems(new ComparableStack(ModItems.powder_nitan_mix))
+				.inputFluids(
+						new FluidStack(Fluids.KEROSENE, 600),
+						new FluidStack(Fluids.MERCURY, 200))
+				.outputFluids(new FluidStack(Fluids.NITAN, 1000)));
+		recipes.add(new ChemRecipe(40, "PEROXIDE", 50)
+				.inputFluids(new FluidStack(Fluids.WATER, 1000))
+				.outputFluids(new FluidStack(Fluids.PEROXIDE, 800)));
+		recipes.add(new ChemRecipe(90, "SULFURIC_ACID", 50)
+				.inputItems(new OreDictStack(S.dust()))
+				.inputFluids(
+						new FluidStack(Fluids.PEROXIDE, 800),
+						new FluidStack(Fluids.WATER, 1_000))
+				.outputFluids(new FluidStack(Fluids.SULFURIC_ACID, 2_000)));
+		recipes.add(new ChemRecipe(92, "NITRIC_ACID", 50)
+				.inputItems(new OreDictStack(KNO.dust()))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 500))
+				.outputFluids(new FluidStack(Fluids.NITRIC_ACID, 1_000)));
+		recipes.add(new ChemRecipe(93, "SOLVENT", 50)
+				.inputFluids(new FluidStack(Fluids.NAPHTHA, 500), new FluidStack(Fluids.AROMATICS, 500))
+				.outputFluids(new FluidStack(Fluids.SOLVENT, 1000)));
+		recipes.add(new ChemRecipe(43, "POLYMER", 100)
+				.inputItems(
+						new OreDictStack(COAL.dust(), 2),
+						new OreDictStack(F.dust()))
+				.inputFluids(new FluidStack(Fluids.PETROLEUM, 500, GeneralConfig.enable528 ? 1 : 0))
+				.outputItems(new ItemStack(ModItems.ingot_polymer)));
+		recipes.add(new ChemRecipe(81, "BAKELITE", 100)
+				.inputFluids(
+						new FluidStack(Fluids.AROMATICS, 500, GeneralConfig.enable528 ? 1 : 0),
+						new FluidStack(Fluids.PETROLEUM, 500, GeneralConfig.enable528 ? 1 : 0))
+				.outputItems(new ItemStack(ModItems.ingot_bakelite)));
+		recipes.add(new ChemRecipe(82, "RUBBER", 100)
+				.inputItems(new OreDictStack(S.dust()))
+				.inputFluids(new FluidStack(Fluids.UNSATURATEDS, 500, GeneralConfig.enable528 ? 2 : 0))
+				.outputItems(new ItemStack(ModItems.ingot_rubber)));
+		/*recipes.add(new ChemRecipe(94, "PET", 100)
+				.inputItems(new OreDictStack(AL.dust()))
+				.inputFluids(
+						new FluidStack(Fluids.XYLENE, 500),
+						new FluidStack(Fluids.OXYGEN, 100))
+				.outputItems(new ItemStack(ModItems.ingot_pet)));*/
 
-		makeRecipe(530, "HEAVY_ELECTROLYSIS", null, new FluidStack[]{ new FluidStack(ModForgeFluids.heavywater, 8000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.deuterium, 400), new FluidStack(ModForgeFluids.oxygen, 400) }, 150);
-		
-		makeRecipe(540, "DEUTERIUM", new AStack[] { new OreDictStack(S.dust(), 2) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 4000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.deuterium, 500) }, 200);
-		
-		makeRecipe(550, "STEAM", null, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.steam, 1000) }, 20);
-		
-		makeRecipe(560, "ALGE", new AStack[] { new ComparableStack(ModItems.biomass, 4), new OreDictStack(KNO.dust(), 1), new OreDictStack(COAL.dustTiny(), 2) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 8000) }, new AStack[] { new ComparableStack(ModItems.biomass, 36) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 1000) }, 20*60);
-		
-		makeRecipe(570, "YELLOWCAKE", new AStack[] { new OreDictStack(U.dust(), 1), new OreDictStack(S.dust(), 2) }, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 500) }, new AStack[] { new ComparableStack(ModItems.powder_yellowcake, 1) }, null, 250);
-		
-		makeRecipe(580, "UF6", new AStack[] { new ComparableStack(ModItems.powder_yellowcake, 1), new OreDictStack(F.dust(), 3) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.uf6, 1000) }, 100);
-		
-		makeRecipe(590, "PUF6", new AStack[] { new OreDictStack(PU.dust(), 1), new OreDictStack(F.dust(), 3) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.puf6, 1000) }, 150);
-		
-		makeRecipe(600, "SAS3", new AStack[] { new OreDictStack(SA326.dust(), 1), new OreDictStack(S.dust(), 2) }, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 2000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.sas3, 1000) }, 200);
-		
-		makeRecipe(610, "DYN_SCHRAB", new AStack[] {new ComparableStack(ModItems.particle_higgs, 1), new OreDictStack(U.ingot(), 8), new ComparableStack(ModItems.catalyst_clay, 8) }, new FluidStack[]{ new FluidStack(ModForgeFluids.coolant, 1000) }, new AStack[] { new ComparableStack(ModItems.particle_empty, 1), new ComparableStack(ModItems.ingot_schrabidium, 8) }, new FluidStack[]{ new FluidStack(ModForgeFluids.watz, 50) }, 20*30);
-		
-		makeRecipe(620, "DYN_STR", new AStack[] {new ComparableStack(ModItems.particle_strange, 1), new ComparableStack(ModItems.nugget_radspice, 8), new ComparableStack(ModItems.catalyst_clay, 8) }, new FluidStack[]{ new FluidStack(ModForgeFluids.cryogel, 1000) }, new AStack[] { new ComparableStack(ModItems.particle_empty, 1), new ComparableStack(ModItems.egg_balefire, 4) }, new FluidStack[]{ new FluidStack(ModForgeFluids.watz, 200) }, 20*60);
-		
-		makeRecipe(630, "DYN_EUPH", new AStack[] {new ComparableStack(ModItems.particle_dark, 1), new OreDictStack(SA327.ingot(), 8), new ComparableStack(ModItems.catalyst_clay, 16) }, new FluidStack[]{ new FluidStack(ModForgeFluids.cryogel, 2000) }, new AStack[] { new ComparableStack(ModItems.particle_empty, 1), new ComparableStack(ModItems.ingot_euphemium, 8) }, new FluidStack[]{ new FluidStack(ModForgeFluids.watz, 100) }, 20*60*2);
-		
-		makeRecipe(640, "DYN_DNT", new AStack[] {new ComparableStack(ModItems.particle_sparkticle, 1), new OreDictStack(SBD.ingot(), 8), new ComparableStack(ModItems.catalyst_clay, 32) }, new FluidStack[]{ new FluidStack(ModForgeFluids.cryogel, 4000) }, new AStack[] { new ComparableStack(ModItems.particle_empty, 1), new ComparableStack(ModItems.ingot_dineutronium, 8) }, new FluidStack[]{ new FluidStack(ModForgeFluids.watz, 400) }, 20*60*5);
-		
-		makeRecipe(650, "DYN_EL", new AStack[] {new ComparableStack(ModItems.particle_digamma, 1), new OreDictStack(DNT.ingot(), 16), new ComparableStack(ModItems.catalyst_clay, 64) }, new FluidStack[]{ new FluidStack(ModForgeFluids.cryogel, 8000) }, new AStack[] { new ComparableStack(ModItems.particle_empty, 1), new ComparableStack(ModItems.ingot_electronium, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.watz, 800) }, 20*60*10);
-		
-		makeRecipe(660, "CORDITE", new AStack[] {new OreDictStack(KNO.dust(), 2), new OreDictStack(KEY_PLANKS, 1), new ComparableStack(Items.SUGAR, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.heatingoil, 200) }, new AStack[] { new ComparableStack(ModItems.cordite, 4) }, null, 40);
-		
-		makeRecipe(670, "KEVLAR", new AStack[] {new OreDictStack(KNO.dust(), 2), new OreDictStack(KEY_BRICK, 1), new OreDictStack(COAL.gem(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 100) }, new AStack[] { new ComparableStack(ModItems.plate_kevlar, 4) }, null, 40);
-		
-		makeRecipe(680, "CONCRETE", new AStack[] { new OreDictStack(KEY_GRAVEL, 8), new OreDictStack(KEY_SAND, 8) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 2000) }, new AStack[] { new ComparableStack(ModBlocks.concrete_smooth, 16) }, null, 100);
-		
-		makeRecipe(690, "CONCRETE_ASBESTOS", new AStack[] { new OreDictStack(KEY_GRAVEL, 2), new OreDictStack(KEY_SAND, 2), new OreDictStack(ASBESTOS.ingot(), 4) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 2000) }, new AStack[] { new ComparableStack(ModBlocks.concrete_asbestos, 16) }, null, 100);
-		
-		makeRecipe(700, "DUCRETE", new AStack[] { new OreDictStack(KEY_SAND, 8), new OreDictStack(U238.billet(), 2), new ComparableStack(Items.CLAY_BALL, 4) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 2000) }, new AStack[] { new ComparableStack(ModBlocks.ducrete, 8) }, null, 200);
-		
-		makeRecipe(710, "SOLID_FUEL", new AStack[] {new ComparableStack(ModItems.solid_fuel, 2), new OreDictStack(KNO.dust(), 1), new OreDictStack(REDSTONE.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 200) }, new AStack[] { new ComparableStack(ModItems.rocket_fuel, 4) }, null, 200);
-		
-		makeRecipe(720, "ELECTROLYSIS", null, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 8000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.hydrogen, 800), new FluidStack(ModForgeFluids.oxygen, 800) }, 150);
-		
-		makeRecipe(730, "XENON", null, null, null, new FluidStack[]{ new FluidStack(ModForgeFluids.xenon, 50) }, 300);
-		
-		makeRecipe(740, "XENON_OXY", null, new FluidStack[]{ new FluidStack(ModForgeFluids.oxygen, 250) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.xenon, 50) }, 20);
-		
-		makeRecipe(750, "SATURN", new AStack[] {new OreDictStack(DURA.dust(), 1), new OreDictStack(P_RED.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 100), new FluidStack(ModForgeFluids.mercury, 50) }, new AStack[] { new ComparableStack(ModItems.ingot_saturnite, 2) }, null, 60);
-		
-		makeRecipe(760, "BALEFIRE", new AStack[] {new ComparableStack(ModItems.egg_balefire_shard, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.kerosene, 6000) }, new AStack[] { new ComparableStack(ModItems.powder_balefire, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.balefire, 8000) }, 100);
-		
-		makeRecipe(770, "SCHRABIDIC", new AStack[] {new ComparableStack(ModItems.pellet_charged, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.sas3, 8000), new FluidStack(ModForgeFluids.acid, 6000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.schrabidic, 16000) }, 100);
-		
-		makeRecipe(780, "SCHRABIDATE", new AStack[] {new OreDictStack(IRON.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.schrabidic, 250) }, new AStack[] { new ComparableStack(ModItems.powder_schrabidate, 1) }, null, 600);
-		
-		makeRecipe(790, "COLTAN_CLEANING", new AStack[] {new OreDictStack(COLTAN.dust(), 2), new OreDictStack(COAL.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.acid, 250), new FluidStack(ModForgeFluids.hydrogen, 500) }, new AStack[] { new ComparableStack(ModItems.powder_coltan, 1), new ComparableStack(ModItems.powder_niobium, 1), new ComparableStack(ModItems.dust, 1) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 500) }, 60);
-		
-		makeRecipe(800, "COLTAN_PAIN", new AStack[] {new ComparableStack(ModItems.powder_coltan, 1), new OreDictStack(F.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.gas, 1000), new FluidStack(ModForgeFluids.oxygen, 500) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.pain, 1000) }, 120);
-		
-		makeRecipe(810, "COLTAN_CRYSTAL", null, new FluidStack[]{ new FluidStack(ModForgeFluids.pain, 1000), new FluidStack(ModForgeFluids.acid, 500) }, new AStack[] { new ComparableStack(ModItems.gem_tantalium, 1), new ComparableStack(ModItems.dust, 3) }, new FluidStack[]{ new FluidStack(FluidRegistry.WATER, 250) }, 80);
-		
-		makeRecipe(820, "ARSENIC", new AStack[] { new ComparableStack(ModItems.scrap_oil, 64), new ComparableStack(ModItems.scrap_oil, 64), new ComparableStack(ModItems.scrap_oil, 64), new ComparableStack(ModItems.scrap_oil, 64) }, new FluidStack[]{ new FluidStack(ModForgeFluids.sulfuric_acid, 1000) }, new AStack[] { new ComparableStack(ModItems.nugget_arsenic, 1), new ComparableStack(ModItems.sulfur, 2) }, new FluidStack[]{ new FluidStack(ModForgeFluids.heavyoil, 1500) }, 1200);
+		//Laminate Glass going here
+		//recipes.add(new ChemRecipe(97, "LAMINATE", 100)
+		//.inputFluids(
+		//new FluidStack(Fluids.XYLENE, 250),
+		//new FluidStack(Fluids.PHOSGENE, 250))
+		//.inputItems(
+		//new ComparableStack(ModBlocks.reinforced_glass),
+		//new OreDictStack(STEEL.bolt(), 4))
+		//.outputItems(new ItemStack(com.hbm.blocks.ModBlocks.reinforced_laminate)));
+		recipes.add(new ChemRecipe(94, "PC", 100)
+				.inputFluids(
+						new FluidStack(Fluids.XYLENE, 500, GeneralConfig.enable528 ? 2 : 0),
+						new FluidStack(Fluids.PHOSGENE, 500, GeneralConfig.enable528 ? 2 : 0))
+				.outputItems(new ItemStack(ModItems.ingot_pc)));
+		recipes.add(new ChemRecipe(96, "PVC", 100)
+				.inputItems(new OreDictStack(CD.dust()))
+				.inputFluids(
+						new FluidStack(Fluids.UNSATURATEDS, 250, GeneralConfig.enable528 ? 2 : 0),
+						new FluidStack(Fluids.CHLORINE, 250, GeneralConfig.enable528 ? 2 : 0))
+				.outputItems(new ItemStack(ModItems.ingot_pvc, 2)));
+		recipes.add(new ChemRecipe(89, "DYNAMITE", 50)
+				.inputItems(
+						new ComparableStack(Items.SUGAR),
+						new OreDictStack(KNO.dust()),
+						new OreDictStack("sand"))
+				.outputItems(new ItemStack(ModItems.ball_dynamite, 2)));
+		recipes.add(new ChemRecipe(83, "TNT", 150)
+				.inputItems(new OreDictStack(KNO.dust()))
+				.inputFluids(new FluidStack(Fluids.AROMATICS, 500, GeneralConfig.enable528 ? 1 : 0))
+				.outputItems(new ItemStack(ModItems.ball_tnt, 4)));
+		recipes.add(new ChemRecipe(95, "TATB", 50)
+				.inputItems(new ComparableStack(ModItems.ball_tnt))
+				.inputFluids(new FluidStack(Fluids.SOURGAS, 200, 1), new FluidStack(Fluids.NITRIC_ACID, 10))
+				.outputItems(new ItemStack(ModItems.ball_tatb)));
+		recipes.add(new ChemRecipe(84, "C4", 150)
+				.inputItems(new OreDictStack(KNO.dust()))
+				.inputFluids(new FluidStack(Fluids.UNSATURATEDS, 500, GeneralConfig.enable528 ? 1 : 0))
+				.outputItems(new ItemStack(ModItems.ingot_c4, 4)));
+		//44, formerly deuterium
+		//45, formerly steam
+		recipes.add(new ChemRecipe(46, "YELLOWCAKE", 250)
+				.inputItems(
+						new OreDictStack(U.billet(), 2), //12 nuggets: the numbers do match up :)
+						new OreDictStack(S.dust(), 2))
+				.inputFluids(new FluidStack(Fluids.PEROXIDE, 500))
+				.outputItems(new ItemStack(ModItems.powder_yellowcake)));
+		recipes.add(new ChemRecipe(47, "UF6", 100)
+				.inputItems(
+						new ComparableStack(ModItems.powder_yellowcake),
+						new OreDictStack(F.dust(), 4))
+				.inputFluids(new FluidStack(Fluids.WATER, 1000))
+				.outputItems(new ItemStack(ModItems.sulfur, 2))
+				.outputFluids(new FluidStack(Fluids.UF6, 1200)));
+		recipes.add(new ChemRecipe(48, "PUF6", 150)
+				.inputItems(
+						new OreDictStack(PU.dust()),
+						new OreDictStack(F.dust(), 3))
+				.inputFluids(new FluidStack(Fluids.WATER, 1000))
+				.outputFluids(new FluidStack(Fluids.PUF6, 900)));
+		recipes.add(new ChemRecipe(49, "SAS3", 200)
+				.inputItems(
+						new OreDictStack(SA326.dust()),
+						new OreDictStack(S.dust(), 2))
+				.inputFluids(new FluidStack(Fluids.PEROXIDE, 2000))
+				.outputFluids(new FluidStack(Fluids.SAS3, 1000)));
+		recipes.add(new ChemRecipe(53, "CORDITE", 40)
+				.inputItems(
+						new OreDictStack(KNO.dust(), 2),
+						new OreDictStack(KEY_PLANKS),
+						new ComparableStack(Items.SUGAR))
+				.inputFluids(
+						(GeneralConfig.enableBabyMode) ?
+								new FluidStack(Fluids.HEATINGOIL, 200) :
+								new FluidStack(Fluids.GAS, 200))
+				.outputItems(new ItemStack(ModItems.cordite, 4)));
+		recipes.add(new ChemRecipe(54, "KEVLAR", 40)
+				.inputItems(
+						new OreDictStack(KNO.dust(), 2),
+						new ComparableStack(Items.BRICK),
+						new OreDictStack(COAL.dust()))
+				.inputFluids(new FluidStack(Fluids.PETROLEUM, 100))
+				.outputItems(new ItemStack(ModItems.plate_kevlar, 4)));
+		recipes.add(new ChemRecipe(55, "CONCRETE", 100)
+				.inputItems(
+						new ComparableStack(ModItems.powder_cement, 1),
+						new ComparableStack(Blocks.GRAVEL, 8),
+						new OreDictStack(KEY_SAND, 8))
+				.inputFluids(new FluidStack(Fluids.WATER, 2000))
+				.outputItems(new ItemStack(ModBlocks.concrete_smooth, 16)));
+		recipes.add(new ChemRecipe(56, "CONCRETE_ASBESTOS", 100)
+				.inputItems(
+						new ComparableStack(ModItems.powder_cement, 1),
+						new ComparableStack(Blocks.GRAVEL, 2),
+						new OreDictStack(KEY_SAND, 2),
+						(GeneralConfig.enableBabyMode) ?
+								new OreDictStack(ASBESTOS.ingot(), 1) :
+								new OreDictStack(ASBESTOS.ingot(), 4))
+				.inputFluids(new FluidStack(Fluids.WATER, 2000))
+				.outputItems(new ItemStack(ModBlocks.concrete_asbestos, 16)));
+		recipes.add(new ChemRecipe(79, "DUCRETE", 150)
+				.inputItems(
+						new ComparableStack(ModItems.powder_cement, 4),
+						new ComparableStack(Blocks.GRAVEL, 2),
+						new OreDictStack(KEY_SAND, 8),
+						new OreDictStack(U238.billet(), 2))
+				.inputFluids(new FluidStack(Fluids.WATER, 2000))
+				.outputItems(new ItemStack(ModBlocks.ducrete_smooth, 8)));
+		recipes.add(new ChemRecipe(57, "SOLID_FUEL", 200)
+				.inputItems(new ComparableStack(ModItems.solid_fuel, 2))
+				.inputFluids(
+						new FluidStack(Fluids.PETROLEUM, 200, GeneralConfig.enable528 ? 1 : 0),
+						new FluidStack(Fluids.NITRIC_ACID, 100))
+				.outputItems(new ItemStack(ModItems.rocket_fuel, 4)));
+		recipes.add(new ChemRecipe(58, "ELECTROLYSIS", 150)
+				.inputFluids(new FluidStack(Fluids.WATER, 4000))
+				.outputFluids(
+						new FluidStack(Fluids.HYDROGEN, 400),
+						new FluidStack(Fluids.OXYGEN, 400)));
+		recipes.add(new ChemRecipe(59, "XENON", 300)
+				.inputFluids(new FluidStack(Fluids.NONE, 0))
+				.outputFluids(new FluidStack(Fluids.XENON, 50)));
+		recipes.add(new ChemRecipe(60, "XENON_OXY", 20)
+				.inputFluids(new FluidStack(Fluids.OXYGEN, 250))
+				.outputFluids(new FluidStack(Fluids.XENON, 50)));
+		recipes.add(new ChemRecipe(61, "SATURN", 60)
+				.inputItems(
+						new OreDictStack(DURA.dust(), 2),
+						new OreDictStack(CU.dust(), 1),
+						new OreDictStack(COAL.dust(), 1))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 100))
+				.outputItems(new ItemStack(ModItems.ingot_saturnite, 4)));
+		recipes.add(new ChemRecipe(62, "BALEFIRE", 100)
+				.inputItems(new ComparableStack(ModItems.egg_balefire_shard))
+				.inputFluids(new FluidStack(Fluids.KEROSENE, 6000))
+				.outputItems(new ItemStack(ModItems.powder_balefire))
+				.outputFluids(new FluidStack(Fluids.BALEFIRE, 8000)));
+		recipes.add(new ChemRecipe(63, "SCHRABIDIC", 100)
+				.inputItems(new ComparableStack(ModItems.pellet_charged))
+				.inputFluids(
+						new FluidStack(Fluids.SAS3, 8000),
+						new FluidStack(Fluids.PEROXIDE, 6000))
+				.outputFluids(new FluidStack(Fluids.SCHRABIDIC, 16000)));
+		recipes.add(new ChemRecipe(64, "SCHRABIDATE", 150)
+				.inputItems(new OreDictStack(IRON.dust()))
+				.inputFluids(new FluidStack(Fluids.SCHRABIDIC, 250))
+				.outputItems(new ItemStack(ModItems.powder_schrabidate)));
+		recipes.add(new ChemRecipe(65, "COLTAN_CLEANING", 60)
+				.inputItems(
+						new OreDictStack(COLTAN.dust(), 2),
+						new OreDictStack(COAL.dust()))
+				.inputFluids(
+						new FluidStack(Fluids.PEROXIDE, 250),
+						new FluidStack(Fluids.HYDROGEN, 500))
+				.outputItems(
+						new ItemStack(ModItems.powder_coltan),
+						new ItemStack(ModItems.powder_niobium),
+						new ItemStack(ModItems.dust))
+				.outputFluids(new FluidStack(Fluids.WATER, 500)));
+		recipes.add(new ChemRecipe(66, "COLTAN_PAIN", 120)
+				.inputItems(
+						new ComparableStack(ModItems.powder_coltan),
+						new OreDictStack(F.dust()))
+				.inputFluids(
+						new FluidStack(Fluids.GAS, 1000),
+						new FluidStack(Fluids.OXYGEN, 500))
+				.outputFluids(new FluidStack(Fluids.PAIN, 1000)));
+		recipes.add(new ChemRecipe(67, "COLTAN_CRYSTAL", 80)
+				.inputFluids(
+						new FluidStack(Fluids.PAIN, 1000),
+						new FluidStack(Fluids.PEROXIDE, 500))
+				.outputItems(
+						new ItemStack(ModItems.gem_tantalium),
+						new ItemStack(ModItems.dust, 3))
+				.outputFluids(new FluidStack(Fluids.WATER, 250)));
+		recipes.add(new ChemRecipe(68, "VIT_LIQUID", 100)
+				.inputItems(new ComparableStack(ModBlocks.sand_lead))
+				.inputFluids(new FluidStack(Fluids.WASTEFLUID, 1000))
+				.outputItems(new ItemStack(ModItems.nuclear_waste_vitrified)));
+		recipes.add(new ChemRecipe(69, "VIT_GAS", 100)
+				.inputItems(new ComparableStack(ModBlocks.sand_lead))
+				.inputFluids(new FluidStack(Fluids.WASTEGAS, 1000))
+				.outputItems(new ItemStack(ModItems.nuclear_waste_vitrified)));
+		recipes.add(new ChemRecipe(88, "LUBRICANT", 20)
+				.inputFluids(
+						new FluidStack(Fluids.HEATINGOIL, 500),
+						new FluidStack(Fluids.UNSATURATEDS, 500))
+				.outputFluids(new FluidStack(Fluids.LUBRICANT, 1000)));
+		recipes.add(new ChemRecipe(4, "FR_REOIL", 30)
+				.inputFluids(new FluidStack(1000, Fluids.SMEAR))
+				.outputFluids(new FluidStack(800, Fluids.RECLAIMED)));
+		recipes.add(new ChemRecipe(5, "FR_PETROIL", 30)
+				.inputFluids(
+						new FluidStack(800, Fluids.RECLAIMED),
+						new FluidStack(200, Fluids.LUBRICANT))
+				.outputFluids(new FluidStack(1000, Fluids.PETROIL)));
+		recipes.add(new ChemRecipe(71, "GASOLINE", 40)
+				.inputFluids(new FluidStack(Fluids.NAPHTHA, 1000))
+				.outputFluids(new FluidStack(Fluids.GASOLINE, 800)));
+		recipes.add(new ChemRecipe(72, "FRACKSOL", 20)
+				.inputItems(new OreDictStack(S.dust()))
+				.inputFluids(
+						new FluidStack(Fluids.PETROLEUM, 100),
+						new FluidStack(Fluids.WATER, 1000))
+				.outputFluids(new FluidStack(Fluids.FRACKSOL, 1000)));
+		//recipes.add(new ChemRecipe(73, "HELIUM3", 200)
+		//.inputItems(new ComparableStack(ModBlocks.moon_turf, 8))
+		//.outputFluids(new FluidStack(Fluids.HELIUM3, 1000)));
+		recipes.add(new ChemRecipe(74, "OSMIRIDIUM_DEATH", 240)
+				.inputItems(
+						new ComparableStack(ModItems.powder_paleogenite),
+						new OreDictStack(F.dust(), 8),
+						new ComparableStack(ModItems.nugget_bismuth, 4))
+				.inputFluids(new FluidStack(Fluids.PEROXIDE, 1000, 5))
+				.outputFluids(new FluidStack(Fluids.DEATH, 1000, 0)));
+		//one bucket of ethanol equals 275_000 TU using the diesel baseline0
+		//the coal baseline is 400_000 per piece
+		//if we assume a burntime of 1.5 ops (300 ticks) for sugar at 100 TU/t that would equal a total of 30_000 TU
+		recipes.add(new ChemRecipe(75, "ETHANOL", 50)
+				.inputItems(new ComparableStack(Items.SUGAR, 10))
+				.outputFluids(new FluidStack(Fluids.ETHANOL, 1000)));
+		//recipes.add(new ChemRecipe(76, "METH", 30)
+		//.inputItems(
+		//new ComparableStack(Items.WHEAT),
+		//new ComparableStack(Items.DYE, 2, 3))
+		//.inputFluids(
+		//new FluidStack(Fluids.LUBRICANT, 400),
+		//new FluidStack(Fluids.PEROXIDE, 400))
+		//.outputItems(new ItemStack(ModItems.chocolate, 4)));
+		recipes.add(new ChemRecipe(77, "CO2", 60)
+				.inputFluids(new FluidStack(Fluids.GAS, 1000))
+				.outputFluids(new FluidStack(Fluids.CARBONDIOXIDE, 1000)));
+		recipes.add(new ChemRecipe(78, "HEAVY_ELECTROLYSIS", 150)
+				.inputFluids(new FluidStack(Fluids.HEAVYWATER, 2000))
+				.outputFluids(
+						new FluidStack(Fluids.DEUTERIUM, 200),
+						new FluidStack(Fluids.OXYGEN, 200)));
+		recipes.add(new ChemRecipe(80, "EPEARL", 100)
+				.inputItems(new OreDictStack(DIAMOND.dust(), 1))
+				.inputFluids(new FluidStack(Fluids.XPJUICE, 500))
+				.outputFluids(new FluidStack(Fluids.ENDERJUICE, 100)));
+		recipes.add(new ChemRecipe(98, "SHELL_CHLORINE", 100)
+				.inputItems(
+						new ComparableStack(ModItems.ammo_arty, 1, 0),
+						new OreDictStack(ANY_PLASTIC.ingot(), 1))
+				.inputFluids(new FluidStack(Fluids.CHLORINE, 4000))
+				.outputItems(new ItemStack(ModItems.ammo_arty, 1, 9)));
+		recipes.add(new ChemRecipe(99, "SHELL_PHOSGENE", 100)
+				.inputItems(
+						new ComparableStack(ModItems.ammo_arty, 1, 0),
+						new OreDictStack(ANY_PLASTIC.ingot(), 1))
+				.inputFluids(new FluidStack(Fluids.PHOSGENE, 4000))
+				.outputItems(new ItemStack(ModItems.ammo_arty, 1, 10)));
+		recipes.add(new ChemRecipe(100, "SHELL_MUSTARD", 100)
+				.inputItems(
+						new ComparableStack(ModItems.ammo_arty, 1, 0),
+						new OreDictStack(ANY_PLASTIC.ingot(), 1))
+				.inputFluids(new FluidStack(Fluids.MUSTARDGAS, 4000))
+				.outputItems(new ItemStack(ModItems.ammo_arty, 1, 11)));
+		recipes.add(new ChemRecipe(101, "CC_CENTRIFUGE", 200)
+				.inputFluids(new FluidStack(Fluids.CHLOROCALCITE_CLEANED, 500), new FluidStack(Fluids.SULFURIC_ACID, 8_000))
+				.outputFluids(new FluidStack(Fluids.POTASSIUM_CHLORIDE, 250), new FluidStack(Fluids.CALCIUM_CHLORIDE, 250)));
 
-		makeRecipe(830, "VIT_LIQUID", new AStack[] {new ComparableStack(ModBlocks.sand_lead, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.wastefluid, 1000) }, new AStack[] {new ComparableStack(ModItems.nuclear_waste_vitrified, 1) }, null, 100);
-		
-		makeRecipe(840, "VIT_GAS", new AStack[] {new ComparableStack(ModBlocks.sand_lead, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.wastegas, 1000) }, new AStack[] {new ComparableStack(ModItems.nuclear_waste_vitrified, 1) }, null, 100);
-		
-		makeRecipe(850, "TEL", new AStack[] {new OreDictStack(KEY_OIL_TAR, 1), new OreDictStack(PB.dust(), 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 100), new FluidStack(ModForgeFluids.steam, 1000) }, new AStack[] { new ComparableStack(ModItems.antiknock, 1) }, null, 40);
-		
-		makeRecipe(860, "GASOLINE", new AStack[] {new ComparableStack(ModItems.antiknock, 1) }, new FluidStack[]{ new FluidStack(ModForgeFluids.petroil, 10000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.gasoline, 12000) }, 40);
-		
-		makeRecipe(870, "FRACKSOL", new AStack[] { new OreDictStack(S.dust()) }, new FluidStack[]{ new FluidStack(ModForgeFluids.petroleum, 100), new FluidStack(FluidRegistry.WATER, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.fracksol, 1000) }, 20);
-		
-		makeRecipe(880, "OSMIRIDIUM_DEATH", new AStack[] { new ComparableStack(ModItems.powder_paleogenite), new OreDictStack(F.dust(), 8), new ComparableStack(ModItems.nugget_bismuth, 4) }, new FluidStack[]{ new FluidStack(ModForgeFluids.sulfuric_acid, 1000), new FluidStack(ModForgeFluids.sas3, 1000) }, null, new FluidStack[]{ new FluidStack(ModForgeFluids.liquid_osmiridium, 1000) }, 240);
-		
-		// makeRecipe(0, "FP_SMEAR, new AStack[] { new ComparableStack() }, new FluidStack[]{ new FluidStack() }, null, null, 100);
-		
+		recipes.add(new ChemRecipe(102, "THORIUM_SALT", 60)
+				.inputFluids(new FluidStack(Fluids.THORIUM_SALT_DEPLETED, 16_000))
+				.inputItems(new OreDictStack(TH232.nugget(), 2))
+				.outputFluids(new FluidStack(Fluids.THORIUM_SALT, 16_000))
+				.outputItems(
+						new ItemStack(ModItems.nugget_u233, 1),
+						new ItemStack(ModItems.nuclear_waste_tiny, 1)));
 	}
 
-	public static void makeRecipe(int index, String name, AStack[] itemInputs, FluidStack[] fluidInputs, AStack[] outputItems, FluidStack[] outputFluids, int duration) {
-		if(itemInputs != null)
-			recipeItemInputs.put(index, itemInputs);
-		if(fluidInputs != null)
-			recipeFluidInputs.put(index, fluidInputs);
-		if(outputItems != null)
-			recipeItemOutputs.put(index, outputItems);
-		if(outputFluids != null)
-			recipeFluidOutputs.put(index, outputFluids);
-		if(duration > 1)
-			recipeDurations.put(index, duration);
-		if(name != null)
-			recipeNames.put(index, name);
-	}
-
-	public static void removeRecipe(int index) {
-		recipeItemInputs.remove(index);
-		recipeFluidInputs.remove(index);
-		recipeItemOutputs.remove(index);
-		recipeFluidOutputs.remove(index);
-		recipeDurations.remove(index);
-		recipeNames.remove(index);
-	}
-
-	public static List<AStack> getChemInputFromTempate(ItemStack stack) {
-		if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
-			return null;
-		AStack[] inputs = recipeItemInputs.get(stack.getItemDamage());
-		if(inputs != null)
-			return Arrays.asList(inputs);
-		return null;
-	}
 
 
-	public static FluidStack[] getFluidInputFromTempate(ItemStack stack) {
-		if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
-			return null;
-		return recipeFluidInputs.get(stack.getItemDamage());
-	}
+	public static class ChemRecipe {
 
+		public int listing;
+		private int id;
+		public String name;
+		public AStack[] inputs;
+		public FluidStack[] inputFluids;
+		public ItemStack[] outputs;
+		public FluidStack[] outputFluids;
+		private int duration;
 
-	public static ItemStack[] getChemOutputFromTempate(ItemStack stack) {
-		if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
-			return null;
-		AStack[] outputs = recipeItemOutputs.get(stack.getItemDamage());
-		if(outputs != null){
-			ItemStack[] stackOutputs = new ItemStack[outputs.length];
-			for(int i=0; i<stackOutputs.length; i++){
-				stackOutputs[i] = outputs[i].getStack();
+		public ChemRecipe(int index, String name, int duration) {
+			this.id = index;
+			this.name = name;
+			this.duration = duration;
+			this.listing = recipes.size();
+
+			this.inputs = new AStack[4];
+			this.outputs = new ItemStack[4];
+			this.inputFluids = new FluidStack[2];
+			this.outputFluids = new FluidStack[2];
+			recipeNames.put(this.id, this.name);
+
+			if(!indexMapping.containsKey(id)) {
+				indexMapping.put(id, this);
+			} else {
+				throw new IllegalStateException("Chemical plant recipe " + name + " has been registered with duplicate id " + id + " used by " + indexMapping.get(id).name + "!");
 			}
-			return stackOutputs;
 		}
-		return null;
-	}
 
+		public ChemRecipe inputItems(AStack... in) {
+			for(int i = 0; i < in.length; i++) this.inputs[i] = in[i];
+			return this;
+		}
 
-	public static FluidStack[] getFluidOutputFromTempate(ItemStack stack) {
-		if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
+		public ChemRecipe inputFluids(FluidStack... in) {
+			for(int i = 0; i < in.length; i++) this.inputFluids[i] = in[i];
+			return this;
+		}
+
+		public ChemRecipe outputItems(ItemStack... out) {
+			for(int i = 0; i < out.length; i++) this.outputs[i] = out[i];
+			return this;
+		}
+
+		public ChemRecipe outputFluids(FluidStack... out) {
+			for(int i = 0; i < out.length; i++) this.outputFluids[i] = out[i];
+			return this;
+		}
+
+		public static List<AStack> getChemInputFromTempate(ChemRecipe recipe, ItemStack stack) {
+			if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
+				return null;
+			if(recipe.inputs != null)
+				return Arrays.asList(recipe.inputs);
 			return null;
-		return recipeFluidOutputs.get(stack.getItemDamage());
+		}
+
+
+		public static FluidStack[] getFluidInputFromTempate(ChemRecipe recipe, ItemStack stack) {
+			if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
+				return null;
+			return recipe.inputFluids;
+		}
+
+
+		public static ItemStack[] getChemOutputFromTempate(ChemRecipe recipe, ItemStack stack) {
+			if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
+				return null;
+			if(recipe.outputs != null){
+				ItemStack[] stackOutputs = new ItemStack[recipe.outputs.length];
+				for(int i=0; i<stackOutputs.length; i++){
+					stackOutputs[i] = recipe.outputs[i];
+				}
+				return stackOutputs;
+			}
+			return null;
+		}
+
+
+		public static FluidStack[] getFluidOutputFromTempate(ChemRecipe recipe, ItemStack stack) {
+			if (stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
+				return null;
+			return recipe.outputFluids;
+		}
+
+		public int getId() {
+			return this.id;
+		}
+
+		public int getDuration() {
+			return this.duration;
+		}
 	}
 
+	@Override
+	public String getFileName() {
+		return "hbmChemplant.json";
+	}
 
-	public static int getProcessTime(ItemStack stack) {	
-    	if(!(stack.getItem() instanceof ItemChemistryTemplate))
-    		return 100;
-        Integer time = recipeDurations.get(stack.getItemDamage());
-        if(time != null)
-        	return time;
-        return 100;
-    }
+	@Override
+	public Object getRecipeObject() {
+		return this.recipes;
+	}
 
-    public static String getName(ItemStack stack) {	
-    	if(!(stack.getItem() instanceof ItemChemistryTemplate))
-    		return null;
-        String name = recipeNames.get(stack.getItemDamage());
-        if(name != null)
-        	return name;
-        return "BAD_RECIPE";
-    }
+	@Override
+	public void readRecipe(JsonElement recipe) {
+		JsonObject obj = (JsonObject) recipe;
+		int id = obj.get("id").getAsInt();
+		String name = obj.get("name").getAsString();
+		int duration = obj.get("duration").getAsInt();
 
-    public static String getName(int i) {	
-        String name = recipeNames.get(i);
-        if(name != null)
-        	return name;
-        return "";
-    }
+		recipes.add(new ChemRecipe(id, name, duration)
+				.inputFluids(	this.readFluidArray(		(JsonArray) obj.get("fluidInput")))
+				.inputItems(	this.readAStackArray(		(JsonArray) obj.get("itemInput")))
+				.outputFluids(	this.readFluidArray(		(JsonArray) obj.get("fluidOutput")))
+				.outputItems(	this.readItemStackArray(	(JsonArray) obj.get("itemOutput"))));
+	}
 
-    public static boolean hasRecipe(ItemStack stack) {	
-    	if(stack == null || !(stack.getItem() instanceof ItemChemistryTemplate))
-    		return false;
-       	return recipeNames.containsKey(stack.getItemDamage());
-    }
+	@Override
+	public void writeRecipe(Object recipe, JsonWriter writer) throws IOException {
+		try {
+			ChemRecipe chem = (ChemRecipe) recipe;
+			writer.name("id").value(chem.id);
+			writer.name("name").value(chem.name);
+			writer.name("duration").value(chem.duration);
+			//Fluid IN
+			writer.name("fluidInput").beginArray();
+			for(FluidStack input : chem.inputFluids) { if(input != null) this.writeFluidStack(input, writer); }
+			writer.endArray();
+			//Item IN
+			writer.name("itemInput").beginArray();
+			for(AStack input : chem.inputs) { if(input != null) this.writeAStack(input, writer); }
+			writer.endArray();
+			//Fluid OUT
+			writer.name("fluidOutput").beginArray();
+			for(FluidStack output : chem.outputFluids) { if(output != null) this.writeFluidStack(output, writer); }
+			writer.endArray();
+			//Item OUT
+			writer.name("itemOutput").beginArray();
+			for(ItemStack output : chem.outputs) { if(output != null) this.writeItemStack(output, writer); }
+			writer.endArray();
+		} catch(Exception ex) {
+			MainRegistry.logger.error(ex);
+			ex.printStackTrace();
+		}
+	}
+
+	public String getComment() {
+		return "Rules: All in- and output arrays need to be present, even if empty. IDs need to be unique, but not sequential. It's safe if you add your own"
+				+ " recipes starting with ID 1000. Template order depends on the order of the recipes in this JSON file. The 'name' field is responsible for"
+				+ " the texture being loaded for the template. Custom dynamic texture generation is not yet implemented, you will have to throw the texture into"
+				+ " the JAR manually.";
+	}
+
+	@Override
+	public void deleteRecipes() {
+		this.indexMapping.clear();
+		this.recipes.clear();
+	}
+
+	public static String getName(int i) {
+		String name = recipeNames.get(i);
+		if(name != null)
+			return name;
+		return "";
+	}
 }

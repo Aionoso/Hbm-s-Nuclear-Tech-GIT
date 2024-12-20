@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Random;
 import java.lang.NoClassDefFoundError;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import org.apache.logging.log4j.Level;
 
 import com.hbm.config.CompatibilityConfig;
@@ -21,11 +22,7 @@ import com.hbm.config.VersatileConfig;
 import com.hbm.handler.ArmorUtil;
 import com.hbm.entity.effect.EntityBlackHole;
 import com.hbm.items.ModItems;
-import com.hbm.lib.Library;
-import com.hbm.lib.ModDamageSource;
 import com.hbm.main.MainRegistry;
-import com.hbm.tileentity.turret.TileEntityTurretBase;
-import api.hbm.energy.IEnergyUser;
 
 import cofh.redstoneflux.api.IEnergyProvider;
 import net.minecraft.block.Block;
@@ -40,10 +37,7 @@ import net.minecraft.block.BlockSnowBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -52,8 +46,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameType;
 import net.minecraft.world.World;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -502,9 +494,9 @@ public class ExplosionNukeGeneric {
 			Block b = world.getBlockState(pos).getBlock();
 			TileEntity te = world.getTileEntity(pos);
 			
-			if (te != null && te instanceof IEnergyUser) {
+			if (te != null && te instanceof IEnergyReceiverMK2) {
 				
-				((IEnergyUser)te).setPower(0);
+				((IEnergyReceiverMK2)te).setPower(0);
 				
 				if(random.nextInt(5) < 1)
 					world.setBlockState(pos, ModBlocks.block_electrical_scrap.getDefaultState());

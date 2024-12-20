@@ -1,68 +1,70 @@
 package com.hbm.tileentity.machine;
 
-import com.hbm.config.MachineConfig;
-import com.hbm.interfaces.ITankPacketAcceptor;
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardTransceiver;
+import com.hbm.forgefluid.FFUtils;
+import com.hbm.forgefluid.ModForgeFluids;
+import com.hbm.interfaces.IFFtoNTMF;
 import com.hbm.inventory.UpgradeManager;
 import com.hbm.inventory.container.ContainerMixer;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
 import com.hbm.inventory.gui.GUIMixer;
 import com.hbm.inventory.MixerRecipes;
-import com.hbm.forgefluid.ModForgeFluids;
-import com.hbm.forgefluid.FFUtils;
-import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
-import com.hbm.items.machine.ItemForgeFluidIdentifier;
 import com.hbm.lib.Library;
 import com.hbm.lib.DirPos;
 import com.hbm.tileentity.IGUIProvider;
+import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyUser;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraft.util.ITickable;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
 
-public class TileEntityMachineMixer extends TileEntityMachineBase implements ITickable, IGUIProvider, IFluidHandler, IEnergyUser, ITankPacketAcceptor {
-	
+public class TileEntityMachineMixer extends TileEntityMachineBase implements ITickable, IGUIProvider, IFluidStandardTransceiver, IEnergyReceiverMK2, INBTPacketReceiver, IFFtoNTMF
+{
+
 	public long power;
 	public static final long maxPower = 10_000;
 	public int progress;
 	public int processTime;
-	public Fluid outputFluid;
-	
+	public int recipeIndex;
+
 	public float rotation;
 	public float prevRotation;
 	public boolean wasOn = false;
 
 	private int consumption = 50;
 
-	public boolean uuMixer = false;
-	public static final int uuConsumption = 1_000_000;
-	public static final long uuMaxPower = 200_000_000;
-	
+	public FluidTankNTM[] tanksNew;
 	public FluidTank[] tanks;
+	public Fluid outputFluid;
+	public Fluid[] fluids;
 	private final UpgradeManager upgradeManager = new UpgradeManager();
+	private static boolean converted = false;
 
 	public TileEntityMachineMixer() {
 		super(5);
-		this.outputFluid = null;
+		this.tanksNew = new FluidTankNTM[3];
+		this.tanksNew[0] = new FluidTankNTM(Fluids.NONE, 16_000);
+		this.tanksNew[1] = new FluidTankNTM(Fluids.NONE, 16_000);
+		this.tanksNew[2] = new FluidTankNTM(Fluids.NONE, 24_000);
+
 		this.tanks = new FluidTank[3];
+		this.outputFluid = null;
 		this.tanks[0] = new FluidTank(16_000); //Input 1
 		this.tanks[1] = new FluidTank(16_000); //Input 2
 		this.tanks[2] = new FluidTank(24_000); //Output
@@ -70,38 +72,34 @@ public class TileEntityMachineMixer extends TileEntityMachineBase implements ITi
 
 	@Override
 	public String getName() {
-		if(uuMixer) return "container.machineUUMixer";
 		return "container.machineMixer";
 	}
 
 	@Override
 	public void update() {
-		updateTankSizes();
 		if(!world.isRemote) {
+			if(!converted){
+				convertAndSetFluids(fluids, tanks, tanksNew);
+				converted = true;
+			}
 			this.power = Library.chargeTEFromItems(inventory, 0, power, getMaxPower());
+			tanksNew[2].setType(2, inventory);
 			
 			upgradeManager.eval(inventory, 3, 4);
 			int speedLevel = Math.min(upgradeManager.getLevel(UpgradeType.SPEED), 3);
 			int powerLevel = Math.min(upgradeManager.getLevel(UpgradeType.POWER), 3);
 			int overLevel = upgradeManager.getLevel(UpgradeType.OVERDRIVE);
-			uuMixer = upgradeManager.getLevel(UpgradeType.SCREAM) > 0;
-
-			updateTankType();
-			
-			if(uuMixer){
-				updateInputUUtank();
-			} else {
-				updateInputTankTypes();
-			}
 
 			this.consumption = getConsumption();
 
 			this.consumption *= (speedLevel+1);
 			this.consumption /= (powerLevel+1);
 			this.consumption *= (overLevel * 3 + 1);
-			
+
 			for(DirPos pos : getConPos()) {
-				this.trySubscribe(world, pos.getPos(), pos.getDir());
+				this.trySubscribe(world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+				if(tanksNew[0].getTankType() != Fluids.NONE) this.trySubscribe(tanksNew[0].getTankType(), world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+				if(tanksNew[1].getTankType() != Fluids.NONE) this.trySubscribe(tanksNew[1].getTankType(), world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
 			}
 			
 			this.wasOn = this.canProcess();
@@ -123,42 +121,28 @@ public class TileEntityMachineMixer extends TileEntityMachineBase implements ITi
 			} else {
 				this.progress = 0;
 			}
-			
+
 			for(DirPos pos : getConPos()) {
-				if(tanks[2].getFluidAmount() > 0)
-					FFUtils.fillFluid(this, tanks[2], world, pos.getPos(), tanks[2].getCapacity() >> 1);
+				if(tanksNew[2].getFill() > 0) this.sendFluid(tanksNew[2], world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
 			}
 			
 			NBTTagCompound data = new NBTTagCompound();
-			if(outputFluid != null){
-				data.setString("f", outputFluid.getName());
-			} else {
-				if(tanks[2].getFluid() != null){
-					data.setString("f", tanks[2].getFluid().getFluid().getName());
-				} else {
-					data.setString("f", "None");
-				}
-			}
 			data.setLong("power", power);
 			data.setInteger("processTime", processTime);
 			data.setInteger("progress", progress);
+			data.setInteger("recipe", recipeIndex);
 			data.setBoolean("wasOn", wasOn);
-			data.setBoolean("uu", uuMixer);
-			data.setTag("tanks", FFUtils.serializeTankArray(tanks));
-			
-			this.networkPack(data, 50);
-			if(!uuMixer && power > getMaxPower()) power = getMaxPower();
+			for(int i = 0; i < 3; i++) {
+				tanksNew[i].writeToNBT(data, i + "");
+			}
+			this.networkPackNT(50);
 			
 		} else {
 			
 			this.prevRotation = this.rotation;
-			
+
 			if(this.wasOn) {
-				if(this.uuMixer){
-					this.rotation += 40F;
-				} else {
-					this.rotation += 20F;
-				}
+				this.rotation += 20F;
 			}
 			
 			if(this.rotation >= 360) {
@@ -168,155 +152,105 @@ public class TileEntityMachineMixer extends TileEntityMachineBase implements ITi
 		}
 	}
 
-	private void updateTankType() {
-        ItemStack slotId = inventory.getStackInSlot(2);
-        Item itemId = slotId.getItem();
-        if(itemId == ModItems.forge_fluid_identifier) {
-            Fluid fluid = ItemForgeFluidIdentifier.getType(slotId);
+	@Override
+	public void serialize(ByteBuf buf) {
+		super.serialize(buf);
+		buf.writeLong(power);
+		buf.writeInt(processTime);
+		buf.writeInt(progress);
+		buf.writeInt(recipeIndex);
+		buf.writeBoolean(wasOn);
 
-            if(outputFluid != fluid && ((uuMixer && MachineConfig.isFluidAllowed(fluid)) || MixerRecipes.hasMixerRecipe(fluid))) {
-                outputFluid = fluid;
-                tanks[2].setFluid(new FluidStack(fluid, 0));
+		for(int i = 0; i < tanksNew.length; i++) tanksNew[i].serialize(buf);
+	}
 
-                this.markDirty();
-            }
-        }
-    }
+	@Override
+	public void deserialize(ByteBuf buf) {
+		super.deserialize(buf);
+		power = buf.readLong();
+		processTime = buf.readInt();
+		progress = buf.readInt();
+		recipeIndex = buf.readInt();
+		wasOn = buf.readBoolean();
 
-    private void updateTankSizes(){
-    	if(uuMixer){
-	    	if(tanks[0].getCapacity() != 2_000_000_000){
-		    	tanks[0] = FFUtils.changeTankSize(tanks[0], 2_000_000_000);
-		    	tanks[1] = FFUtils.changeTankSize(tanks[1], 2_000_000_000);
-		    	tanks[2] = FFUtils.changeTankSize(tanks[2], 2_000_000_000/MachineConfig.uuMixerFluidRatio);
-		    	this.markDirty();
-		    }
-	    } else {
-		    if(tanks[0].getCapacity() != 16_000){
-		    	tanks[0] = FFUtils.changeTankSize(tanks[0], 16_000);
-		    	tanks[1] = FFUtils.changeTankSize(tanks[1], 16_000);
-		    	tanks[2] = FFUtils.changeTankSize(tanks[2], 24_000);
-		    	this.markDirty();
-		    }
-		}
-    }
-
-    private void updateInputUUtank(){
-    	if(tanks[0].getFluid() == null || tanks[0].getFluid().getFluid() != ModForgeFluids.uu_matter)
-    		tanks[0].setFluid(new FluidStack(ModForgeFluids.uu_matter, 0));
-    	if(tanks[1].getFluid() != null) tanks[1].setFluid(null);
-    	if(outputFluid == null && tanks[2].getFluid() != null) outputFluid = tanks[2].getFluid().getFluid();
-    }
-
-    private void updateInputTankTypes() {
-    	if(outputFluid == null) return;
-    	
-    	Fluid[] f = MixerRecipes.getInputFluids(outputFluid);
-    	if(f == null){
-    		if(tanks[0].getFluid() != null) tanks[0].setFluid(null);
-	    	if(tanks[1].getFluid() != null) tanks[1].setFluid(null);
-    	} else if(f.length > 0){
-    		FluidStack t1 = tanks[0].getFluid();
-    		if(t1 == null || t1.getFluid() != f[0]){
-    			tanks[0].setFluid(new FluidStack(f[0], 0));
-	    	}
-	    	if(f.length == 2){
-		    	FluidStack t2 = tanks[1].getFluid();
-	    		if(t2 == null || t2.getFluid() != f[1]){
-	    			tanks[1].setFluid(new FluidStack(f[1], 0));
-		    	}
-		    } else {
-		    	tanks[1].setFluid(null);
-		    }
-    	}
-    }
+		for(int i = 0; i < tanksNew.length; i++) tanksNew[i].deserialize(buf);
+	}
 
 	@Override
 	public void networkUnpack(NBTTagCompound nbt) {
-		if(nbt.hasKey("f")) {
-			if(nbt.getString("f").equals("None"))
-				this.outputFluid = null;
-			else
-            	this.outputFluid = FluidRegistry.getFluid(nbt.getString("f"));
-        }
+		super.networkUnpack(nbt);
+
 		this.power = nbt.getLong("power");
 		this.processTime = nbt.getInteger("processTime");
 		this.progress = nbt.getInteger("progress");
+		this.recipeIndex = nbt.getInteger("recipe");
 		this.wasOn = nbt.getBoolean("wasOn");
-		this.uuMixer = nbt.getBoolean("uu");
-		if(nbt.hasKey("tanks")){
-			FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
+		if(!converted){
+			if(nbt.hasKey("f")) {
+				if(nbt.getString("f").equals("None"))
+					this.outputFluid = null;
+				else
+					this.outputFluid = FluidRegistry.getFluid(nbt.getString("f"));
+			}
+			if(nbt.hasKey("tanks")){
+				FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
+			}
+		} else {
+			for (int i = 0; i < 3; i++) {
+				tanksNew[i].readFromNBT(nbt, i + "");
+			}
 		}
 	}
-	
+
 	public boolean canProcess() {
-		//Enought Power?
+
+		MixerRecipes.MixerRecipe[] recipes = MixerRecipes.getOutput(tanksNew[2].getTankType());
+		if(recipes == null || recipes.length <= 0) {
+			this.recipeIndex = 0;
+			return false;
+		}
+
+		this.recipeIndex = this.recipeIndex % recipes.length;
+		MixerRecipes.MixerRecipe recipe = recipes[this.recipeIndex];
+		if(recipe == null) {
+			this.recipeIndex = 0;
+			return false;
+		}
+
+		tanksNew[0].setTankType(recipe.input1 != null ? recipe.input1.type : Fluids.NONE);
+		tanksNew[1].setTankType(recipe.input2 != null ? recipe.input2.type : Fluids.NONE);
+
+		if(recipe.input1 != null && tanksNew[0].getFill() < recipe.input1.fill) return false;
+		if(recipe.input2 != null && tanksNew[1].getFill() < recipe.input2.fill) return false;
+
+		/* simplest check would usually go first, but fluid checks also do the setup and we want that to happen even without power */
 		if(this.power < getConsumption()) return false;
 
-		//Mixing uu matter?
-		if(uuMixer){
-			this.processTime = 200;
-			if(outputFluid != null && tanks[2].getFluidAmount() < tanks[2].getCapacity() && FFUtils.hasEnoughFluid(tanks[0], new FluidStack(ModForgeFluids.uu_matter, MachineConfig.uuMixerFluidRatio))){
-				return true;
-			}
-			return false;
+		if(recipe.output + tanksNew[2].getFill() > tanksNew[2].getMaxFill()) return false;
+
+		if(recipe.solidInput != null) {
+
+			if(inventory.getStackInSlot(1) == ItemStack.EMPTY) return false;
+
+			if(!recipe.solidInput.matchesRecipe(inventory.getStackInSlot(1), true) || recipe.solidInput.getStack().getCount() > inventory.getStackInSlot(1).getCount()) return false;
 		}
 
-		//has recipe?
-		if(!MixerRecipes.hasMixerRecipe(outputFluid)) {
-			this.outputFluid = null;
-			return false;
-		}
-		//has enough Fluid
-		FluidStack[] fluidInputs = MixerRecipes.getInputFluidStacks(outputFluid);
-		if(fluidInputs != null){
-			if(fluidInputs.length >= 1 && !FFUtils.hasEnoughFluid(tanks[0], fluidInputs[0])) return false;
-			if(fluidInputs.length == 2 && !FFUtils.hasEnoughFluid(tanks[1], fluidInputs[1])) return false;
-		}
-		
-		//has enough space left in output tank
-		if(tanks[2].getCapacity() - tanks[2].getFluidAmount() < MixerRecipes.getFluidOutputAmount(outputFluid)) return false;
-		//has correct item in inputSlot
-		if(!MixerRecipes.matchesInputItem(outputFluid, inventory.getStackInSlot(1))) return false;
-		//has enough of that item
-		if(inventory.getStackInSlot(1).getCount() < MixerRecipes.getInputItemCount(outputFluid)) return false;
-		
-		this.processTime = MixerRecipes.getRecipeDuration(outputFluid);
+		this.processTime = recipe.processTime;
 		return true;
 	}
-	
+
 	protected void process() {
 
-		if(uuMixer){
-			int mbProduction = Math.min(tanks[2].getCapacity()-tanks[2].getFluidAmount(), tanks[0].getFluidAmount()/MachineConfig.uuMixerFluidRatio);
-			tanks[0].drain(mbProduction * MachineConfig.uuMixerFluidRatio, true);
-			tanks[2].fill(new FluidStack(outputFluid, mbProduction), true);
-			this.markDirty();
-			return;
-		}
-		
-		FluidStack[] fluidInputs = MixerRecipes.getInputFluidStacks(outputFluid);
-		if(fluidInputs != null){
-			if(fluidInputs.length >= 1)
-				tanks[0].drain(fluidInputs[0].amount, true);
-			if(fluidInputs.length == 2)
-				tanks[1].drain(fluidInputs[1].amount, true);
-		}
+		MixerRecipes.MixerRecipe[] recipes = MixerRecipes.getOutput(tanksNew[2].getTankType());
+		MixerRecipes.MixerRecipe recipe = recipes[this.recipeIndex % recipes.length];
 
-		int itemuse = MixerRecipes.getInputItemCount(outputFluid);
-		if(itemuse > 0){
-			ItemStack stack = inventory.getStackInSlot(1);
-			stack.shrink(itemuse);
-			if(stack.getCount() == 0)
-				inventory.setStackInSlot(1, ItemStack.EMPTY);
-		}
-		
-		tanks[2].fill(new FluidStack(outputFluid, MixerRecipes.getFluidOutputAmount(outputFluid)), true);
-		this.markDirty();
+		if(recipe.input1 != null) tanksNew[0].setFill(tanksNew[0].getFill() - recipe.input1.fill);
+		if(recipe.input2 != null) tanksNew[1].setFill(tanksNew[1].getFill() - recipe.input2.fill);
+		if(recipe.solidInput != null) this.inventory.getStackInSlot(1).shrink(recipe.solidInput.getStack().getCount());
+		tanksNew[2].setFill(tanksNew[2].getFill() + recipe.output);
 	}
 	
 	public int getConsumption() {
-		if(uuMixer) return uuConsumption;
 		return consumption;
 	}
 	
@@ -337,44 +271,65 @@ public class TileEntityMachineMixer extends TileEntityMachineBase implements ITi
 
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemStack) {
-		if(i == 1) return MixerRecipes.matchesInputItem(outputFluid, itemStack);
-		return false;
+		MixerRecipes.MixerRecipe[] recipes = MixerRecipes.getOutput(tanksNew[2].getTankType());
+		if(recipes == null || recipes.length <= 0) return false;
+
+		MixerRecipes.MixerRecipe recipe = recipes[this.recipeIndex % recipes.length];
+		if(recipe == null || recipe.solidInput == null) return false;
+
+		return recipe.solidInput.matchesRecipe(itemStack, true);
 	}
 	
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		if(nbt.hasKey("f")) {
-            if(nbt.getString("f").equals("None"))
-				this.outputFluid = null;
-			else
-            	this.outputFluid = FluidRegistry.getFluid(nbt.getString("f"));
-        }
-        this.uuMixer = nbt.getBoolean("uu");
 		this.power = nbt.getLong("power");
 		this.progress = nbt.getInteger("progress");
 		this.processTime = nbt.getInteger("processTime");
-		if(nbt.hasKey("tanks")){
-			FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
+		this.recipeIndex = nbt.getInteger("recipe");
+		if(!converted){
+			if(nbt.hasKey("f")) {
+				if(nbt.getString("f").equals("None"))
+					this.outputFluid = null;
+				else
+					this.outputFluid = FluidRegistry.getFluid(nbt.getString("f"));
+			}
+			if(nbt.hasKey("tanks")){
+				FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
+			}
+			this.fluids = new Fluid[3];
+			this.fluids[0] = tanks[0].getFluid() != null ? tanks[0].getFluid().getFluid() : ModForgeFluids.none;
+			this.fluids[1] = tanks[1].getFluid() != null ? tanks[0].getFluid().getFluid() : ModForgeFluids.none;
+			this.fluids[2] = outputFluid != null ? outputFluid : ModForgeFluids.none;
+		} else {
+			for (int i = 0; i < 3; i++) this.tanksNew[i].readFromNBT(nbt, i + "");
+			if(nbt.hasKey("f")){
+				nbt.removeTag("f");
+				nbt.removeTag("tanks");
+			}
 		}
 	}
 	
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		if(outputFluid != null){
-			nbt.setString("f", outputFluid.getName());
-		} else {
-			if(tanks[2].getFluid() != null){
-				nbt.setString("f", tanks[2].getFluid().getFluid().getName());
-			} else {
-				nbt.setString("f", "None");
-			}
-		}
-		nbt.setBoolean("uu", uuMixer);
 		nbt.setLong("power", power);
 		nbt.setInteger("progress", progress);
 		nbt.setInteger("processTime", processTime);
-		nbt.setTag("tanks", FFUtils.serializeTankArray(tanks));
+		nbt.setInteger("recipe", recipeIndex);
+		if(!converted){
+			if(outputFluid != null){
+				nbt.setString("f", outputFluid.getName());
+			} else {
+				if(tanks[2].getFluid() != null){
+					nbt.setString("f", tanks[2].getFluid().getFluid().getName());
+				} else {
+					nbt.setString("f", "None");
+				}
+			}
+			nbt.setTag("tanks", FFUtils.serializeTankArray(tanks));
+		} else {
+			for (int i = 0; i < 3; i++) this.tanksNew[i].writeToNBT(nbt, i + "");
+		}
 		return super.writeToNBT(nbt);
 	}
 
@@ -390,7 +345,6 @@ public class TileEntityMachineMixer extends TileEntityMachineBase implements ITi
 
 	@Override
 	public long getMaxPower() {
-		if(uuMixer) return uuMaxPower;
 		return maxPower;
 	}
 
@@ -424,64 +378,17 @@ public class TileEntityMachineMixer extends TileEntityMachineBase implements ITi
 	}
 
 	@Override
-	public void recievePacket(NBTTagCompound[] tags) {
-		if(tags.length != 3) {
-			return;
-		} else {
-			tanks[0].readFromNBT(tags[0]);
-			tanks[1].readFromNBT(tags[1]);
-			tanks[2].readFromNBT(tags[2]);
-		}
+	public FluidTankNTM[] getAllTanks() {
+		return tanksNew;
 	}
 
 	@Override
-	public IFluidTankProperties[] getTankProperties() {
-		return new IFluidTankProperties[] { tanks[0].getTankProperties()[0], tanks[1].getTankProperties()[0], tanks[2].getTankProperties()[0] };
+	public FluidTankNTM[] getSendingTanks() {
+		return new FluidTankNTM[] {tanksNew[2]};
 	}
 
 	@Override
-	public int fill(FluidStack resource, boolean doFill) {
-		if(resource == null) return 0;
-
-		if(tanks[0].getFluid() != null && resource.isFluidEqual(tanks[0].getFluid())) {
-			return tanks[0].fill(resource, doFill);
-		}
-
-		if(tanks[1].getFluid() != null && resource.isFluidEqual(tanks[1].getFluid())) {
-			return tanks[1].fill(resource, doFill);
-		}
-
-		return 0;
+	public FluidTankNTM[] getReceivingTanks() {
+		return new FluidTankNTM[] {tanksNew[0], tanksNew[1]};
 	}
-
-	@Override
-	public FluidStack drain(FluidStack resource, boolean doDrain) {
-		if(resource == null || resource.getFluid() != outputFluid) {
-			return null;
-		}
-		return tanks[2].drain(resource.amount, doDrain);
-	}
-
-	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain) {
-		return tanks[2].drain(maxDrain, doDrain);
-	}
-
-	@Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-        } else {
-            return super.getCapability(capability, facing);
-        }
-    }
-
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return true;
-        } else {
-            return super.hasCapability(capability, facing);
-        }
-    }
 }

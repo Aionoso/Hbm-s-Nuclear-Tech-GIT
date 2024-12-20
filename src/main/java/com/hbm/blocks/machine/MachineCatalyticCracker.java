@@ -9,6 +9,8 @@ import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.inventory.CrackRecipes;
 import com.hbm.handler.MultiblockHandlerXR;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.items.machine.IItemFluidIdentifier;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.items.machine.ItemForgeFluidIdentifier;
 import com.hbm.tileentity.TileEntityProxyCombo;
@@ -72,7 +74,7 @@ public class MachineCatalyticCracker extends BlockDummyable implements ILookOver
 		
 		if(!world.isRemote && !player.isSneaking()) {
 
-			if(!player.getHeldItem(hand).isEmpty() && player.getHeldItem(hand).getItem() instanceof ItemForgeFluidIdentifier) {
+			if(!player.getHeldItem(hand).isEmpty() && player.getHeldItem(hand).getItem() instanceof IItemFluidIdentifier) {
 				int[] pos = this.findCore(world, pos1.getX(), pos1.getY(), pos1.getZ());
 				if(pos == null)
 					return false;
@@ -83,14 +85,10 @@ public class MachineCatalyticCracker extends BlockDummyable implements ILookOver
 					return false;
 
 				TileEntityMachineCatalyticCracker cracker = (TileEntityMachineCatalyticCracker) te;
-				Fluid type = ItemForgeFluidIdentifier.getType(player.getHeldItem(hand));
-				if(!CrackRecipes.hasRecipe(type)){
-					player.sendMessage(new TextComponentString("§cNo recipe found for §e"+type.getLocalizedName(new FluidStack(type, 1))));
-					return false;
-				}
-				cracker.setTankType(0, type);
+				FluidType type = ((IItemFluidIdentifier) player.getHeldItem(hand).getItem()).getType(world, pos[0], pos[1], pos[2], player.getHeldItem(hand));
+				cracker.tanks[0].setTankType(type);
 				cracker.markDirty();
-				player.sendMessage(new TextComponentString("§eRecipe changed to §a"+type.getLocalizedName(new FluidStack(type, 1))));
+				player.sendMessage(new TextComponentString("§eRecipe changed to §a"+type.getConditionalName()));
 				
 				return true;
 			}
@@ -148,9 +146,8 @@ public class MachineCatalyticCracker extends BlockDummyable implements ILookOver
 		
 		List<String> text = new ArrayList();
 
-		for(int i = 0; i < cracker.types.length; i++)
-			if(cracker.types[i] != null)
-				text.add((i < 2 ? "§a-> " : "§c<- ") + "§r" + cracker.types[i].getLocalizedName(new FluidStack(cracker.types[i], 1)) + ": " + cracker.tanks[i].getFluidAmount() + "/" + cracker.tanks[i].getCapacity() + "mB");
+		for(int i = 0; i < cracker.tanks.length; i++)
+			text.add((i < 2 ? ("§a-> ") : ("§c<- ")) + "§r" + cracker.tanks[i].getTankType().getLocalizedName() + ": " + cracker.tanks[i].getFill() + "/" + cracker.tanks[i].getMaxFill() + "mB");
 
 		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
 	}

@@ -22,8 +22,10 @@ public class HbmCapability {
 		public void setKeyPressed(EnumKeybind key, boolean pressed);
 		public boolean getEnableBackpack();
 		public boolean getEnableHUD();
+		public boolean getOnLadder();
 		public void setEnableBackpack(boolean b);
 		public void setEnableHUD(boolean b);
+		public void setOnLadder(boolean b);
 		
 		public default boolean isJetpackActive() {
 			return getEnableBackpack() && getKeyPressed(EnumKeybind.JETPACK);
@@ -38,6 +40,7 @@ public class HbmCapability {
 		
 		public boolean enableBackpack = true;
 		public boolean enableHUD = true;
+		public boolean isOnLadder = false;
 		
 		@Override
 		public boolean getKeyPressed(EnumKeybind key) {
@@ -87,6 +90,12 @@ public class HbmCapability {
 		public void setEnableHUD(boolean b){
 			enableHUD = b;
 		}
+
+		@Override
+		public boolean getOnLadder() {return isOnLadder;}
+
+		@Override
+		public void setOnLadder(boolean b){isOnLadder = b;}
 		
 	}
 	
@@ -100,6 +109,7 @@ public class HbmCapability {
 			}
 			tag.setBoolean("enableBackpack", instance.getEnableBackpack());
 			tag.setBoolean("enableHUD", instance.getEnableHUD());
+			tag.setBoolean("isOnLadder", instance.getOnLadder());
 			return tag;
 		}
 
@@ -112,6 +122,7 @@ public class HbmCapability {
 				}
 				instance.setEnableBackpack(tag.getBoolean("enableBackpack"));
 				instance.setEnableHUD(tag.getBoolean("enableHUD"));
+				instance.setOnLadder(tag.getBoolean("isOnLadder"));
 			}
 		}
 		
@@ -146,6 +157,15 @@ public class HbmCapability {
 
 			@Override
 			public void setEnableHUD(boolean b){
+			}
+
+			@Override
+			public boolean getOnLadder() {
+				return false;
+			}
+
+			@Override
+			public void setOnLadder(boolean b){
 			}
 		};
 		

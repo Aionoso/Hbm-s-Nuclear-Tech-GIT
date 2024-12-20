@@ -6,7 +6,7 @@ import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.machine.TileEntityFWatzCore;
 import com.hbm.tileentity.machine.TileEntityFWatzHatch;
 
-import api.hbm.energy.IEnergyConnectorBlock;
+import api.hbm.energymk2.IEnergyConnectorBlock;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.material.Material;

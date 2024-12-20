@@ -1,8 +1,7 @@
 package com.hbm.inventory.gui;
 
-import com.hbm.forgefluid.FFUtils;
-import com.hbm.inventory.FluidCombustionRecipes;
 import com.hbm.inventory.container.ContainerOilburner;
+import com.hbm.inventory.fluid.trait.FT_Flammable;
 import com.hbm.packet.NBTControlPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.machine.TileEntityHeaterOilburner;
@@ -16,6 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class GUIOilburner extends GuiInfoContainer {
     private final ResourceLocation texture;
@@ -38,13 +38,9 @@ public class GUIOilburner extends GuiInfoContainer {
 
         this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 116, guiTop + 17, 16, 52, mouseX, mouseY, new String[]{String.format("%,d", Math.min(heater.heatEnergy, TileEntityHeaterOilburner.maxHeatEnergy)) + " / " + String.format("%,d", TileEntityHeaterOilburner.maxHeatEnergy) + " TU"});
 
-        int energy = FluidCombustionRecipes.getFlameEnergy(heater.fluidType);
-
-        if (energy != 0) {
-            this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 79, guiTop + 34, 18, 18, mouseX, mouseY, new String[]{heater.setting + " mB/t", String.format("%,d", energy * heater.setting) + " TU/t"});
+        if(heater.tankNew.getTankType().hasTrait(FT_Flammable.class)) {
+            this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 79, guiTop + 34, 18, 18, mouseX, mouseY, new String[] { heater.setting + " mB/t", String.format(Locale.US, "%,d", (int)(heater.tankNew.getTankType().getTrait(FT_Flammable.class).getHeatEnergy() / 1000) * heater.setting) + " TU/t" });
         }
-
-        FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 44, guiTop + 17, 16, 52, heater.tank, heater.fluidType);
 
         super.renderHoveredToolTip(mouseX, mouseY);
     }
@@ -83,11 +79,11 @@ public class GUIOilburner extends GuiInfoContainer {
         if (heater.isOn) {
             drawTexturedModalRect(guiLeft + 70, guiTop + 54, 210, 0, 35, 14);
 
-            if (heater.tank.getFluidAmount() > 0 && FluidCombustionRecipes.hasFuelRecipe(heater.fluidType)) {
+            if(heater.tankNew.getFill() > 0 && heater.tankNew.getTankType().hasTrait(FT_Flammable.class)) {
                 drawTexturedModalRect(guiLeft + 79, guiTop + 34, 176, 0, 18, 18);
             }
         }
 
-        FFUtils.drawLiquid(heater.tank, guiLeft, guiTop, zLevel, 16, 52, 44, 97);
+        heater.tankNew.renderTank(guiLeft + 44, guiTop + 69, this.zLevel, 16, 52);
     }
 }

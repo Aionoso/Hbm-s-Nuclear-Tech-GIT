@@ -40,12 +40,15 @@ public final class HBMSoundHandler {
 	public static SoundEvent flamethrowerShoot;
 	public static SoundEvent tauShoot;
 	public static SoundEvent oldExplosion;
+	public static SoundEvent nuclearExplosion;
 	public static SoundEvent ciwsSpindown;
 	public static SoundEvent ciwsSpinup;
 	public static SoundEvent ciwsFiringLoop;
 	public static SoundEvent reloadTurret;
+	public static SoundEvent warnOverspeed;
 	public static SoundEvent planeShotDown;
 	public static SoundEvent bombWhistle;
+	public static SoundEvent mortarWhistle;
 	public static SoundEvent planeCrash;
 	public static SoundEvent missileTakeoff;
 	public static SoundEvent bomberSmallLoop;
@@ -64,12 +67,17 @@ public final class HBMSoundHandler {
 	public static SoundEvent boatWeapon;
 	public static SoundEvent ricochet;
 	public static SoundEvent grenadeBounce;
+	public static SoundEvent boiler;
 	public static SoundEvent alarmGambit;
 	public static SoundEvent revolverShoot;
 	public static SoundEvent heavyShoot;
 	public static SoundEvent schrabidiumShoot;
 	public static SoundEvent revolverShootAlt;
 	public static SoundEvent hkShoot;
+	public static SoundEvent bolterShoot;
+	public static SoundEvent bolterReload;
+	public static SoundEvent vortexShoot;
+	public static SoundEvent vortexReload;
 	public static SoundEvent shotgunShoot;
 	public static SoundEvent shottyShoot;
 	public static SoundEvent uziShoot;
@@ -142,6 +150,11 @@ public final class HBMSoundHandler {
 	public static SoundEvent nullMine;
 	public static SoundEvent openDoor;
 	public static SoundEvent closeDoor;
+	public static SoundEvent openC;
+	public static SoundEvent closeC;
+	public static SoundEvent steamEngineOperate;
+
+	public static SoundEvent chungusOperate;
 	public static SoundEvent bang;
 	public static SoundEvent slice;
 	public static SoundEvent kaping;
@@ -191,6 +204,7 @@ public final class HBMSoundHandler {
 	public static SoundEvent gluonHit;
 	public static SoundEvent jetpack;
 	public static SoundEvent mukeExplosion;
+	public static SoundEvent explosion_medium;
 	public static SoundEvent crucibleStart;
 	public static SoundEvent crucibleEnd;
 	public static SoundEvent crucibleSwing;
@@ -216,6 +230,10 @@ public final class HBMSoundHandler {
 	public static SoundEvent cough;
 	public static SoundEvent ufoBeam;
 	public static SoundEvent ufoBlast;
+	public static SoundEvent storageOpen;
+	public static SoundEvent storageClose;
+	public static SoundEvent crateOpen;
+	public static SoundEvent crateClose;
 	
 	public static SoundEvent transitionSealOpen;
 	public static SoundEvent garage;
@@ -301,11 +319,15 @@ public final class HBMSoundHandler {
 		flamethrowerShoot = register("weapon.flamethrowerShoot");
 		tauShoot = register("weapon.tauShoot");
 		oldExplosion = register("entity.oldExplosion");
+		nuclearExplosion = register("weapon.nuclearExplosion");
+		boiler = register("block.boiler");
 		ciwsSpindown = register("weapon.ciwsSpindown");
 		ciwsSpinup = register("weapon.ciwsSpinup");
 		ciwsFiringLoop = register("weapon.ciwsFiringLoop");
+		warnOverspeed = register("block.warnOverspeed");
 		planeShotDown = register("entity.planeShotDown");
 		bombWhistle = register("entity.bombWhistle");
+		mortarWhistle = register("entity.mortarWhistle");
 		planeCrash = register("entity.planeCrash");
 		missileTakeoff = register("weapon.missileTakeOff");
 		bomberSmallLoop = register("entity.bomberSmallLoop");
@@ -322,6 +344,8 @@ public final class HBMSoundHandler {
 		GunConfiguration.RSOUND_RIFLE = reloadRifle = register("");
 		GunConfiguration.RSOUND_REVOLVER = reloadRevolver = register("weapon.revolverReload");
 		GunConfiguration.RSOUND_FATMAN = fatmanReload = register("weapon.fatmanReload");
+		GunConfiguration.RSOUND_75 = bolterReload = register("weapon.bolterReload");
+		GunConfiguration.RSOUND_VORTEX = vortexReload = register("weapon.vortexReload");
 		boatWeapon = register("weapon.boat");
 		ricochet = register("weapon.ricochet");
 		grenadeBounce = register("weapon.gBounce");
@@ -331,6 +355,8 @@ public final class HBMSoundHandler {
 		schrabidiumShoot = register("weapon.schrabidiumShoot");
 		revolverShootAlt = register("weapon.revolverShootAlt");
 		hkShoot = register("weapon.hkShoot");
+		bolterShoot = register("weapon.bolterShoot");
+		vortexShoot = register("weapon.vortexShoot");
 		shotgunShoot = register("weapon.shotgunShoot");
 		shottyShoot = register("weapon.shottyShoot");
 		uziShoot = register("weapon.uziShoot");
@@ -403,6 +429,9 @@ public final class HBMSoundHandler {
 		nullMine = register("misc.nullMine");
 		openDoor = register("block.openDoor");
 		closeDoor = register("block.closeDoor");
+		openC = register("block.openc");
+		closeC = register("block.closec");
+		steamEngineOperate = register("block.steamEngineOperate");
 		bang = register("weapon.bang");
 		slice = register("weapon.slice");
 		kaping = register("weapon.kapeng");
@@ -451,6 +480,7 @@ public final class HBMSoundHandler {
 		gluonHit = register("weapon.gluonhit");
 		jetpack = register("weapon.jetpack");
 		mukeExplosion = register("weapon.mukeExplosion");
+		explosion_medium = register("weapon.explosion_medium");
 		crucibleStart = register("weapon.crucible_start");
 		crucibleEnd = register("weapon.crucible_end");
 		crucibleSwing = register("weapon.crucible_swing");
@@ -472,6 +502,7 @@ public final class HBMSoundHandler {
 		rbmk_explosion = register("block.rbmk_explosion");
 		rbmk_az5_cover = register("block.rbmk_az5_cover");
 		chungus_lever = register("block.chungusLever");
+		chungusOperate = register("block.chungusTurbineRunning");
 		dflash = register("weapon.dFlash");
 		cough = register("player.cough");
 		ufoBeam = register("entity.ufoBeam");
@@ -493,7 +524,12 @@ public final class HBMSoundHandler {
 		hatch_open = register("block.door.hatch_open");
 		sliding_seal_open = register("block.door.sliding_seal_open");
 		sliding_seal_stop = register("block.door.sliding_seal_stop");
-		
+		storageClose = register("block.storageClose");
+		storageOpen = register("block.storageOpen");
+		crateClose = register("block.crateClose");
+		crateOpen = register("block.crateOpen");
+
+
 		geigerSounds = new SoundEvent[]{geiger1, geiger2, geiger3, geiger4, geiger5, geiger6, geiger7, geiger8};
 		voiceSounds = new SoundEvent[]{voices1, voices2, voices3, voices4, voices5, voices6, voices7, voices8};
 	}

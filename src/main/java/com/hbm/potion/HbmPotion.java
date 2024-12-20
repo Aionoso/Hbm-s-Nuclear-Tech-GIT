@@ -41,6 +41,7 @@ public class HbmPotion extends Potion {
 	public static HbmPotion phosphorus;
 	public static HbmPotion stability;
 	public static HbmPotion potionsickness;
+	public static HbmPotion death;
 	
 	public HbmPotion(boolean isBad, int color, String name, int x, int y){
 		super(isBad, color);
@@ -61,6 +62,7 @@ public class HbmPotion extends Potion {
 		phosphorus = registerPotion(true, 0xFF3A00, "potion.hbm_phosphorus", 1, 1);
 		stability = registerPotion(false, 0xD0D0D0, "potion.hbm_stability", 2, 1);
 		potionsickness = registerPotion(false, 0xFF8080, "potion.hbm_potionsickness", 3, 1);
+		death = registerPotion(false, 0x111111, "potion.hbm_death", 4, 1);
 	}
 
 	public static HbmPotion registerPotion(boolean isBad, int color, String name, int x, int y) {

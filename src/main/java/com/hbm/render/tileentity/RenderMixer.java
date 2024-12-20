@@ -2,17 +2,16 @@ package com.hbm.render.tileentity;
 
 import java.awt.Color;
 
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.main.ResourceManager;
-import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.tileentity.machine.TileEntityMachineMixer;
 
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.fluids.FluidTank;
 
 public class RenderMixer extends TileEntitySpecialRenderer<TileEntityMachineMixer> {
 
@@ -24,10 +23,7 @@ public class RenderMixer extends TileEntitySpecialRenderer<TileEntityMachineMixe
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		
 		GlStateManager.shadeModel(GL11.GL_SMOOTH);
-		if(mixer.uuMixer)
-			bindTexture(ResourceManager.mixer_uu_tex);
-		else
-			bindTexture(ResourceManager.mixer_tex);
+		bindTexture(ResourceManager.mixer_tex);
 		ResourceManager.mixer.renderPart("Main");
 		
 		GL11.glPushMatrix();
@@ -37,10 +33,12 @@ public class RenderMixer extends TileEntitySpecialRenderer<TileEntityMachineMixe
 
 		int totalFill = 0;
 		int totalMax = 0;
-		
-		if(mixer.tanks[2].getFluid() != null) {
-			totalFill += mixer.tanks[2].getFluidAmount();
-			totalMax += mixer.tanks[2].getCapacity();
+
+		for(FluidTankNTM tank : mixer.tanksNew) {
+			if(tank.getTankType() != Fluids.NONE) {
+				totalFill += tank.getFill();
+				totalMax += tank.getMaxFill();
+			}
 		}
 		
 		if(totalFill > 0) {
@@ -49,15 +47,11 @@ public class RenderMixer extends TileEntitySpecialRenderer<TileEntityMachineMixe
 			GL11.glEnable(GL11.GL_BLEND);
 			GL11.glAlphaFunc(GL11.GL_GREATER, 0);
 			OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-			
-			Color color = new Color(ModForgeFluids.getFluidColor(mixer.outputFluid));
+
+			Color color = new Color(mixer.tanksNew[2].getTankType().getColor());
 			GL11.glColor4f(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, 0.75F);
 			GL11.glTranslated(0, 1, 0);
-			if(mixer.uuMixer){
-				GL11.glScaled(1, 0.99, 1);
-			} else {
-				GL11.glScaled(1, (double) totalFill / (double) totalMax * 0.99, 1);
-			}
+			GL11.glScaled(1, (double) totalFill / (double) totalMax * 0.99, 1);
 			GL11.glTranslated(0, -1, 0);
 			ResourceManager.mixer.renderPart("Fluid");
 

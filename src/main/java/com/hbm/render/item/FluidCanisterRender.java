@@ -1,5 +1,8 @@
 package com.hbm.render.item;
 
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.lib.RefStrings;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.forgefluid.SpecialContainerFillLists.EnumCanister;
@@ -17,12 +20,18 @@ public class FluidCanisterRender extends TileEntityItemStackRenderer {
 	public static final FluidCanisterRender INSTANCE = new FluidCanisterRender();
 	public IBakedModel itemModel;
 	public TransformType type;
+
+	public ModelResourceLocation setModelLocation(ItemStack stack) {
+		if(EnumCanister.contains(Fluids.fromID(stack.getItemDamage())))
+			return EnumCanister.getEnumFromFluid(Fluids.fromID(stack.getItemDamage())).getResourceLocation();
+		return new ModelResourceLocation(RefStrings.MODID + ":canister_empty", "inventory");
+	}
 	
 	@Override
 	public void renderByItem(ItemStack stack) {
 		IBakedModel model = null;
-		if(FluidUtil.getFluidContained(stack) != null && EnumCanister.contains(FluidUtil.getFluidContained(stack).getFluid()))
-			model = EnumCanister.getEnumFromFluid(FluidUtil.getFluidContained(stack).getFluid()).getRenderModel();
+		if(EnumCanister.contains(Fluids.fromID(stack.getItemDamage())))
+			model = EnumCanister.getEnumFromFluid(Fluids.fromID(stack.getItemDamage())).getRenderModel();
 		if(model == null)
 			model = itemModel;
 		

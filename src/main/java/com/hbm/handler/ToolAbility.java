@@ -15,6 +15,7 @@ import com.hbm.inventory.ShredderRecipes;
 import com.hbm.blocks.generic.BlockStorageCrate;
 import com.hbm.blocks.machine.MachineBattery;
 import com.hbm.blocks.machine.MachineFENSU;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
 import com.hbm.items.tool.IItemAbility;
 import com.hbm.render.amlfrom1710.Vec3;
@@ -427,11 +428,12 @@ public abstract class ToolAbility {
 				block = Blocks.REDSTONE_ORE.getDefaultState();
 
 			ItemStack stack = new ItemStack(block.getBlock(), 1, block.getBlock().getMetaFromState(block));
-			ItemStack result = CrystallizerRecipes.getOutputItem(stack);
+			CrystallizerRecipes.CrystallizerRecipe result = CrystallizerRecipes.getOutput(stack, Fluids.PEROXIDE);
 
 			if(result != null) {
 				world.setBlockToAir(new BlockPos(x, y, z));
-				world.spawnEntity(new EntityItem(world, x + 0.5, y + 0.5, z + 0.5, result.copy()));
+				world.spawnEntity(new EntityItem(world, x + 0.5, y + 0.5, z + 0.5, result.output.copy()));
+				player.getHeldItem(hand).damageItem(1, player);
 			}
 		}
 

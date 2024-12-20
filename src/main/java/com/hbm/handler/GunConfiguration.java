@@ -86,6 +86,8 @@ public class GunConfiguration {
 	public static SoundEvent RSOUND_LAUNCHER;
 	public static SoundEvent RSOUND_GRENADE;
 	public static SoundEvent RSOUND_FATMAN;
+	public static SoundEvent RSOUND_75;
+	public static SoundEvent RSOUND_VORTEX;
 	
 	public GunConfiguration silenced() {
 		this.firingSound = HBMSoundHandler.silencerShoot;

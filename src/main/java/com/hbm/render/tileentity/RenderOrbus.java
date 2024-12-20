@@ -42,39 +42,20 @@ public class RenderOrbus extends TileEntitySpecialRenderer<TileEntityMachineOrbu
 			GL11.glTranslated(0F, 0F, 1F); break;
 		}
 		
-		double scale = (double)orbus.tank.getFluidAmount() / (double)orbus.tank.getCapacity();
+		double scale = (double)orbus.tankNew.getFill() / (double)orbus.tankNew.getMaxFill();
 		
-		if(orbus.tank.getFluidAmount() > 0) {
-			Fluid type = orbus.tank.getFluid().getFluid();
-			GlStateManager.disableLighting();
-			FFUtils.setColorFromFluid(type);
-			TextureAtlasSprite sprite = FFUtils.getTextureFromFluid(type);
-			float u = sprite.getMinU();
-			float v = sprite.getMinV();
-			float mU = sprite.getMaxU();
-			float mV = sprite.getMaxV();
-			bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-			
-			float lby = OpenGlHelper.lastBrightnessY;
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (int)(15*type.getLuminosity()*scale)+15, lby);
-			
-			GL11.glMatrixMode(GL11.GL_TEXTURE);
-			GL11.glPushMatrix();
-			GL11.glTranslated(u, v, 0);
-			GL11.glScaled(mU-u, mV-v, 1);
-			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-			
+		if(orbus.tankNew.getFill() > 0) {
+			GL11.glDisable(GL11.GL_LIGHTING);
+			GL11.glDisable(GL11.GL_TEXTURE_2D);
+			int c = orbus.tankNew.getTankType().getColor();
+			GL11.glColor3ub((byte)((c & 0xff0000) >> 16), (byte)((c & 0x00ff00) >> 8), (byte)((c & 0x0000ff)));
 			GL11.glPushMatrix();
 			GL11.glTranslated(0, 2.5D + Math.sin(((orbus.getWorld().getTotalWorldTime() + partialTicks) * 0.1D) % (Math.PI * 2D)) * 0.125 * scale, 0);
 			GL11.glScaled(scale, scale, scale);
 			ResourceManager.sphere_uv.renderAll();
 			GL11.glPopMatrix();
-			
-			GL11.glMatrixMode(GL11.GL_TEXTURE);
-			GL11.glPopMatrix();
-			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-			
-			GlStateManager.color(1, 1, 1, 1);
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+			GL11.glEnable(GL11.GL_TEXTURE_2D);
 		}
 		
 		GlStateManager.enableLighting();
@@ -86,7 +67,7 @@ public class RenderOrbus extends TileEntitySpecialRenderer<TileEntityMachineOrbu
 		ResourceManager.orbus.renderAll();
 		GlStateManager.shadeModel(GL11.GL_FLAT);
 		
-		if(orbus.tank.getFluidAmount() > 0) {
+		if(orbus.tankNew.getFill() > 0) {
 			GL11.glTranslated(0, 1, 0);
 			BeamPronter.prontBeam(Vec3.createVectorHelper(0, 3, 0), EnumWaveType.SPIRAL, EnumBeamType.SOLID, 0x101020, 0x101020, 0, 1, 0F, 6, (float)scale * 0.5F);
 			BeamPronter.prontBeam(Vec3.createVectorHelper(0, 3, 0), EnumWaveType.RANDOM, EnumBeamType.SOLID, 0x202060, 0x202060, (int)(orbus.getWorld().getTotalWorldTime() / 2) % 1000, 6, (float)scale, 2, 0.0625F * (float)scale);

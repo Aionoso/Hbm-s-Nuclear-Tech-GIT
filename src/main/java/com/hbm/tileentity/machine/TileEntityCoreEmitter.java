@@ -2,6 +2,7 @@ package com.hbm.tileentity.machine;
 
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.ILaserable;
 import com.hbm.interfaces.ITankPacketAcceptor;
@@ -12,7 +13,6 @@ import com.hbm.packet.AuxLongPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -35,7 +35,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityCoreEmitter extends TileEntityMachineBase implements ITickable, IEnergyUser, IFluidHandler, ILaserable, ITankPacketAcceptor {
+public class TileEntityCoreEmitter extends TileEntityMachineBase implements ITickable, IEnergyReceiverMK2, IFluidHandler, ILaserable, ITankPacketAcceptor {
 
 	public long power;
 	public static final long maxPower = 1000000000L;
@@ -57,8 +57,8 @@ public class TileEntityCoreEmitter extends TileEntityMachineBase implements ITic
 	@Override
 	public void update() {
 		if (!world.isRemote) {
-			
-			this.updateStandardConnections(world, pos);
+
+			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) this.trySubscribe(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
 			
 			watts = MathHelper.clamp(watts, 1, 100);
 			long demand = maxPower * watts / 2000;

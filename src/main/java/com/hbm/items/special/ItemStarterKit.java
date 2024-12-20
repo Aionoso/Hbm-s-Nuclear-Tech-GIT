@@ -2,6 +2,7 @@ package com.hbm.items.special;
 
 import java.util.List;
 
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.util.I18nUtil;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -90,8 +91,6 @@ public class ItemStarterKit extends Item {
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_assembler, 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_chemplant, 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_gascent, 1));
-			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_reactor, 1));
-			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_reactor_small, 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_turbine, 3));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.block_niter, 2));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.red_cable, 16));
@@ -122,9 +121,7 @@ public class ItemStarterKit extends Item {
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_difurnace_off, 3));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_gascent, 3));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_centrifuge, 2));
-			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_reactor, 2));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_rtg_furnace_off, 2));
-			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_reactor_small, 4));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_large_turbine, 3));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_radgen, 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModBlocks.machine_rtg_grey, 1));
@@ -411,7 +408,7 @@ public class ItemStarterKit extends Item {
 			player.inventory.addItemStackToInventory(new ItemStack(Item.getItemFromBlock(ModBlocks.nuke_prototype), 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModItems.igniter, 1));
 			for(int i = 0; i < 4; i ++)
-				player.inventory.addItemStackToInventory(ItemCell.getFullCell(ModForgeFluids.sas3));
+				player.inventory.addItemStackToInventory(ItemCell.getFullCell(Fluids.SAS3));
 			player.inventory.addItemStackToInventory(new ItemStack(ModItems.rod_quad_uranium, 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModItems.rod_quad_uranium, 1));
 			player.inventory.addItemStackToInventory(new ItemStack(ModItems.rod_quad_lead, 1));

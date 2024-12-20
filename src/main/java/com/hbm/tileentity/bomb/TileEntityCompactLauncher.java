@@ -2,6 +2,7 @@ package com.hbm.tileentity.bomb;
 
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.entity.missile.EntityMissileCustom;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -26,7 +27,6 @@ import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.tileentity.TileEntityLoadedBase;
 import net.minecraftforge.fml.common.Optional;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -61,7 +61,7 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.SimpleComponent;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityCompactLauncher extends TileEntityLoadedBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor, SimpleComponent {
+public class TileEntityCompactLauncher extends TileEntityLoadedBase implements ITickable, IEnergyReceiverMK2, IFluidHandler, ITankPacketAcceptor, SimpleComponent {
 
 	public ItemStackHandler inventory;
 
@@ -201,19 +201,19 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 	}
 
 	private void updateConnections() {
-		this.trySubscribe(world, pos.add(+ 2, 0, + 1), ForgeDirection.EAST);
-		this.trySubscribe(world, pos.add(+ 2, 0, + 1), ForgeDirection.EAST);
-		this.trySubscribe(world, pos.add(+ 2, 0, - 1), ForgeDirection.EAST);
-		this.trySubscribe(world, pos.add(- 2, 0, + 1), ForgeDirection.WEST);
-		this.trySubscribe(world, pos.add(- 2, 0, - 1), ForgeDirection.WEST);
-		this.trySubscribe(world, pos.add(+ 1, 0, + 2), ForgeDirection.NORTH);
-		this.trySubscribe(world, pos.add(- 1, 0, + 2), ForgeDirection.NORTH);
-		this.trySubscribe(world, pos.add(+ 1, 0, - 2), ForgeDirection.SOUTH);
-		this.trySubscribe(world, pos.add(- 1, 0, - 2), ForgeDirection.SOUTH);
-		this.trySubscribe(world, pos.add(+ 1, - 1, + 1), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(+ 1, - 1, - 1), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(- 1, - 1, + 1), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(- 1, - 1, - 1), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX() + 2, pos.getY(), pos.getZ() + 1, ForgeDirection.EAST);
+		this.trySubscribe(world, pos.getX()+ 2, pos.getY(), pos.getZ() + 1, ForgeDirection.EAST);
+		this.trySubscribe(world, pos.getX()+ 2, pos.getY(), pos.getZ() - 1, ForgeDirection.EAST);
+		this.trySubscribe(world, pos.getX()- 2, pos.getY(), pos.getZ() + 1, ForgeDirection.WEST);
+		this.trySubscribe(world, pos.getX()- 2, pos.getY(), pos.getZ() - 1, ForgeDirection.WEST);
+		this.trySubscribe(world, pos.getX()+ 1, pos.getY(), pos.getZ() + 2, ForgeDirection.NORTH);
+		this.trySubscribe(world, pos.getX()- 1, pos.getY(), pos.getZ() + 2, ForgeDirection.NORTH);
+		this.trySubscribe(world, pos.getX()+ 1, pos.getY(), pos.getZ() - 2, ForgeDirection.SOUTH);
+		this.trySubscribe(world, pos.getX()- 1, pos.getY(), pos.getZ() - 2, ForgeDirection.SOUTH);
+		this.trySubscribe(world, pos.getX()+ 1, pos.getY() - 1, pos.getZ() + 1, ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX()+ 1, pos.getY() - 1, pos.getZ() - 1, ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX()- 1, pos.getY() - 1, pos.getZ() + 1, ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX()- 1, pos.getY() - 1, pos.getZ() - 1, ForgeDirection.DOWN);
 	}
 
 	public boolean canLaunch() {

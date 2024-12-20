@@ -5,6 +5,7 @@ import java.util.Random;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.handler.WeightedRandomChestContentFrom1710;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemBattery;
 import com.hbm.items.special.ItemCell;
@@ -14,6 +15,7 @@ import com.hbm.items.tool.ItemFluidCanister;
 
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
 public class HbmChestContents {
 
@@ -46,8 +48,8 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.bottle_cherry, 0, 1, 1, 2),
 			new WeightedRandomChestContentFrom1710(ModItems.stealth_boy, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.cap_nuka, 0, 1, 15, 7),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.diesel), 1, 2, 2),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.biofuel), 1, 2, 3),
+			new WeightedRandomChestContentFrom1710(new ItemStack(ModItems.canister_generic, 1, Fluids.DIESEL.getID()), 1, 2, 2),
+			new WeightedRandomChestContentFrom1710(new ItemStack(ModItems.canister_generic, 1, Fluids.BIOFUEL.getID()), 1, 2, 3),
 			new WeightedRandomChestContentFrom1710(ModItems.gas_mask_m65, 60, 1, 1, 2),
 			new WeightedRandomChestContentFrom1710(ModItems.gas_mask_filter, 0, 1, 1, 3)  };
 
@@ -111,8 +113,8 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.bottle_nuka, 0, 1, 3, 6),
 			new WeightedRandomChestContentFrom1710(ModItems.bottle_quantum, 0, 1, 1, 3),
 			new WeightedRandomChestContentFrom1710(Item.getItemFromBlock(ModBlocks.red_barrel), 0, 1, 1, 6),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.diesel), 1, 2, 2),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.biofuel), 1, 2, 3),
+			new WeightedRandomChestContentFrom1710(new ItemStack(ModItems.canister_generic, 1, Fluids.DIESEL.getID()), 1, 2, 2),
+			new WeightedRandomChestContentFrom1710(new ItemStack(ModItems.canister_generic, 1, Fluids.BIOFUEL.getID()), 1, 2, 3),
 			new WeightedRandomChestContentFrom1710(ModItems.gas_mask_m65, 60, 1, 1, 5),
 			new WeightedRandomChestContentFrom1710(ItemBombCaller.getStack(EnumCallerType.CARPET), 1, 1, 2),
 			new WeightedRandomChestContentFrom1710(ItemBombCaller.getStack(EnumCallerType.NAPALM), 1, 1, 1),
@@ -223,9 +225,9 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_advanced_alloy, 0, 2, 16, 5),
 			new WeightedRandomChestContentFrom1710(ModItems.wire_advanced_alloy, 0, 8, 32, 5),
 			new WeightedRandomChestContentFrom1710(ModItems.coil_advanced_alloy, 0, 2, 16, 5),
-			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.deuterium), 1, 8, 5),
-			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.tritium), 1, 8, 5),
-			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.amat), 1, 1, 1),
+			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(Fluids.DEUTERIUM), 1, 8, 5),
+			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(Fluids.TRITIUM), 1, 8, 5),
+			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(Fluids.AMAT), 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.powder_neodymium, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.powder_niobium, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(Item.getItemFromBlock(ModBlocks.fusion_conductor), 0, 2, 4, 5),

@@ -506,10 +506,8 @@ public class Spaceship extends WorldGenerator
 		world.setBlockState(pos.setPos(x + 2, y + -2, z + 27), Blocks.AIR.getDefaultState(), 3);
 		world.setBlockState(pos.setPos(x + 3, y + -2, z + 27), Block3.getDefaultState(), 3);
 		world.setBlockState(pos.setPos(x + 4, y + -2, z + 27), Block3.getDefaultState(), 3);
-		world.setBlockState(pos.setPos(x + 5, y + -2, z + 27), ModBlocks.machine_reactor.getDefaultState().withProperty(BlockDummyable.META, 3), 3);
 		world.setBlockState(pos.setPos(x + 6, y + -2, z + 27), Blocks.AIR.getDefaultState(), 3);
 		world.setBlockState(pos.setPos(x + 7, y + -2, z + 27), Blocks.AIR.getDefaultState(), 3);
-		world.setBlockState(pos.setPos(x + 8, y + -2, z + 27), ModBlocks.machine_reactor.getDefaultState().withProperty(BlockDummyable.META, 4), 3);
 		world.setBlockState(pos.setPos(x + 9, y + -2, z + 27), Block3.getDefaultState(), 3);
 		world.setBlockState(pos.setPos(x + 10, y + -2, z + 27), Block3.getDefaultState(), 3);
 		world.setBlockState(pos.setPos(x + 11, y + -2, z + 27), Blocks.AIR.getDefaultState(), 3);

@@ -263,14 +263,14 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 		TileEntityMachineBattery battery = (TileEntityMachineBattery) te;
 		List<String> text = new ArrayList();
 		text.add(Library.getShortNumber(battery.power) + "/" + Library.getShortNumber(getMaxPower()) + " HE");
-		if(battery.powerDelta == 0){
+		if(battery.delta == 0){
 			text.add("§e-- §r0HE/s");
 		}
-		else if(battery.powerDelta > 0){
-			text.add("§a-> §r" + Library.getShortNumber(battery.powerDelta) + "HE/s");
+		else if(battery.delta > 0){
+			text.add("§a-> §r" + Library.getShortNumber(battery.delta) + "HE/s");
 		}
 		else{
-			text.add("§c<- §r" + Library.getShortNumber(-battery.powerDelta) + "HE/s");
+			text.add("§c<- §r" + Library.getShortNumber(-battery.delta) + "HE/s");
 		}
 		text.add("&["+Library.getColorProgress((double)battery.power/(double)getMaxPower())+"&]    "+Library.getPercentage((double)battery.power/(double)getMaxPower())+"%");
 		ILookOverlay.printGeneric(event, getLocalizedName(), 0xffff00, 0x404000, text);

@@ -1,42 +1,49 @@
 package com.hbm.tileentity.machine;
 
+import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
-import com.hbm.inventory.HeatRecipes;
+import com.hbm.interfaces.IFFtoNTMF;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
+import com.hbm.inventory.fluid.trait.FT_Heatable;
+import com.hbm.lib.DirPos;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.Library;
-import com.hbm.packet.FluidTankPacket;
 import com.hbm.tileentity.INBTPacketReceiver;
 
 import api.hbm.tile.IHeatSource;
+import com.hbm.tileentity.TileEntityLoadedBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiver, ITickable, IFluidHandler {
+public class TileEntityHeatBoiler extends TileEntityLoadedBase implements INBTPacketReceiver, ITickable, IFluidStandardTransceiver, IFFtoNTMF {
 
     public FluidTank[] tanks;
     public Fluid[] types = new Fluid[2];
+    public FluidTankNTM[] tanksNew;
     public int heat;
     public static int maxHeat = 12_800_000; //the heat required to turn 64k of water into steam
     public static final double diffusion = 0.1D;
 
+    private static boolean converted = false;
+
     public TileEntityHeatBoiler() {
         super();
+        tanksNew = new FluidTankNTM[2];
+        this.tanksNew[0] = new FluidTankNTM(Fluids.WATER, 16_000);
+        this.tanksNew[1] = new FluidTankNTM(Fluids.STEAM, 16_000 * 100);
+
         tanks = new FluidTank[2];
 
         tanks[0] = new FluidTank(FluidRegistry.WATER, 0, 640000);
@@ -46,164 +53,128 @@ public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiv
         types[1] = ModForgeFluids.steam;
 
     }
-
-    public void setTankType(int idx, Fluid type){
-        if(types[idx] != type){
-            types[idx] = type;
-            if(type != null){
-                tanks[idx].setFluid(new FluidStack(type, 0));
-            }else {
-                tanks[idx].setFluid(null);
-            }
-        }
-    }
-
     @Override
     public void update() {
 
         if(!world.isRemote) {
+            if(!converted){
+                convertAndSetFluids(types, tanks, tanksNew);
+                converted = true;
+            }
             setupTanks();
+            updateConnections();
             tryPullHeat();
             tryConvert();
-            
-            fillFluidInit(tanks[1]);
 
-            networkPack();
+            for(DirPos pos : getConPos()) {
+                if(tanksNew[1].getFill() > 0) this.sendFluid(tanksNew[1], world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+            }
+
+            NBTTagCompound data = new NBTTagCompound();
+
+            for(int i = 0; i < 2; i++)
+                tanksNew[i].writeToNBT(data, "tank" + i);
+
+            INBTPacketReceiver.networkPack(this, data, 50);
         }
     }
 
-    public void fillFluidInit(FluidTank tank) {
+    private void updateConnections() {
+
+        for(DirPos pos : getConPos()) {
+            this.trySubscribe(tanksNew[0].getTankType(), world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+        }
+    }
+
+    protected DirPos[] getConPos() {
+
         ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset).getRotation(ForgeDirection.UP);
-        fillFluid(tank, pos.add(dir.offsetX * 2, 0, dir.offsetZ * 2));
-        fillFluid(tank, pos.add(dir.offsetX * -2, 0, dir.offsetZ * -2));
-        fillFluid(tank, pos.add(0, 4, 0));
-    }
 
-    public void fillFluid(FluidTank tank, BlockPos pos){
-        FFUtils.fillFluid(this, tank, world, pos, 64000000);
-    }
-
-    @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing){
-        if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
-            return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-        return super.getCapability(capability, facing);
-    }
-
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing){
-        return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
-    }
-
-    @Override
-    public IFluidTankProperties[] getTankProperties() {
-        return new IFluidTankProperties[] {tanks[0].getTankProperties()[0], tanks[1].getTankProperties()[0]};
-    }
-
-    @Override
-    public int fill(FluidStack resource, boolean doFill){
-        if(resource != null && resource.getFluid() == types[0]){
-            return tanks[0].fill(resource, doFill);
-        }
-        return 0;
-    }
-
-    @Override
-    public FluidStack drain(FluidStack resource, boolean doDrain){
-        FluidStack drain = null;
-        if(resource.getFluid() == types[1]){
-            drain = tanks[1].drain(resource, doDrain);
-        }
-        return drain;
-    }
-
-    @Override
-    public FluidStack drain(int maxDrain, boolean doDrain){
-        FluidStack drain = tanks[1].drain(maxDrain, doDrain);
-        return drain;
+        return new DirPos[] {
+                new DirPos(pos.getX() + dir.offsetX * 2, pos.getY(), pos.getZ() + dir.offsetZ * 2, dir),
+                new DirPos(pos.getX() - dir.offsetX * 2, pos.getY(), pos.getZ() - dir.offsetZ * 2, dir.getOpposite()),
+                new DirPos(pos.getX(), pos.getY() + 4, pos.getZ(), Library.POS_Y)
+        };
     }
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
-        FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
-        for(int i=0; i<tanks.length; i++){
-            if(tanks[i].getFluid() != null){
-                types[i] = tanks[i].getFluid().getFluid();
-            } else {
-                types[i] = null;
+        if(!converted){
+            FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
+            for(int i=0; i<tanks.length; i++){
+                if(tanks[i].getFluid() != null){
+                    types[i] = tanks[i].getFluid().getFluid();
+                } else {
+                    types[i] = null;
+                }
             }
+        } else {
+            for (int i = 0; i < tanksNew.length; i++)
+                tanksNew[i].readFromNBT(nbt, "tank" + i);
+            if(nbt.hasKey("tanks")) nbt.removeTag("tanks");
         }
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
-        for(int i=0; i<tanks.length; i++){
-            if(types[i] != null){
-                tanks[i].setFluid(new FluidStack(types[i], tanks[i].getFluidAmount()));
-            } else {
-                tanks[i].setFluid(null);
+        if(!converted){
+            for(int i=0; i<tanks.length; i++){
+                if(types[i] != null){
+                    tanks[i].setFluid(new FluidStack(types[i], tanks[i].getFluidAmount()));
+                } else {
+                    tanks[i].setFluid(null);
+                }
             }
+            nbt.setTag("tanks", FFUtils.serializeTankArray(tanks));
+        } else {
+            for (int i = 0; i < tanksNew.length; i++)
+                tanksNew[i].writeToNBT(nbt, "tank" + i);
         }
-        nbt.setTag("tanks", FFUtils.serializeTankArray(tanks));
         return nbt;
-    }
-
-
-    public void networkPack(){
-        NBTTagCompound data = new NBTTagCompound();
-        for(int i=0; i<tanks.length; i++){
-            if(types[i] != null){
-                tanks[i].setFluid(new FluidStack(types[i], tanks[i].getFluidAmount()));
-            } else {
-                tanks[i].setFluid(null);
-            }
-        }
-        data.setTag("tanks", FFUtils.serializeTankArray(tanks));
-        data.setInteger("heat", heat);
-        INBTPacketReceiver.networkPack(this, data, 25);
     }
 
     @Override
     public void networkUnpack(NBTTagCompound nbt) {
-        FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
-        for(int i=0; i<tanks.length; i++){
-            if(tanks[i].getFluid() != null){
-                types[i] = tanks[i].getFluid().getFluid();
-            } else {
-                types[i] = null;
-            }
-        }
+        for(int i = 0; i < 2; i++)
+            tanksNew[i].readFromNBT(nbt, "tank" + i);
         this.heat = nbt.getInteger("heat");
     }
 
-    private void setupTanks() {
-        Fluid fluid = HeatRecipes.getBoilFluid(types[0]);
-        if (fluid != null) {
-            setTankType(0, types[0]);
-            setTankType(1, fluid);
-        } else {
-            setTankType(0, null);
-            setTankType(1, null);
+    protected void setupTanks() {
+
+        if(tanksNew[0].getTankType().hasTrait(FT_Heatable.class)) {
+            FT_Heatable trait = tanksNew[0].getTankType().getTrait(FT_Heatable.class);
+            if(trait.getEfficiency(FT_Heatable.HeatingType.BOILER) > 0) {
+                FT_Heatable.HeatingStep entry = trait.getFirstStep();
+                tanksNew[1].setTankType(entry.typeProduced);
+                tanksNew[1].changeTankSize(tanksNew[0].getMaxFill() * entry.amountProduced / entry.amountReq);
+                return;
+            }
         }
+
+        tanksNew[0].setTankType(Fluids.NONE);
+        tanksNew[1].setTankType(Fluids.NONE);
     }
 
-    private void tryConvert() {
-        if(HeatRecipes.hasBoilRecipe(types[0])) {
-            Fluid hotFluid = HeatRecipes.getBoilFluid(types[0]);
-            int heatReq = HeatRecipes.getRequiredHeat(types[0]);
-            int inputAmount = HeatRecipes.getInputAmountHot(types[0]);
-            int outputAmount = HeatRecipes.getOutputAmountHot(types[0]);
-            
-            int inputOps = tanks[0].getFluidAmount() / inputAmount;
-            int outputOps = (tanks[1].getCapacity() - tanks[1].getFluidAmount()) / outputAmount;
-            int tempOps = (int) Math.floor(this.heat / heatReq);
-            int ops = Math.min(inputOps, Math.min(outputOps, tempOps));
-            
-            tanks[0].drain(inputAmount * ops, true);
-            tanks[1].fill(new FluidStack(types[1], outputAmount * ops), true);
-            this.heat -= heatReq * ops;
+    protected void tryConvert() {
+
+        if(tanksNew[0].getTankType().hasTrait(FT_Heatable.class)) {
+            FT_Heatable trait = tanksNew[0].getTankType().getTrait(FT_Heatable.class);
+            if(trait.getEfficiency(FT_Heatable.HeatingType.BOILER) > 0) {
+
+                FT_Heatable.HeatingStep entry = trait.getFirstStep();
+                int inputOps = this.tanksNew[0].getFill() / entry.amountReq;
+                int outputOps = (this.tanksNew[1].getMaxFill() - this.tanksNew[1].getFill()) / entry.amountProduced;
+                int heatOps = this.heat / entry.heatReq;
+
+                int ops = Math.min(inputOps, Math.min(outputOps, heatOps));
+
+                this.tanksNew[0].setFill(this.tanksNew[0].getFill() - entry.amountReq * ops);
+                this.tanksNew[1].setFill(this.tanksNew[1].getFill() + entry.amountProduced * ops);
+                this.heat -= entry.heatReq * ops;
+            }
         }
     }
     
@@ -257,6 +228,21 @@ public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiv
     @SideOnly(Side.CLIENT)
     public double getMaxRenderDistanceSquared() {
         return 65536.0D;
+    }
+
+    @Override
+    public FluidTankNTM[] getSendingTanks() {
+        return new FluidTankNTM[] {tanksNew[1]};
+    }
+
+    @Override
+    public FluidTankNTM[] getReceivingTanks() {
+        return new FluidTankNTM[] {tanksNew[0]};
+    }
+
+    @Override
+    public FluidTankNTM[] getAllTanks() {
+        return tanksNew;
     }
 
 }

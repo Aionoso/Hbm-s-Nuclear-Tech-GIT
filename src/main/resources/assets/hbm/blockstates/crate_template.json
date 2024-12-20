@@ -1,0 +1,8 @@
+{
+	"variants": {
+		"facing=north": { "model": "hbm:crate_template" },
+		"facing=south": { "model": "hbm:crate_template", "y": 180 },
+		"facing=west": { "model": "hbm:crate_template", "y": 270 },
+		"facing=east": { "model": "hbm:crate_template", "y": 90 }
+	}
+}

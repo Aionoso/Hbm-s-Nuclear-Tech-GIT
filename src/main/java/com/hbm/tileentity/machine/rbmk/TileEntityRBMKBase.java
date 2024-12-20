@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 
+import com.hbm.tileentity.TileEntityLoadedBase;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.blocks.ModBlocks;
@@ -55,7 +56,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacketReceiver, ITickable, IControllable {
+public abstract class TileEntityRBMKBase extends TileEntityLoadedBase implements INBTPacketReceiver, ITickable, IControllable {
 
 	public static int rbmkHeight = 4;
 	

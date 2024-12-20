@@ -81,6 +81,7 @@ public class ArmorFSB extends ItemArmor {
 	public boolean hardLanding = false;
 	public Vec3d flashlightPosition = null;
 	public double gravity = 0;
+	public int stepSize = 0;
 	public SoundEvent step;
 	public SoundEvent jump;
 	public SoundEvent fall;
@@ -168,16 +169,13 @@ public class ArmorFSB extends ItemArmor {
 
 	
     public static void handleAttack(LivingAttackEvent event) {
-
 		EntityLivingBase e = event.getEntityLiving();
-
-		if(ArmorFSB.hasFSBArmor(e)) {
-
-			ItemStack plate = e.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-
-			ArmorFSB chestplate = (ArmorFSB)plate.getItem();
-			
-			chestplate.handleAttack(event, chestplate);
+		if(e != null){
+			if(ArmorFSB.hasFSBArmor(e)) {
+				ItemStack plate = e.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+				ArmorFSB chestplate = (ArmorFSB)plate.getItem();
+				chestplate.handleAttack(event, chestplate);
+			}
 		}
     }
 
@@ -428,6 +426,11 @@ public class ArmorFSB extends ItemArmor {
 		return this;
 	}
 
+	public ArmorFSB setStepSize(int stepSize) {
+		this.stepSize = stepSize;
+		return this;
+	}
+
 	public ArmorFSB setStep(SoundEvent step) {
 		this.step = step;
 		return this;
@@ -513,6 +516,7 @@ public class ArmorFSB extends ItemArmor {
 		this.customGeiger = original.customGeiger;
 		this.hardLanding = original.hardLanding;
 		this.gravity = original.gravity;
+		this.stepSize = original.stepSize;
 		this.step = original.step;
 		this.jump = original.jump;
 		this.fall = original.fall;
@@ -595,6 +599,10 @@ public class ArmorFSB extends ItemArmor {
     	if(gravity != 0) {
     		list.add(TextFormatting.DARK_AQUA + "  " + I18nUtil.resolveKey("armor.gravity", gravity));
     	}
+
+		if(stepSize !=0) {
+			list.add(TextFormatting.BLUE + "  " + I18nUtil.resolveKey("armor.stepSize"));
+		}
 
     	if(protectionYield > 0F) {
 			list.add(TextFormatting.GREEN + "  " + I18nUtil.resolveKey("armor.yield", protectionYield));

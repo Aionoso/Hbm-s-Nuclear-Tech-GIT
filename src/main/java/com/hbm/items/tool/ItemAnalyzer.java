@@ -2,13 +2,13 @@ package com.hbm.items.tool;
 
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.interfaces.IFluidPipe;
 import com.hbm.items.ModItems;
 import com.hbm.tileentity.machine.TileEntityDummy;
 import com.hbm.tileentity.machine.TileEntityLockableBase;
 import com.hbm.tileentity.network.energy.TileEntityPylonBase;
 
-import api.hbm.energy.IEnergyConnector;
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -78,10 +78,10 @@ public class ItemAnalyzer extends Item {
 							"Slots: " + ((IInventory)te).getSizeInventory()));
 				}
 				
-				if(te instanceof IEnergyConnector) {
+				if(te instanceof IEnergyReceiverMK2) {
 					
 					player.sendMessage(new TextComponentString(
-							"Electricity: " + ((IEnergyConnector)te).getPower() + " HE"));
+							"Electricity: " + ((IEnergyReceiverMK2)te).getPower() + " HE"));
 				}
 				
 				if(te instanceof IFluidPipe) {
@@ -95,11 +95,12 @@ public class ItemAnalyzer extends Item {
 					player.sendMessage(new TextComponentString(
 							"Connections:"));
 					
-					List<BlockPos> connections = ((TileEntityPylonBase)te).connected;
+					List<int[]> connections = ((TileEntityPylonBase)te).connected;
 					
 					for(int i = 0; i < connections.size(); i++) {
+						int[] coords = connections.get(i);
 						player.sendMessage(new TextComponentString(
-								" *" + connections.get(i).getX() + " / " + connections.get(i).getY() + " / " + connections.get(i).getZ()));
+								" *" + coords[0] + " / " + coords[1] + " / " + coords[2]));
 					}
 				}
 				

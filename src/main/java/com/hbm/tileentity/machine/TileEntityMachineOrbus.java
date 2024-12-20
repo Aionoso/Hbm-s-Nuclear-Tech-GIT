@@ -2,6 +2,8 @@ package com.hbm.tileentity.machine;
 
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.blocks.BlockDummyable;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.lib.DirPos;
 import com.hbm.lib.ForgeDirection;
 
 import net.minecraft.util.math.AxisAlignedBB;
@@ -24,21 +26,29 @@ public class TileEntityMachineOrbus extends TileEntityBarrel {
 	@Override
 	public void checkFluidInteraction() { } //NO!
 
-	public void fillFluid(BlockPos pos1, FluidTank tank) {
-		FFUtils.fillFluid(this, tank, world, pos1, 64000);
-	}
+	protected DirPos[] conPos;
 
 	@Override
-	public void fillFluidInit(FluidTank type) {
-		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset).getOpposite();
-		ForgeDirection d2 = dir.getRotation(ForgeDirection.DOWN);
+	protected DirPos[] getConPos() {
 
-		for(int i = -1; i < 7; i += 7) {
-			this.fillFluid(new BlockPos(pos.getX(), pos.getY() + i, pos.getZ()), this.tank);
-			this.fillFluid(new BlockPos(pos.getX() + dir.offsetX, pos.getY() + i, pos.getZ() + dir.offsetZ), this.tank);
-			this.fillFluid(new BlockPos(pos.getX() + d2.offsetX, pos.getY() + i, pos.getZ() + d2.offsetZ), this.tank);
-			this.fillFluid(new BlockPos(pos.getX() + dir.offsetX + d2.offsetX, pos.getY() + i, pos.getZ() + dir.offsetZ + d2.offsetZ), this.tank);
+		if(conPos != null)
+			return conPos;
+
+		conPos = new DirPos[8];
+
+		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset).getOpposite();
+		ForgeDirection rot = dir.getRotation(ForgeDirection.DOWN);
+
+		for(int i = -1; i < 6; i += 6) {
+			ForgeDirection out = i == -1 ? ForgeDirection.DOWN : ForgeDirection.UP;
+			int index = i == -1 ? 0 : 4;
+			conPos[index + 0] = new DirPos(pos.getX(),								pos.getY() + i,	pos.getZ(),								out);
+			conPos[index + 1] = new DirPos(pos.getX() + dir.offsetX,				pos.getY() + i,	pos.getZ() + dir.offsetZ,				out);
+			conPos[index + 2] = new DirPos(pos.getX() + rot.offsetX,				pos.getY() + i,	pos.getZ() + rot.offsetZ,				out);
+			conPos[index + 3] = new DirPos(pos.getX() + dir.offsetX + rot.offsetX,	pos.getY() + i,	pos.getZ() + dir.offsetZ + rot.offsetZ,	out);
 		}
+
+		return conPos;
 	}
 	
 	AxisAlignedBB bb = null;

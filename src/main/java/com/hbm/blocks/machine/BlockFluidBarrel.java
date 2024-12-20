@@ -1,11 +1,15 @@
 package com.hbm.blocks.machine;
 
 import java.util.List;
+import java.util.Random;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.YellowBarrel;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.items.machine.IItemFluidIdentifier;
 import com.hbm.lib.InventoryHelper;
 import com.hbm.main.MainRegistry;
+import com.hbm.tileentity.IPersistentNBT;
 import com.hbm.tileentity.machine.TileEntityBarrel;
 
 import com.hbm.util.I18nUtil;
@@ -15,17 +19,25 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.network.internal.FMLNetworkHandler;
 
 public class BlockFluidBarrel extends BlockContainer {
 
@@ -107,6 +119,21 @@ public class BlockFluidBarrel extends BlockContainer {
 			player.openGui(MainRegistry.instance, ModBlocks.guiID_barrel, world, pos.getX(), pos.getY(), pos.getZ());
 			return true;
 			
+		} else if(player.isSneaking()){
+			TileEntityBarrel mileEntity = (TileEntityBarrel) world.getTileEntity(pos);
+
+			if(!player.getHeldItem(hand).isEmpty() && player.getHeldItem(hand).getItem() instanceof IItemFluidIdentifier) {
+				FluidType type = ((IItemFluidIdentifier) player.getHeldItem(hand).getItem()).getType(world, pos.getX(), pos.getY(), pos.getZ(), player.getHeldItem(hand));
+
+				mileEntity.tankNew.setTankType(type);
+				mileEntity.markDirty();
+				player.sendMessage(new TextComponentString("Changed type to ")
+								.setStyle(new Style().setColor(TextFormatting.YELLOW))
+						.appendSibling(new TextComponentTranslation(type.getConditionalName()))
+						.appendSibling(new TextComponentString("!")));
+			}
+			return true;
+
 		} else {
 			return false;
 		}
@@ -117,6 +144,18 @@ public class BlockFluidBarrel extends BlockContainer {
 		if(!keepInventory)
 			InventoryHelper.dropInventoryItems(worldIn, pos, worldIn.getTileEntity(pos));
 		super.breakBlock(worldIn, pos, state);
+	}
+	@Override
+	public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune)
+	{
+		return IPersistentNBT.getDrops(world, pos, this);
+	}
+
+	@Override
+	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase player, ItemStack stack)
+	{
+		super.onBlockPlacedBy(world, pos, state, player, stack);
+		IPersistentNBT.restoreData(world, pos, stack);
 	}
 	
 	@Override

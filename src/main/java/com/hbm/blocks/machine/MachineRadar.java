@@ -3,8 +3,8 @@ package com.hbm.blocks.machine;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.WeaponConfig;
 import com.hbm.main.MainRegistry;
-import com.hbm.tileentity.machine.TileEntityMachineRadar;
 
+import com.hbm.tileentity.machine.TileEntityMachineRadarNT;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.network.internal.FMLNetworkHandler;
 
 public class MachineRadar extends BlockContainer {
 
@@ -30,7 +31,7 @@ public class MachineRadar extends BlockContainer {
 
 	@Override
 	public TileEntity createNewTileEntity(World worldIn, int meta) {
-		return new TileEntityMachineRadar();
+		return new TileEntityMachineRadarNT();
 	}
 	
 	@Override
@@ -40,21 +41,11 @@ public class MachineRadar extends BlockContainer {
 				player.sendMessage(new TextComponentTranslation("chat.radar.tolow"));
 			return true;
 		}
-		
-		if(world.isRemote)
-		{
+
+		if(world.isRemote && !player.isSneaking()) {
+			FMLNetworkHandler.openGui(player, MainRegistry.instance, 0, world, pos.getX(), pos.getY(), pos.getZ());
 			return true;
-		} else if(!player.isSneaking())
-		{
-			TileEntityMachineRadar entity = (TileEntityMachineRadar) world.getTileEntity(pos);
-			if(entity != null)
-			{
-				player.openGui(MainRegistry.instance, ModBlocks.guiID_radar, world, pos.getX(), pos.getY(), pos.getZ());
-			}
-			return true;
-		} else {
-			return false;
-		}
+		} else return (!player.isSneaking());
 	}
 	
 	@Override
@@ -64,7 +55,7 @@ public class MachineRadar extends BlockContainer {
 	
 	@Override
 	public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
-		TileEntityMachineRadar entity = (TileEntityMachineRadar) blockAccess.getTileEntity(pos);
+		TileEntityMachineRadarNT entity = (TileEntityMachineRadarNT) blockAccess.getTileEntity(pos);
         return entity.getRedPower();
 	}
 	

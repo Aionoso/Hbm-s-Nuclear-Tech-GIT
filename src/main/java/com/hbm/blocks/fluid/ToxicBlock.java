@@ -9,6 +9,7 @@ import com.hbm.util.ContaminationUtil.HazardType;
 import com.hbm.saveddata.RadiationSavedData;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockStone;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -94,7 +95,7 @@ public class ToxicBlock extends BlockFluidClassic {
 		if(world.getBlockState(pos).getMaterial() != ModBlocks.fluidtoxic) {
 			IBlockState state = world.getBlockState(pos);
 			if(state.getMaterial().isLiquid()) return true;
-			if(state.getMaterial() == Material.ROCK && state.getBlock().getExplosionResistance(null) < 1000 && (state.getBlock() !=ModBlocks.sellafield_2 && state.getBlock() !=ModBlocks.sellafield_3 && state.getBlock() !=ModBlocks.sellafield_4 && state.getBlock() !=ModBlocks.sellafield_core)) return true;
+			if(state.getBlock() instanceof BlockStone) return true;
 		}
 		return false;
 	}

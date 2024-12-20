@@ -1,7 +1,5 @@
 package com.hbm.inventory.gui;
 
-import com.hbm.forgefluid.FFUtils;
-import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.inventory.container.ContainerChemfac;
 import com.hbm.lib.RefStrings;
 import com.hbm.tileentity.machine.TileEntityMachineChemfac;
@@ -37,14 +35,14 @@ public class GUIChemfac extends GuiInfoContainer {
 			int offX = guiLeft + 110 * (i % 2);
 			int offY = guiTop + 38 * (i / 2);
 
-			FFUtils.renderTankInfo(this, mouseX, mouseY, offX + 40, offY + 45 - 32, 5, 34, chemfac.tanks[i * 4 + 0].getTank(), chemfac.tanks[i * 4 + 0].getType());
-			FFUtils.renderTankInfo(this, mouseX, mouseY, offX + 45, offY + 45 - 32, 5, 34, chemfac.tanks[i * 4 + 1].getTank(), chemfac.tanks[i * 4 + 1].getType());
-			FFUtils.renderTankInfo(this, mouseX, mouseY, offX + 102, offY + 45 - 32, 5, 34, chemfac.tanks[i * 4 + 2].getTank(), chemfac.tanks[i * 4 + 2].getType());
-			FFUtils.renderTankInfo(this, mouseX, mouseY, offX + 107, offY + 45 - 32, 5, 34, chemfac.tanks[i * 4 + 3].getTank(), chemfac.tanks[i * 4 + 3].getType());
+			chemfac.tanksNew[i * 4 + 0].renderTankInfo(this, mouseX, mouseY, offX + 40, offY + 45 - 32, 5, 34);
+			chemfac.tanksNew[i * 4 + 1].renderTankInfo(this, mouseX, mouseY, offX + 45, offY + 45 - 32, 5, 34);
+			chemfac.tanksNew[i * 4 + 2].renderTankInfo(this, mouseX, mouseY, offX + 102, offY + 45 - 32, 5, 34);
+			chemfac.tanksNew[i * 4 + 3].renderTankInfo(this, mouseX, mouseY, offX + 107, offY + 45 - 32, 5, 34);
 		}
 
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 233, guiTop + 108, 9, 54, chemfac.water.getTank(), ModForgeFluids.coolant);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 242, guiTop + 108, 9, 54, chemfac.steam.getTank(), ModForgeFluids.hotcoolant);
+		chemfac.waterNew.renderTankInfo(this, mouseX, mouseY, guiLeft + 233, guiTop + 108, 9, 54);
+		chemfac.steamNew.renderTankInfo(this, mouseX, mouseY, guiLeft + 242, guiTop + 108, 9, 54);
 	}
 
 	@Override
@@ -77,14 +75,14 @@ public class GUIChemfac extends GuiInfoContainer {
 			Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
 			drawTexturedModalRect(guiLeft + offX + 51, guiTop + offY + 16, 202, 247, j, 11);
 
-			FFUtils.drawLiquid(chemfac.tanks[i * 4 + 0].getTank(), guiLeft, guiTop, this.zLevel, 3, 32, offX + 41, offY + 74);
-			FFUtils.drawLiquid(chemfac.tanks[i * 4 + 1].getTank(), guiLeft, guiTop, this.zLevel, 3, 32, offX + 46, offY + 74);
-			FFUtils.drawLiquid(chemfac.tanks[i * 4 + 2].getTank(), guiLeft, guiTop, this.zLevel, 3, 32, offX + 103, offY + 74);
-			FFUtils.drawLiquid(chemfac.tanks[i * 4 + 3].getTank(), guiLeft, guiTop, this.zLevel, 3, 32, offX + 108, offY + 74);
+			chemfac.tanksNew[i * 4 + 0].renderTank(offX + 41, offY + 46, this.zLevel, 3, 32);
+			chemfac.tanksNew[i * 4 + 1].renderTank(offX + 46, offY + 46, this.zLevel, 3, 32);
+			chemfac.tanksNew[i * 4 + 2].renderTank(offX + 103, offY + 46, this.zLevel, 3, 32);
+			chemfac.tanksNew[i * 4 + 3].renderTank(offX + 108, offY + 46, this.zLevel, 3, 32);
 		}
 
-		FFUtils.drawLiquid(chemfac.water.getTank(), guiLeft, guiTop, this.zLevel, 7, 52, 234, 189);
-		FFUtils.drawLiquid(chemfac.steam.getTank(), guiLeft, guiTop, this.zLevel, 7, 52, 243, 189);
+		chemfac.waterNew.renderTank(guiLeft + 234, guiTop + 161, this.zLevel, 7, 52);
+		chemfac.steamNew.renderTank(guiLeft + 243, guiTop + 161, this.zLevel, 7, 52);
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_LMENU))
 			for (int i = 0; i < this.inventorySlots.inventorySlots.size(); i++) {

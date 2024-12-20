@@ -43,6 +43,12 @@ public class AudioWrapperClient extends AudioWrapper {
 		else
 			return 1;
 	}
+
+	@Override
+	public void keepAlive() {
+		if(sound != null)
+			sound.keepAlive();
+	}
 	
 	public void startSound() {
 		if(sound != null)
@@ -52,5 +58,10 @@ public class AudioWrapperClient extends AudioWrapper {
 	public void stopSound() {
 		if(sound != null)
 			sound.stop();
+	}
+
+	@Override
+	public boolean isPlaying() {
+		return sound.isPlaying();
 	}
 }

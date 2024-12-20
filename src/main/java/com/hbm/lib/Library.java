@@ -15,6 +15,17 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.annotation.Nullable;
 
+import api.hbm.energymk2.IEnergyConnectorMK2;
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidConnector;
+import api.hbm.fluid.IFluidConnectorBlock;
+import api.hbm.fluid.IFluidStandardReceiver;
+import api.hbm.fluid.IFluidStandardSender;
+import com.hbm.interfaces.IFluidAcceptor;
+import com.hbm.interfaces.IFluidDuct;
+import com.hbm.interfaces.IFluidSource;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.tileentity.TileEntityProxyInventory;
 import org.apache.logging.log4j.Level;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -32,9 +43,8 @@ import com.hbm.items.ModItems;
 import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.util.BobMathUtil;
 
-import api.hbm.energy.IBatteryItem;
-import api.hbm.energy.IEnergyConnector;
-import api.hbm.energy.IEnergyConnectorBlock;
+import api.hbm.energymk2.IBatteryItem;
+import api.hbm.energymk2.IEnergyConnectorBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.block.Block;
@@ -55,7 +65,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.WeightedRandom;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
@@ -386,6 +395,26 @@ public class Library {
 		}
 
 		return entity;
+	}
+
+	public static boolean checkFluidConnectables(World world, BlockPos pos, FluidType type)
+	{
+		TileEntity tileentity = world.getTileEntity(pos);
+		if(tileentity != null && tileentity instanceof IFluidDuct && ((IFluidDuct)tileentity).getType() == type)
+			return true;
+		if((tileentity != null && (tileentity instanceof IFluidAcceptor ||
+				tileentity instanceof IFluidSource)) ||
+				world.getBlockState(pos).getBlock() == ModBlocks.fusion_hatch ||
+				world.getBlockState(pos).getBlock() == ModBlocks.dummy_port_compact_launcher ||
+				world.getBlockState(pos).getBlock() == ModBlocks.dummy_port_launch_table ||
+				world.getBlockState(pos).getBlock() == ModBlocks.rbmk_loader) {
+			return true;
+		}
+
+		if(world.getBlockState(pos).getBlock() == ModBlocks.machine_mining_laser && tileentity instanceof TileEntityProxyInventory)
+			return true;
+
+		return false;
 	}
 
 	public static RayTraceResult rayTrace(EntityPlayer player, double length, float interpolation) {
@@ -759,8 +788,8 @@ public static boolean canConnect(IBlockAccess world, BlockPos pos, ForgeDirectio
 		
 		TileEntity te = world.getTileEntity(pos);
 		
-		if(te instanceof IEnergyConnector) {
-			IEnergyConnector con = (IEnergyConnector) te;
+		if(te instanceof IEnergyConnectorMK2) {
+			IEnergyConnectorMK2 con = (IEnergyConnectorMK2) te;
 			
 			if(con.canConnect(dir.getOpposite() /* machine's connecting side */))
 				return true;
@@ -782,6 +811,37 @@ public static boolean canConnect(IBlockAccess world, BlockPos pos, ForgeDirectio
 	// 	 * You won't be missed.
 	// 	 */
 	// }
+
+	public static void transmitFluid(int x, int y, int z, boolean newTact, IFluidSource that, World worldObj, FluidType type) { }
+
+	//Th3_Sl1ze: Sincerely I hate deprecated interfaces but couldn't figure out how to make mechs work without them. Will let them live for now
+
+	/** dir is the direction along the fluid duct entering the block */
+	public static boolean canConnectFluid(IBlockAccess world, int x, int y, int z, ForgeDirection dir /* duct's connecting side */, FluidType type) {
+
+		if(y > 255 || y < 0)
+			return false;
+
+		Block b = world.getBlockState(new BlockPos(x, y, z)).getBlock();
+
+		if(b instanceof IFluidConnectorBlock) {
+			IFluidConnectorBlock con = (IFluidConnectorBlock) b;
+
+			if(con.canConnect(type, world, x, y, z, dir.getOpposite() /* machine's connecting side */))
+				return true;
+		}
+
+		TileEntity te = world.getTileEntity(new BlockPos(x, y, z));
+
+		if(te instanceof IFluidConnector) {
+			IFluidConnector con = (IFluidConnector) te;
+
+			if(con.canConnect(type, dir.getOpposite() /* machine's connecting side */))
+				return true;
+		}
+
+		return false;
+	}
 
 	/**
 	 * Itemstack equality method except it accounts for possible null stacks and

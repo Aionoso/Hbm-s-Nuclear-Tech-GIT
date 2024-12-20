@@ -1,8 +1,6 @@
 package com.hbm.tileentity.machine;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import api.hbm.energymk2.IEnergyProviderMK2;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -11,22 +9,16 @@ import com.hbm.inventory.SAFERecipes;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemFWatzCore;
 import com.hbm.lib.Library;
-import com.hbm.lib.ForgeDirection;
-import com.hbm.packet.AuxElectricityPacket;
-import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.PacketDispatcher;
 import com.hbm.world.FWatz;
 import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyGenerator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
@@ -36,10 +28,9 @@ import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.items.ItemStackHandler;
 
-public class TileEntityFWatzCore extends TileEntityLoadedBase implements IControlReceiver, ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor, INBTPacketReceiver {
+public class TileEntityFWatzCore extends TileEntityLoadedBase implements IControlReceiver, ITickable, IEnergyProviderMK2, IFluidHandler, ITankPacketAcceptor, INBTPacketReceiver {
 
 	public long power;
 	public final static long maxPower = 1000000000000L;
@@ -223,10 +214,10 @@ public class TileEntityFWatzCore extends TileEntityLoadedBase implements IContro
 	}
 
 	private void sendSAFEPower(){
-		this.sendPower(world, pos.add(7, -1, 0), Library.POS_X);
-		this.sendPower(world, pos.add(-7, -1, 0), Library.NEG_X);
-		this.sendPower(world, pos.add(0, -1, 7), Library.POS_Z);
-		this.sendPower(world, pos.add(0, -1, -7), Library.NEG_Z);
+		this.tryProvide(world, pos.getX() + 7, pos.getX() -1, pos.getZ(), Library.POS_X);
+		this.tryProvide(world, pos.getX() -7, pos.getX() -1, pos.getZ(), Library.NEG_X);
+		this.tryProvide(world, pos.getX(), pos.getX() -1, pos.getZ() + 7, Library.POS_Z);
+		this.tryProvide(world, pos.getX(), pos.getX() -1, pos.getZ() - 7, Library.NEG_Z);
 	}
 
 	private void tryGrowCore(){

@@ -2,8 +2,11 @@ package com.hbm.util;
 
 import java.lang.reflect.Field;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Random;
 import java.text.NumberFormat;
+import java.util.function.ToIntFunction;
 
 import javax.annotation.Nullable;
 import javax.vecmath.Matrix3f;
@@ -117,7 +120,7 @@ public class BobMathUtil {
 	
 	/**
 	 *
-	 * @param normal vector
+	 * @param vec vector
 	 * @return vec3 containing yaw, pitch, nothing.
 	 */
 	public static Vec3d getEulerAngles(Vec3d vec) {
@@ -362,5 +365,24 @@ public class BobMathUtil {
 		float g = gA + (gB-gA) * percentB;
 		float b = bA + (bB-bA) * percentB;
 		return (((int)r & 0xFF) << 16) | (((int)g & 0xFF) << 8) | ((int)b & 0xFF);
+	}
+
+	public static double interp(double x, double y, float interp) {
+		return x + (y - x) * interp;
+	}
+
+	// I am sick of trying to remember the ridiculous quirks of Java 8
+	// so I wrote this thing that can shit any int-ish list-ish into a regular fucking int[]
+	// made by mellow, thrown here by 70k, thrown into 1.12.2 by Th3_Sl1ze
+	public static int[] intCollectionToArray(Collection<Integer> in) {
+		return intCollectionToArray(in, i -> (int)i);
+	}
+
+	public static int[] intCollectionToArray(Collection<Integer> in, ToIntFunction<? super Object> mapper) {
+		return Arrays.stream(in.toArray()).mapToInt(mapper).toArray();
+	}
+
+	public static int[] collectionToIntArray(Collection<? extends Object> in, ToIntFunction<? super Object> mapper) {
+		return Arrays.stream(in.toArray()).mapToInt(mapper).toArray();
 	}
 }

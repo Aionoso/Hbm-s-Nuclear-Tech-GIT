@@ -3,21 +3,22 @@ package com.hbm.blocks.network.energy;
 import java.util.ArrayList;
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyConnectorMK2;
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.energymk2.Nodespace;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ITooltipProvider;
-import com.hbm.main.MainRegistry;
 import com.hbm.lib.Library;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.TileEntityLoadedBase;
+import com.hbm.util.Compat;
 import com.hbm.util.I18nUtil;
 
 import api.hbm.block.IToolable;
-import api.hbm.block.IToolable.ToolType;
-import api.hbm.energy.IEnergyUser;
-import api.hbm.energy.IEnergyConnectorBlock;
-import api.hbm.energy.IEnergyConnector.ConnectionPriority;
+import api.hbm.energymk2.IEnergyConnectorBlock;
+import api.hbm.energymk2.IEnergyReceiverMK2.ConnectionPriority;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -37,7 +38,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
@@ -162,7 +162,7 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 		return EnumBlockRenderType.MODEL;
 	}
 	
-	public static class TileEntityDiode extends TileEntityLoadedBase implements ITickable, IEnergyUser, INBTPacketReceiver {
+	public static class TileEntityDiode extends TileEntityLoadedBase implements ITickable, IEnergyReceiverMK2, INBTPacketReceiver {
 
 		@Override
 		public void networkUnpack(NBTTagCompound nbt){
@@ -216,8 +216,14 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 
 		@Override
 		public void update() {
-			if(!world.isRemote) {
-				this.updateConnectionsExcept(world, pos, getDir());
+			if (!world.isRemote) {
+				for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+
+					if (dir == getDir())
+						continue;
+
+					this.trySubscribe(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
+				}
 			}
 		}
 
@@ -225,11 +231,10 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 		public boolean canConnect(ForgeDirection dir) {
 			return dir != getDir();
 		}
-		
+
+		/** Used as an intra-tick tracker for how much energy has been transmitted, resets to 0 each tick and maxes out based on transfer */
+		private long power;
 		private boolean recursionBrake = false;
-		private long subBuffer;
-		private long contingent = 0;
-		private long lastTransfer = 0;
 		private int pulses = 0;
 		public ConnectionPriority priority = ConnectionPriority.NORMAL;
 
@@ -238,36 +243,36 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 
 			if(recursionBrake)
 				return power;
-			
+
 			pulses++;
-			
-			if(lastTransfer != world.getTotalWorldTime()) {
-				lastTransfer = world.getTotalWorldTime();
-				contingent = getMaxPower();
-				pulses = 0;
-			}
-			
-			if(contingent <= 0 || pulses > 10)
-				return power;
-			
-			//this part turns "maxPower" from a glorified transfer weight into an actual transfer cap
-			long overShoot = Math.max(0, power - contingent);
-			power = Math.min(power, contingent);
-			
+			if(this.getPower() >= this.getMaxPower() || pulses > 10) return power; //if we have already maxed out transfer or max pulses, abort
+
 			recursionBrake = true;
-			this.subBuffer = power;
-			
+
 			ForgeDirection dir = getDir();
-			this.sendPower(world, pos.add(dir.offsetX, dir.offsetY, dir.offsetZ), dir);
-			long ret = this.subBuffer;
-			
-			long sent = power - ret;
-			contingent -= sent;
-			
-			this.subBuffer = 0;
+			Nodespace.PowerNode node = Nodespace.getNode(world, pos);
+			TileEntity te = Compat.getTileStandard(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ);
+
+			if(node != null && !node.expired && node.hasValidNet() && te instanceof IEnergyConnectorMK2 && ((IEnergyConnectorMK2) te).canConnect(dir.getOpposite())) {
+				long toTransfer = Math.min(power, this.getReceiverSpeed());
+				long remainder = node.net.sendPowerDiode(toTransfer);
+				long transferred = (toTransfer - remainder);
+				this.power += transferred;
+				power -= transferred;
+
+			} else if(te instanceof IEnergyReceiverMK2 && te != this) {
+				IEnergyReceiverMK2 rec = (IEnergyReceiverMK2) te;
+				if(rec.canConnect(dir.getOpposite())) {
+					long toTransfer = Math.min(power, rec.getReceiverSpeed());
+					long remainder = rec.transferPower(toTransfer);
+					power -= (toTransfer - remainder);
+					recursionBrake = false;
+					return power;
+				}
+			}
+
 			recursionBrake = false;
-			
-			return ret + overShoot;
+			return power;
 		}
 
 
@@ -278,12 +283,12 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 
 		@Override
 		public long getPower() {
-			return subBuffer;
+			return Math.min(power, this.getMaxPower());
 		}
-		
+
 		@Override
 		public void setPower(long power) {
-			this.subBuffer = power;
+			this.power = power;
 		}
 
 		@Override

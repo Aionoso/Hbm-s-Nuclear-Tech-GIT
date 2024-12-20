@@ -1,7 +1,9 @@
 package com.hbm.tileentity.machine;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.inventory.PressRecipes;
 import com.hbm.items.machine.ItemStamp;
+import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
 import com.hbm.packet.AuxElectricityPacket;
@@ -9,8 +11,7 @@ import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.TEPressPacket;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IBatteryItem;
-import api.hbm.energy.IEnergyUser;
+import api.hbm.energymk2.IBatteryItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -23,7 +24,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityMachineEPress extends TileEntityMachineBase implements ITickable, IEnergyUser {
+public class TileEntityMachineEPress extends TileEntityMachineBase implements ITickable, IEnergyReceiverMK2 {
 
 	public int progress = 0;
 	public long power = 0;
@@ -101,7 +102,8 @@ public class TileEntityMachineEPress extends TileEntityMachineBase implements IT
 	public void update() {
 		if(!world.isRemote)
 		{
-			this.updateStandardConnections(world, pos);
+			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
+				this.trySubscribe(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 			
 			if(power >= 100 && !(world.isBlockIndirectlyGettingPowered(pos) > 0)) {

@@ -2,6 +2,12 @@ package com.hbm.items.tool;
 
 import java.util.List;
 
+import com.hbm.interfaces.IHoldableWeapon;
+import com.hbm.render.item.ItemRendererDetonatorLaser;
+import com.hbm.render.misc.RenderScreenOverlay;
+import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.Level;
 
 import com.hbm.util.I18nUtil;
@@ -24,7 +30,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
-public class ItemLaserDetonator extends Item {
+public class ItemLaserDetonator extends Item implements IHoldableWeapon {
 
 	public ItemLaserDetonator(String s) {
 		this.setRegistryName(s);
@@ -61,4 +67,7 @@ public class ItemLaserDetonator extends Item {
 		}
 		return super.onItemRightClick(world, player, hand);
 	}
+
+	@Override
+	public RenderScreenOverlay.Crosshair getCrosshair(){return RenderScreenOverlay.Crosshair.L_ARROWS;}
 }

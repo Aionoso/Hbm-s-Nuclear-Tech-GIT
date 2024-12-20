@@ -78,7 +78,7 @@ public class ContainerMachineBattery extends Container {
 		NBTTagCompound nbt = new NBTTagCompound();
 
 		nbt.setLong("power", diFurnace.power);
-		nbt.setLong("powerDelta", diFurnace.powerDelta);
+		nbt.setLong("powerDelta", diFurnace.delta);
 		nbt.setShort("redLow", diFurnace.redLow);
 		nbt.setShort("redHigh", diFurnace.redHigh);
 		nbt.setByte("priority", (byte)diFurnace.priority.ordinal());

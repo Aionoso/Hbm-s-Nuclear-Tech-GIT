@@ -13,6 +13,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class AudioDynamic extends MovingSound {
 
 	public float intendedVolume;
+	public int keepAlive;
+	public int timeSinceKA;;
+	public boolean shouldExpire = false;;
 
 	protected AudioDynamic(SoundEvent loc, SoundCategory cat) {
 		super(loc, cat);
@@ -72,8 +75,20 @@ public class AudioDynamic extends MovingSound {
 	public void setPitch(float pitch) {
 		this.pitch = pitch;
 	}
+	public void setKeepAlive(int keepAlive) {
+		this.keepAlive = keepAlive;
+		this.shouldExpire = true;
+	}
+
+	public void keepAlive() {
+		this.timeSinceKA = 0;
+	}
 	
 	public float func(float f, float v) {
 		return (f / v) * -2 + 2;
+	}
+
+	public boolean isPlaying() {
+		return Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(this);
 	}
 }

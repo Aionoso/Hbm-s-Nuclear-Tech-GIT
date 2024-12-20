@@ -2,6 +2,9 @@ package com.hbm.items.machine;
 
 import java.util.List;
 
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.tileentity.network.TileEntityPipeBaseNT;
 import com.hbm.util.I18nUtil;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.items.ModItems;
@@ -37,13 +40,16 @@ public class ItemFFFluidDuct extends Item {
 		
 		ModItems.ALL_ITEMS.add(this);
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
-		if(GeneralConfig.registerTanks){
-			if(tab == this.getCreativeTab() || tab == CreativeTabs.SEARCH){
-				FluidRegistry.getRegisteredFluids().values().forEach(f -> {items.add(getStackFromFluid(f));});
+		if (this.isInCreativeTab(tab)) {
+			FluidType[] order = Fluids.getInNiceOrder();
+			for (int i = 1; i < order.length; ++i) {
+				if (!order[i].hasNoID()) {
+					items.add(new ItemStack(this, 1, order[i].getID()));
+				}
 			}
 		}
 	}
@@ -82,19 +88,14 @@ public class ItemFFFluidDuct extends Item {
         else
         {
             world.setBlockState(pos, ModBlocks.fluid_duct_mk2.getDefaultState());
-            if(world.getTileEntity(pos) instanceof TileEntityFFFluidDuctMk2) {
-            	((TileEntityFFFluidDuctMk2)world.getTileEntity(pos)).setType(getFluidFromStack(stack));;
+            if(world.getTileEntity(pos) instanceof TileEntityPipeBaseNT) {
+            	((TileEntityPipeBaseNT)world.getTileEntity(pos)).setType(Fluids.fromID(stack.getItemDamage()));;
             }
             stack.shrink(1);
             world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_STONE_PLACE, SoundCategory.PLAYERS, 1F, 0.8F + world.rand.nextFloat() * 0.2F);
 
             return EnumActionResult.SUCCESS;
         }
-	}
-	
-	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		tooltip.add(I18nUtil.resolveKey("desc.extraction"));
 	}
 	
 	public static Fluid getFluidFromStack(ItemStack stack){

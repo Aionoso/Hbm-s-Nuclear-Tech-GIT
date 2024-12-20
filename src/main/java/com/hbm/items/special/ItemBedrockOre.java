@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.List;
 
 import com.hbm.inventory.BedrockOreRegistry;
+import com.hbm.inventory.fluid.FluidStack;
 import com.hbm.main.MainRegistry;
 import com.hbm.items.ModItems;
 import com.hbm.lib.RefStrings;
@@ -25,7 +26,6 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -85,7 +85,7 @@ public class ItemBedrockOre extends Item {
 			int tier = BedrockOreRegistry.getOreTier(oreName);
 			list.add("§6"+I18nUtil.resolveKey("desc.tier", tier));
 			FluidStack req = BedrockOreRegistry.getFluidRequirement(tier);
-			list.add("§e"+I18nUtil.resolveKey("desc.requires", req.amount, req.getFluid().getLocalizedName(req)));
+			list.add("§e"+I18nUtil.resolveKey("desc.requires", req.fill, req.type.getLocalizedName()));
 		}
 		super.addInformation(stack, world, list, flagIn);
 	}

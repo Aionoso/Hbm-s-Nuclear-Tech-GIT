@@ -45,8 +45,6 @@ public class EntityNukeExplosionMK5 extends Entity implements IChunkLoader {
 	public int strength;
 	//How many rays are calculated per tick
 	public int radius;
-	
-	public boolean mute = false;
 	public boolean spawnFire = false;
 
 	public boolean fallout = true;
@@ -94,20 +92,10 @@ public class EntityNukeExplosionMK5 extends Entity implements IChunkLoader {
 				EntityGlowingOne.convertInRadiusToGlow(world, this.posX, this.posY, this.posZ, radius * 1.5);
 		}
 		
-		if(ticksExisted < 2400 && ticksExisted % 10 == 0){
-			fire = (fallout ? 10F: 2F) * (float)Math.pow(radius, 3) * (float)Math.pow(0.5, this.ticksExisted*0.025);
-			blast = (float)Math.pow(radius, 3) * 0.2F;
+		if(ticksExisted < 2400 && ticksExisted % 10 == 0) {
+			fire = (fallout ? 10F : 2F) * (float) Math.pow(radius, 3) * (float) Math.pow(0.5, this.ticksExisted * 0.025);
+			blast = (float) Math.pow(radius, 3) * 0.2F;
 			ContaminationUtil.radiate(world, this.posX, this.posY, this.posZ, Math.min(1000, radius * 2), rads, 0F, fire, blast, this.ticksExisted * 1.5F);
-		}
-		//make some noise
-		if(!mute) {
-			if(this.radius > 30){
-				this.world.playSound(null, this.posX, this.posY, this.posZ, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.AMBIENT, this.radius * 0.05F, 0.8F + this.rand.nextFloat() * 0.2F);
-				if(rand.nextInt(5) == 0)
-					this.world.playSound(null, this.posX, this.posY, this.posZ, SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.AMBIENT, this.radius * 0.05F, 0.8F + this.rand.nextFloat() * 0.2F);
-			}else{
-				this.world.playSound(null, this.posX, this.posY, this.posZ, SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.AMBIENT, Math.max(2F, this.radius * 0.1F), 0.8F + this.rand.nextFloat() * 0.2F);
-			}
 		}
 
 		//Create Explosion Rays
@@ -237,7 +225,6 @@ public class EntityNukeExplosionMK5 extends Entity implements IChunkLoader {
 		fallout = nbt.getBoolean("fallout");
 		floodPlease = nbt.getBoolean("floodPlease");
 		spawnFire = nbt.getBoolean("spawnFire");
-		mute = nbt.getBoolean("mute");
 		if(explosion == null) {
 			explosion = new ExplosionNukeRayBatched(world, (int) this.posX, (int) this.posY, (int) this.posZ, this.strength, this.radius);
 		}
@@ -252,7 +239,6 @@ public class EntityNukeExplosionMK5 extends Entity implements IChunkLoader {
 		nbt.setBoolean("fallout", fallout);
 		nbt.setBoolean("floodPlease", floodPlease);
 		nbt.setBoolean("spawnFire", spawnFire);
-		nbt.setBoolean("mute", mute);
 		if(explosion != null) {
 			explosion.writeEntityToNBT(nbt);
 		}
@@ -301,11 +287,6 @@ public class EntityNukeExplosionMK5 extends Entity implements IChunkLoader {
 	
 	public EntityNukeExplosionMK5 moreFallout(int fallout) {
 		falloutAdd = fallout;
-		return this;
-	}
-	
-	public EntityNukeExplosionMK5 mute() {
-		this.mute = true;
 		return this;
 	}
 }

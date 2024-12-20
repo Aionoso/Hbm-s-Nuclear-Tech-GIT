@@ -30,6 +30,23 @@ public class InventoryHelper {
             }
         }
 	}
+
+    public static void dropInventoryItems(World world, BlockPos pos, ICapabilityProvider t, int beginSlot, int endSlot) {
+        if(t == null)
+            return;
+        if(!t.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
+            return;
+        IItemHandler inventory = t.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+        for (int i = beginSlot; i <= endSlot; ++i)
+        {
+            ItemStack itemstack = inventory.getStackInSlot(i);
+
+            if (!itemstack.isEmpty())
+            {
+                spawnItemStack(world, pos.getX(), pos.getY(), pos.getZ(), itemstack);
+            }
+        }
+    }
 	
 	public static void spawnItemStack(World worldIn, double x, double y, double z, ItemStack stack)
     {

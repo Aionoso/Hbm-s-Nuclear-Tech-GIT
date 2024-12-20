@@ -12,6 +12,7 @@ import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.NbtComparableStack;
 import com.hbm.inventory.RecipesCommon.OreDictStack;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.machine.ItemFELCrystal.EnumWavelengths;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemFluidIcon;
@@ -33,7 +34,7 @@ public class SILEXRecipes {
 	
 	public static void register() {
 
-		itemTranslation.put(new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.uf6)), new ComparableStack(ModItems.ingot_uranium));
+		itemTranslation.put(new NbtComparableStack(ItemFluidIcon.make(Fluids.UF6, 1)), new ComparableStack(ModItems.ingot_uranium));
 		dictTranslation.put(U.dust(), U.ingot());
 		recipes.put(U.ingot(), new SILEXRecipe(900, 100, EnumWavelengths.UV)
 				.addOut(new WeightedRandomObject(new ItemStack(ModItems.nugget_u235), 1))
@@ -50,7 +51,7 @@ public class SILEXRecipes {
 				.addOut(new WeightedRandomObject(new ItemStack(ModItems.nugget_am242), 6))
 				);
 
-		itemTranslation.put(new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.puf6)), new ComparableStack(ModItems.ingot_plutonium));
+		itemTranslation.put(new NbtComparableStack(ItemFluidIcon.make(Fluids.PUF6, 1)), new ComparableStack(ModItems.ingot_plutonium));
 		dictTranslation.put(PU.dust(), PU.ingot());
 		recipes.put(PU.ingot(), new SILEXRecipe(900, 100, EnumWavelengths.VISIBLE)
 				.addOut(new WeightedRandomObject(new ItemStack(ModItems.nugget_pu238), 3))

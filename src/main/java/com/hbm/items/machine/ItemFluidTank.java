@@ -1,16 +1,17 @@
 package com.hbm.items.machine;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import com.hbm.forgefluid.HbmFluidHandlerItemStack;
 import com.hbm.interfaces.IHasCustomModel;
 import com.hbm.config.GeneralConfig;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
 import com.hbm.lib.RefStrings;
 import com.hbm.main.MainRegistry;
-import com.hbm.forgefluid.FluidTypeHandler;
 
+import com.hbm.util.I18nUtil;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
@@ -22,7 +23,6 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fml.relauncher.Side;
@@ -35,6 +35,11 @@ public class ItemFluidTank extends Item implements IHasCustomModel {
 	
 	public static final ModelResourceLocation fluidBarrelModel = new ModelResourceLocation(
 			RefStrings.MODID + ":fluid_barrel_full", "inventory");
+
+	public static final ModelResourceLocation fluidTankLeadModel = new ModelResourceLocation(
+			RefStrings.MODID + ":fluid_tank_lead_empty", "inventory");
+	public static final ModelResourceLocation fluidTankLeadFullModel = new ModelResourceLocation(
+			RefStrings.MODID + ":fluid_tank_lead_full", "inventory");
 
 	private int cap;
 
@@ -59,16 +64,23 @@ public class ItemFluidTank extends Item implements IHasCustomModel {
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
 		if(GeneralConfig.registerTanks){
 			if (tab == this.getCreativeTab() || tab == CreativeTabs.SEARCH) {
-				ItemStack empty = new ItemStack(this, 1, 0);
-				empty.setTagCompound(new NBTTagCompound());
-				items.add(empty);
-				for (Entry<String, Fluid> entry : FluidRegistry.getRegisteredFluids().entrySet()) {
-					if(FluidTypeHandler.noContainer(entry.getValue())) continue;
-					ItemStack stack = new ItemStack(this, 1, 0);
-					stack.setTagCompound(new NBTTagCompound());
-					stack.getTagCompound().setTag(HbmFluidHandlerItemStack.FLUID_NBT_KEY,
-							new FluidStack(entry.getValue(), cap).writeToNBT(new NBTTagCompound()));
-					items.add(stack);
+				FluidType[] order = Fluids.getInNiceOrder();
+				for(int i = 1; i < order.length; ++i) {
+					FluidType type = order[i];
+
+					if(type.hasNoContainer())
+						continue;
+
+					int id = type.getID();
+
+					if(type.needsLeadContainer()) {
+						if(this == ModItems.fluid_tank_lead_full) {
+							items.add(new ItemStack(this, 1, id));
+						}
+
+					} else {
+						items.add(new ItemStack(this, 1, id));
+					}
 				}
 			}
 		}
@@ -78,17 +90,7 @@ public class ItemFluidTank extends Item implements IHasCustomModel {
 	@SideOnly(Side.CLIENT)
 	public String getItemStackDisplayName(ItemStack stack) {
 		String s = ("" + I18n.format(this.getUnlocalizedName() + ".name")).trim();
-		String s1 = null;// ("" +
-							// StatCollector.translateToLocal(FluidType.getEnum(stack.getItemDamage()).getUnlocalizedName()))
-		// .trim();
-		if (FluidUtil.getFluidContained(stack) != null) {
-			s1 = ("" + I18n.format(FluidUtil.getFluidContained(stack).getLocalizedName()).trim());
-		} else {
-			if(this == ModItems.fluid_tank_full)
-				return "Empty Universal Fluid Tank";
-			else if(this == ModItems.fluid_barrel_full)
-				return "Empty Fluid Barrel";
-		}
+		String s1 = ("" + I18n.format(Fluids.fromID(stack.getItemDamage()).getConditionalName())).trim();
 
 		if (s1 != null) {
 			s = s + " " + s1;
@@ -110,6 +112,10 @@ public class ItemFluidTank extends Item implements IHasCustomModel {
 			return fluidTankModel;
 		else if(this == ModItems.fluid_barrel_full)
 			return fluidBarrelModel;
+		if(this == ModItems.fluid_tank_lead_empty)
+			return fluidTankLeadModel;
+		else if(this == ModItems.fluid_tank_lead_full)
+			return fluidTankLeadFullModel;
 		return null;
 	}
 
@@ -124,25 +130,25 @@ public class ItemFluidTank extends Item implements IHasCustomModel {
 
 	}
 	
-	public static ItemStack getFullBarrel(Fluid f, int amount){
+	public static ItemStack getFullBarrel(FluidType f, int amount){
 		ItemStack stack = new ItemStack(ModItems.fluid_barrel_full, amount, 0);
 		stack.setTagCompound(new NBTTagCompound());
-		stack.getTagCompound().setTag(HbmFluidHandlerItemStack.FLUID_NBT_KEY, new FluidStack(f, 16000).writeToNBT(new NBTTagCompound()));
+		stack.getTagCompound().setTag(HbmFluidHandlerItemStack.FLUID_NBT_KEY, f.writeToNBT(new NBTTagCompound()));
 		return stack;
 	}
 	
-	public static ItemStack getFullBarrel(Fluid f){
+	public static ItemStack getFullBarrel(FluidType f){
 		return getFullBarrel(f, 1);
 	}
 	
-	public static ItemStack getFullTank(Fluid f, int amount){
+	public static ItemStack getFullTank(FluidType f, int amount){
 		ItemStack stack = new ItemStack(ModItems.fluid_tank_full, amount, 0);
 		stack.setTagCompound(new NBTTagCompound());
-		stack.getTagCompound().setTag(HbmFluidHandlerItemStack.FLUID_NBT_KEY, new FluidStack(f, 1000).writeToNBT(new NBTTagCompound()));
+		stack.getTagCompound().setTag(HbmFluidHandlerItemStack.FLUID_NBT_KEY, f.writeToNBT(new NBTTagCompound()));
 		return stack;
 	}
 	
-	public static ItemStack getFullTank(Fluid f){
+	public static ItemStack getFullTank(FluidType f){
 		return getFullTank(f, 1);
 	}
 	

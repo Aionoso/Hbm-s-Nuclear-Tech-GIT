@@ -1,70 +1,61 @@
 package com.hbm.tileentity.machine.oil;
 
-import api.hbm.energy.IEnergyGenerator;
+import api.hbm.energymk2.IEnergyProviderMK2;
+import api.hbm.fluid.IFluidStandardReceiver;
 import com.hbm.entity.particle.EntityGasFlameFX;
 import com.hbm.explosion.ExplosionThermo;
-import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.IControlReceiver;
-import com.hbm.interfaces.ITankPacketAcceptor;
-import com.hbm.inventory.FluidCombustionRecipes;
 import com.hbm.inventory.UpgradeManager;
 import com.hbm.inventory.container.ContainerMachineGasFlare;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
+import com.hbm.inventory.fluid.trait.FT_Flammable;
+import com.hbm.inventory.fluid.trait.FluidTraitSimple;
 import com.hbm.inventory.gui.GUIMachineGasFlare;
-import com.hbm.items.ModItems;
-import com.hbm.items.machine.ItemForgeFluidIdentifier;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
+import com.hbm.lib.DirPos;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
-import com.hbm.packet.AuxElectricityPacket;
-import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.PacketDispatcher;
+import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.util.List;
 
-public class TileEntityMachineGasFlare extends TileEntityMachineBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor, IGUIProvider, IControlReceiver {
+
+public class TileEntityMachineGasFlare extends TileEntityMachineBase implements ITickable, IEnergyProviderMK2, IFluidStandardReceiver, IGUIProvider, IControlReceiver {
 	public long power;
 	public static final long maxPower = 1000000;
 	public Fluid tankType;
-	public FluidTank tank;
+	public FluidTankNTM tank;
 	public boolean isOn = false;
 	public boolean doesBurn = false;
-	public int cacheEnergy = 0;
-	public boolean needsUpdate;
+	protected int fluidUsed = 0;
+	protected int output = 0;
 
 	private final UpgradeManager upgradeManager = new UpgradeManager();
 
 	public TileEntityMachineGasFlare() {
 		super(6);
 		tankType = ModForgeFluids.gas;
-		tank = new FluidTank(64000);
-		cacheEnergy = FluidCombustionRecipes.getFlameEnergy(ModForgeFluids.gas);
-		needsUpdate = false;
+		tank = new FluidTankNTM(Fluids.GAS, 64000);
 	}
 
 	@Override
@@ -72,37 +63,23 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 		return "container.gasFlare";
 	}
 
-	public boolean isUseableByPlayer(EntityPlayer player) {
-		if(world.getTileEntity(pos) != this)
-		{
-			return false;
-		}else{
-			return player.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <=128;
-		}
-	}
-	
 	@Override
-	public void readFromNBT(NBTTagCompound compound) {
-		this.power = compound.getLong("powerTime");
-		tank.readFromNBT(compound);
-		if (compound.hasKey("tankType")) {
-			tankType = FluidRegistry.getFluid(compound.getString("tankType"));
-		}
-		isOn = compound.getBoolean("isOn");
-		doesBurn = compound.getBoolean("doesBurn");
-		super.readFromNBT(compound);
+	public void readFromNBT(NBTTagCompound nbt) {
+		super.readFromNBT(nbt);
+		this.power = nbt.getLong("powerTime");
+		tank.readFromNBT(nbt, "gas");
+		isOn = nbt.getBoolean("isOn");
+		doesBurn = nbt.getBoolean("doesBurn");
 	}
-	
+
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		compound.setLong("powerTime", power);
-		tank.writeToNBT(compound);
-		if (tankType != null) {
-			compound.setString("tankType", tankType.getName());
-		}
-		compound.setBoolean("isOn", isOn);
-		compound.setBoolean("doesBurn", doesBurn);
-		return super.writeToNBT(compound);
+	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+		super.writeToNBT(nbt);
+		nbt.setLong("powerTime", power);
+		tank.writeToNBT(nbt, "gas");
+		nbt.setBoolean("isOn", isOn);
+		nbt.setBoolean("doesBurn", doesBurn);
+		return nbt;
 	}
 	
 	public long getPowerScaled(long i) {
@@ -114,26 +91,21 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 		
 		if(!world.isRemote) {
 
-			this.sendPower(world, pos.add(2, 0, 0), Library.POS_X);
-			this.sendPower(world, pos.add(-2, 0, 0), Library.NEG_X);
-			this.sendPower(world, pos.add(0, 0, 2), Library.POS_Z);
-			this.sendPower(world, pos.add(0, 0, -2), Library.NEG_Z);
+			this.fluidUsed = 0;
+			this.output = 0;
 
-			long prevPower = power;
-			int prevAmount = tank.getFluidAmount();
-			if(needsUpdate) {
-				needsUpdate = false;
+			for(DirPos pos : getConPos()) {
+				this.tryProvide(world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+				this.trySubscribe(tank.getTankType(), world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
 			}
 
-			this.setupTanks();
-			if(this.inputValidForTank(1))
-				if(FFUtils.fillFromFluidContainer(inventory, tank, 1, 2))
-					needsUpdate = true;
+			tank.setType(3, inventory);
+			tank.loadTank(1, 2, inventory);
 
 			int maxVent = 50;
 			int maxBurn = 10;
 
-			if(isOn && tank.getFluidAmount() >= 10) {
+			if(isOn && tank.getFill() > 0) {
 				upgradeManager.eval(inventory, 4, 5);
 
 				int burn = Math.min(upgradeManager.getLevel(UpgradeType.SPEED), 6);
@@ -142,53 +114,111 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 				maxVent += maxVent * burn;
 				maxBurn += maxBurn * burn;
 
-				cacheEnergy = FluidCombustionRecipes.getFlameEnergy(tankType);
+				if(!doesBurn || !(tank.getTankType().hasTrait(FT_Flammable.class))) {
 
-				if (doesBurn && cacheEnergy != 0) {
-					int eject = Math.min(maxBurn, tank.getFluidAmount());
-					tank.drain(eject, true);
-					needsUpdate = true;
-
-					int powerGen = cacheEnergy * eject;
-					powerGen += powerGen * yield / 3;
-
-					this.power += powerGen;
-					if (this.power > maxPower) {
-						this.power = maxPower;
+					if(tank.getTankType().hasTrait(FluidTraitSimple.FT_Gaseous.class) || tank.getTankType().hasTrait(FluidTraitSimple.FT_Gaseous_ART.class)) {
+						int eject = Math.min(maxVent, tank.getFill());
+						this.fluidUsed = eject;
+						tank.setFill(tank.getFill() - eject);
+						tank.getTankType().onFluidRelease(this, tank, eject);
 					}
-
-					world.spawnEntity(new EntityGasFlameFX(world, pos.getX() + 0.5F, pos.getY() + 11F, pos.getZ() + 0.5F, 0.0, 0.0, 0.0));
-					ExplosionThermo.setEntitiesOnFire(world, pos.getX(), pos.getY() + 11, pos.getZ(), 5);
-
-					if(this.world.getTotalWorldTime() % 5 == 0)
-						this.world.playSound(null, pos.getX(), pos.getY() + 11, pos.getZ(), HBMSoundHandler.flamethrowerShoot, SoundCategory.BLOCKS, 1.5F, 1F);
 				} else {
-					tank.drain(maxVent, true);
-					needsUpdate = true;
+
+					if(tank.getTankType().hasTrait(FT_Flammable.class)) {
+						int eject = Math.min(maxBurn, tank.getFill());
+						this.fluidUsed = eject;
+						tank.setFill(tank.getFill() - eject);
+
+						int penalty = 5;
+						if(!tank.getTankType().hasTrait(FluidTraitSimple.FT_Gaseous.class) && !tank.getTankType().hasTrait(FluidTraitSimple.FT_Gaseous_ART.class))
+							penalty = 10;
+
+						long powerProd = tank.getTankType().getTrait(FT_Flammable.class).getHeatEnergy() * eject / 1_000; // divided by 1000 per mB
+						powerProd /= penalty;
+						powerProd += powerProd * yield / 3;
+
+						this.output = (int) powerProd;
+						power += powerProd;
+
+						if(power > maxPower)
+							power = maxPower;
+
+						world.spawnEntity(new EntityGasFlameFX(world, pos.getX() + 0.5F, pos.getY() + 11F, pos.getZ() + 0.5F, 0.0, 0.0, 0.0));
+						ExplosionThermo.setEntitiesOnFire(world, pos.getX(), pos.getY() + 11, pos.getZ(), 5);
+
+						if(this.world.getTotalWorldTime() % 5 == 0)
+							this.world.playSound(null, pos.getX(), pos.getY() + 11, pos.getZ(), HBMSoundHandler.flamethrowerShoot, SoundCategory.BLOCKS, 1.5F, 1F);
+
+						List<Entity> list = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.add(-1, 12, -2), pos.add(2, 17, 2)));
+						for(Entity e : list) {
+							e.setFire(5);
+							e.attackEntityFrom(DamageSource.ON_FIRE, 5F);
+						}
+					}
 				}
 			}
 			
 			power = Library.chargeItemsFromTE(inventory, 0, power, maxPower);
 
 			NBTTagCompound data = new NBTTagCompound();
+			data.setLong("power", this.power);
 			data.setBoolean("isOn", isOn);
 			data.setBoolean("doesBurn", doesBurn);
-			data.setString("tankType", tankType.getName());
-			this.networkPack(data, 25);
+			this.networkPack(data, 50);
 
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			if(prevPower != power || prevAmount != tank.getFluidAmount() || needsUpdate){
-				markDirty();
+		} else {
+
+			if(isOn && tank.getFill() > 0) {
+
+				if((!doesBurn || !(tank.getTankType().hasTrait(FT_Flammable.class))) && (tank.getTankType().hasTrait(FluidTraitSimple.FT_Gaseous.class) || tank.getTankType().hasTrait(FluidTraitSimple.FT_Gaseous_ART.class))) {
+
+					NBTTagCompound data = new NBTTagCompound();
+					data.setString("type", "tower");
+					data.setFloat("lift", 1F);
+					data.setFloat("base", 0.25F);
+					data.setFloat("max", 3F);
+					data.setInteger("life", 150 + world.rand.nextInt(20));
+					data.setInteger("color", tank.getTankType().getColor());
+
+					data.setDouble("posX", pos.getX() + 0.5);
+					data.setDouble("posZ", pos.getZ() + 0.5);
+					data.setDouble("posY", pos.getY() + 11);
+
+					MainRegistry.proxy.effectNT(data);
+
+				}
+
+				if(doesBurn && tank.getTankType().hasTrait(FT_Flammable.class) && MainRegistry.proxy.me().getDistanceSq(pos.getX(), pos.getY() + 10, pos.getZ()) <= 1024) {
+
+					NBTTagCompound data = new NBTTagCompound();
+					data.setString("type", "vanillaExt");
+					data.setString("mode", "smoke");
+					data.setBoolean("noclip", true);
+					data.setInteger("overrideAge", 50);
+
+					if(world.getTotalWorldTime() % 2 == 0) {
+						data.setDouble("posX", pos.getX() + 1.5);
+						data.setDouble("posZ", pos.getZ() + 1.5);
+						data.setDouble("posY", pos.getY() + 10.75);
+					} else {
+						data.setDouble("posX", pos.getX() + 1.125);
+						data.setDouble("posZ", pos.getZ() - 0.5);
+						data.setDouble("posY", pos.getY() + 11.75);
+					}
+
+					MainRegistry.proxy.effectNT(data);
+				}
 			}
 		}
 	}
 
 	@Override
 	public void networkUnpack(NBTTagCompound nbt) {
+		super.networkUnpack(nbt);
+
+		this.power = nbt.getLong("power");
 		this.isOn = nbt.getBoolean("isOn");
 		this.doesBurn = nbt.getBoolean("doesBurn");
-		this.tankType = FluidRegistry.getFluid(nbt.getString("tankType"));
 	}
 
 	@Override
@@ -196,41 +226,15 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 		return new int[] {0, 1, 2, 3, 4, 5};
 	}
 
-	void setupTanks() {
-		if(inventory.getSlots() < 5){
-			inventory = this.getNewInventory(6, 64);
-		}
-
-		ItemStack slotId = inventory.getStackInSlot(3);
-		Item itemId = slotId.getItem();
-		if (itemId == ModItems.forge_fluid_identifier) {
-			Fluid fluid = ItemForgeFluidIdentifier.getType(slotId);
-			int energy = FluidCombustionRecipes.getFlameEnergy(fluid);
-
-			if (tankType != fluid) {
-				tankType = fluid;
-				cacheEnergy = energy;
-				tank.setFluid(null);
-				needsUpdate = true;
-			}
-		}
+	public DirPos[] getConPos() {
+		return new DirPos[] {
+				new DirPos(pos.getX() + 2, pos.getY(), pos.getZ(), Library.POS_X),
+				new DirPos(pos.getX() - 2, pos.getY(), pos.getZ(), Library.NEG_X),
+				new DirPos(pos.getX(), pos.getY(), pos.getZ() + 2, Library.POS_Z),
+				new DirPos(pos.getX(), pos.getY(), pos.getZ() - 2, Library.NEG_Z)
+		};
 	}
 
-	protected boolean inputValidForTank(int slot){
-		ItemStack slotInput = inventory.getStackInSlot(slot);
-		if (slotInput != ItemStack.EMPTY && tank != null) {
-			return FFUtils.checkRestrictions(slotInput, this::isValidFluid);
-		}
-
-		return false;
-	}
-	
-	private boolean isValidFluid(FluidStack stack) {
-		if(stack == null)
-			return false;
-		return stack.getFluid() == tankType;
-	}
-	
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
 		return TileEntity.INFINITE_EXTENT_AABB;
@@ -244,53 +248,13 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 	}
 
 	@Override
-	public IFluidTankProperties[] getTankProperties() {
-		return new IFluidTankProperties[]{tank.getTankProperties()[0]};
+	public FluidTankNTM[] getReceivingTanks() {
+		return new FluidTankNTM[] { tank };
 	}
 
 	@Override
-	public int fill(FluidStack resource, boolean doFill) {
-		if(this.isValidFluid(resource)) {
-			return tank.fill(resource, doFill);
-		}
-		return 0;
-	}
-
-	@Override
-	public FluidStack drain(FluidStack resource, boolean doDrain) {
-		return null;
-	}
-
-	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain) {
-		return null;
-	}
-
-	@Override
-	public void recievePacket(NBTTagCompound[] tags) {
-		if(tags.length != 1) {
-			return;
-		} else {
-			tank.readFromNBT(tags[0]);
-		}
-	}
-	
-	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY){
-			return true;
-		} else {
-			return super.hasCapability(capability, facing);
-		}
-	}
-	
-	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY){
-			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-		} else {
-			return super.getCapability(capability, facing);
-		}
+	public FluidTankNTM[] getAllTanks() {
+		return new FluidTankNTM[] { tank };
 	}
 
 	@Override

@@ -86,8 +86,10 @@ public class NBTControlPacket implements IMessage {
 							
 							IControlReceiver tile = (IControlReceiver)te;
 							
-							if(tile.hasPermission(p))
+							if(tile.hasPermission(p)) {
+								tile.receiveControl(p, nbt);
 								tile.receiveControl(nbt);
+							}
 						}
 					}
 					

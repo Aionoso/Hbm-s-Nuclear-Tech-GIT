@@ -114,57 +114,11 @@ public class TileEntityReactorControl extends TileEntity implements ITickable {
         		int zCoord = inventory.getStackInSlot(0).getTagCompound().getInteger("z");
         		BlockPos possibleReactor = new BlockPos(xCoord, yCoord, zCoord);
         		Block b = world.getBlockState(possibleReactor).getBlock();
-        		if(b == ModBlocks.machine_reactor_small || b == ModBlocks.reactor_computer) {
-        			link = possibleReactor;
-        		} else if(b == ModBlocks.dummy_block_reactor_small || b == ModBlocks.dummy_port_reactor_small) {
-        			link = ((TileEntityDummy)world.getTileEntity(possibleReactor)).target;
-        		} else {
-        			link = null;
-            	}
+				link = null;
         	} else {
     			link = null;
         	}
-        	
-        	if(link != null && world.getTileEntity(link) instanceof TileEntityMachineReactorSmall) {
-        		TileEntityMachineReactorSmall reactor = (TileEntityMachineReactorSmall)world.getTileEntity(link);
-        		
-        		hullHeat = reactor.hullHeat;
-        		coreHeat = reactor.coreHeat;
-        		fuel = reactor.getFuelPercent();
-        		water = reactor.tanks[0].getFluidAmount();
-        		cool = reactor.tanks[1].getFluidAmount();
-        		steam = reactor.tanks[2].getFluidAmount();
-        		maxWater = reactor.tanks[0].getCapacity();
-        		maxCool = reactor.tanks[1].getCapacity();
-        		maxSteam = reactor.tanks[2].getCapacity();
-        		rods = reactor.rods;
-        		maxRods = reactor.rodsMax;
-        		isOn = !reactor.retracting;
-        		isLinked = true;
-        		
-        		if(reactor.tankTypes[2] == ModForgeFluids.hotsteam){
-        			compression = 1;
-        		} else if(reactor.tankTypes[2] == ModForgeFluids.superhotsteam){
-        			compression = 2;
-        		} else {
-        			compression = 0;
-        		}
-        		
-        		if(!redstoned) {
-        			if(world.isBlockIndirectlyGettingPowered(pos) > 0) {
-        				redstoned = true;
-        				reactor.retracting = !reactor.retracting;
-        			}
-        		} else {
-        			if(world.isBlockIndirectlyGettingPowered(pos) == 0) {
-        				redstoned = false;
-        			}
-        		}
-        		
-        		if(auto && (water < 100 || cool < 100 || coreHeat > (50000 * 0.95)) && fuel > 0) {
-        			reactor.retracting = true;
-        		}
-        	} else if(link != null && world.getTileEntity(link) instanceof TileEntityMachineReactorLarge && ((TileEntityMachineReactorLarge)world.getTileEntity(link)).checkBody()) {
+			if(link != null && world.getTileEntity(link) instanceof TileEntityMachineReactorLarge && ((TileEntityMachineReactorLarge)world.getTileEntity(link)).checkBody()) {
         		TileEntityMachineReactorLarge reactor = (TileEntityMachineReactorLarge)world.getTileEntity(link);
         		
         		hullHeat = reactor.hullHeat;

@@ -1,6 +1,7 @@
 package com.hbm.handler.jei;
 
-import com.hbm.inventory.RBMKOutgasserRecipes.RBMKOutgasserRecipe;
+
+import com.hbm.inventory.RBMKOutgasserRecipes;
 import com.hbm.lib.RefStrings;
 
 import com.hbm.util.I18nUtil;
@@ -16,7 +17,7 @@ import mezz.jei.api.recipe.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
-public class RBMKOutgasserRecipeHandler implements IRecipeCategory<RBMKOutgasserRecipe> {
+public class RBMKOutgasserRecipeHandler implements IRecipeCategory<RBMKOutgasserRecipes.RBMKOutgasserRecipe> {
 
 	public static final ResourceLocation gui_rl = new ResourceLocation(RefStrings.MODID, "textures/gui/reactors/gui_rbmk_outgasser.png");
 	
@@ -56,7 +57,7 @@ public class RBMKOutgasserRecipeHandler implements IRecipeCategory<RBMKOutgasser
 	}
 
 	@Override
-	public void setRecipe(IRecipeLayout recipeLayout, RBMKOutgasserRecipe recipeWrapper, IIngredients ingredients) {
+	public void setRecipe(IRecipeLayout recipeLayout, RBMKOutgasserRecipes.RBMKOutgasserRecipe recipeWrapper, IIngredients ingredients) {
 		IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
 		
 		guiItemStacks.init(0, true, 47-12, 52-17);

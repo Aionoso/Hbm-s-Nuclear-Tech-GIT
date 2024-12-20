@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -7,7 +8,6 @@ import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,7 +19,7 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 
-public class TileEntityDeuteriumExtractor extends TileEntityLoadedBase implements ITickable, IFluidHandler, IEnergyUser, ITankPacketAcceptor, INBTPacketReceiver {
+public class TileEntityDeuteriumExtractor extends TileEntityLoadedBase implements ITickable, IFluidHandler, IEnergyReceiverMK2, ITankPacketAcceptor, INBTPacketReceiver {
 	
 	public int age = 0;
 	public long power = 0;
@@ -65,7 +65,7 @@ public class TileEntityDeuteriumExtractor extends TileEntityLoadedBase implement
 	}
 	
 	protected void updateConnections() {
-		this.updateStandardConnections(world, pos);
+		for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) this.trySubscribe(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
 	}
 
 	public void fillFluidInit(FluidTank tank) {

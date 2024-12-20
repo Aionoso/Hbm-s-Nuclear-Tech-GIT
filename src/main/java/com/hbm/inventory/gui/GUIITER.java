@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.lwjgl.opengl.GL11;
 
-import com.hbm.forgefluid.FFUtils;
 import com.hbm.inventory.container.ContainerITER;
 import com.hbm.lib.RefStrings;
 import com.hbm.packet.AuxButtonPacket;
@@ -37,9 +36,9 @@ public class GUIITER extends GuiInfoContainer {
 
 		this.drawElectricityInfo(this, mouseX, mouseY, guiLeft + 71, guiTop + 108, 34, 16, iter.power, TileEntityITER.maxPower);
 
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 26, guiTop + 54, 16, 52, iter.tanks[0], iter.types[0]); //Water
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 134, guiTop + 54, 16, 52, iter.tanks[1], iter.types[1]); //Steam
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 71, guiTop + 54, 34, 34, iter.plasma); //Plasma
+		iter.tanksNew[0].renderTankInfo(this, mouseX, mouseY, guiLeft + 26, guiTop + 54, 16, 52); //Water
+		iter.tanksNew[1].renderTankInfo(this, mouseX, mouseY, guiLeft + 134, guiTop + 54, 16, 52); //Steam
+		iter.plasmaNew.renderTankInfo(this, mouseX, mouseY, guiLeft + 71, guiTop + 54, 34, 34); //Plasma
 		
 		String text = "Magnets are " + ((iter.isOn && iter.power >= TileEntityITER.powerReq) ? "ON" : "OFF");
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 76, guiTop + 94, 24, 12, mouseX, mouseY, new String[] { text });
@@ -79,7 +78,7 @@ public class GUIITER extends GuiInfoContainer {
 		if(iter.isOn && iter.power >= TileEntityITER.powerReq)
 			drawTexturedModalRect(guiLeft + 76, guiTop + 94, 194, 0, 24, 12);
 
-		if(iter.plasma.getFluidAmount() > 0 && iter.getShield() >= iter.plasmaType.getTemperature())
+		if(iter.plasmaNew.getFill() > 0 && iter.getShield() >= iter.plasmaNew.getTankType().temperature)
 			drawTexturedModalRect(guiLeft + 97, guiTop + 17, 218, 0, 18, 18);
 		
 		int i = (int)iter.getPowerScaled(34);
@@ -89,10 +88,10 @@ public class GUIITER extends GuiInfoContainer {
 		drawTexturedModalRect(guiLeft + 44, guiTop + 22, 176, 18, j, 7);
 
 		for(int t = 0; t < 2; t++) {
-			FFUtils.drawLiquid(iter.tanks[t], guiLeft, guiTop, zLevel, 16, 52, 26 + 108 * t, 134);
+			iter.tanksNew[t].renderTank(guiLeft + 26 + 108 * t, guiTop + 106, this.zLevel, 16, 52);
 		}
-		
-		FFUtils.drawLiquid(iter.plasma, guiLeft, guiTop, zLevel, 34, 34, 71, 116);
+
+		iter.plasmaNew.renderTank(guiLeft + 71, guiTop + 88, this.zLevel, 34, 34);
 		
 	}
 }

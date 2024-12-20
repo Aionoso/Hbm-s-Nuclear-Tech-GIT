@@ -1,52 +1,35 @@
 package com.hbm.tileentity.machine.rbmk;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import api.hbm.fluid.IFluidStandardSender;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
-import com.hbm.forgefluid.FFUtils;
-import com.hbm.forgefluid.ModForgeFluids;
-import com.hbm.interfaces.ITankPacketAcceptor;
-import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RBMKOutgasserRecipes;
+import com.hbm.inventory.fluid.FluidStack;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
+import com.hbm.lib.DirPos;
+import com.hbm.lib.Library;
 import com.hbm.util.ContaminationUtil;
-import com.hbm.items.ModItems;
-import com.hbm.items.machine.ItemFluidIcon;
-import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.PacketDispatcher;
 import com.hbm.inventory.control_panel.DataValue;
 import com.hbm.inventory.control_panel.DataValueFloat;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKConsole.ColumnType;
 
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
+import com.hbm.util.Tuple;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
-public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implements IRBMKFluxReceiver, IFluidHandler, ITankPacketAcceptor, IRBMKLoadable {
+public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implements IRBMKFluxReceiver, IFluidStandardSender, IRBMKLoadable {
 
-	public FluidTank gas;
-	public Fluid gasType;
+	public FluidTankNTM gas;
 	public double progress = 0;
 	public double usedFlux = 0;
 	public int duration = 10000;
 
 	public TileEntityRBMKOutgasser() {
 		super(2);
-		gas = new FluidTank(64000);
-		gasType = ModForgeFluids.tritium;
+		gas = new FluidTankNTM(Fluids.TRITIUM, 64000);
 	}
 
 	@Override
@@ -56,30 +39,45 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 	
 	@Override
 	public void update() {
-		
+
 		if(!world.isRemote) {
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, gas), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
-			NBTTagCompound type = new NBTTagCompound();
-			type.setString("gasType", gasType.getName());
-			networkPack(type, 50);
-			
-			if(world.getTotalWorldTime() % 10 == 0)
-				fillFluidInit(gas);
-			
+
 			if(!canProcess()) {
 				this.progress = 0;
+			}
+
+			for(DirPos pos : getOutputPos()) {
+				if(this.gas.getFill() > 0) this.sendFluid(gas, world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
 			}
 		}
 		
 		super.update();
 	}
-	
-	@Override
-	public void networkUnpack(NBTTagCompound nbt){
-		if(nbt.hasKey("steamType")){
-			this.gasType = FluidRegistry.getFluid(nbt.getString("gasType"));
+
+	protected DirPos[] getOutputPos() {
+
+		if(world.getBlockState(pos.add(0, -1, 0)).getBlock() == ModBlocks.rbmk_loader) {
+			return new DirPos[] {
+					new DirPos(this.pos.getX(), this.pos.getY() + RBMKDials.getColumnHeight(world) + 1, this.pos.getZ(), Library.POS_Y),
+					new DirPos(this.pos.getX() + 1, this.pos.getY() - 1, this.pos.getZ(), Library.POS_X),
+					new DirPos(this.pos.getX() - 1, this.pos.getY() - 1, this.pos.getZ(), Library.NEG_X),
+					new DirPos(this.pos.getX(), this.pos.getY() - 1, this.pos.getZ() + 1, Library.POS_Z),
+					new DirPos(this.pos.getX(), this.pos.getY() - 1, this.pos.getZ() - 1, Library.NEG_Z),
+					new DirPos(this.pos.getX(), this.pos.getY() - 2, this.pos.getZ(), Library.NEG_Y)
+			};
+		} else if(world.getBlockState(pos.add(0, -2, 0)).getBlock() == ModBlocks.rbmk_loader) {
+			return new DirPos[] {
+					new DirPos(this.pos.getX(), this.pos.getY() + RBMKDials.getColumnHeight(world) + 1, this.pos.getZ(), Library.POS_Y),
+					new DirPos(this.pos.getX() + 1, this.pos.getY() - 2, this.pos.getZ(), Library.POS_X),
+					new DirPos(this.pos.getX() - 1, this.pos.getY() - 2, this.pos.getZ(), Library.NEG_X),
+					new DirPos(this.pos.getX(), this.pos.getY() - 2, this.pos.getZ() + 1, Library.POS_Z),
+					new DirPos(this.pos.getX(), this.pos.getY() - 2, this.pos.getZ() - 1, Library.NEG_Z),
+					new DirPos(this.pos.getX(), this.pos.getY() - 3, this.pos.getZ(), Library.NEG_Y)
+			};
 		} else {
-			super.networkUnpack(nbt);
+			return new DirPos[] {
+					new DirPos(this.pos.getX(), this.pos.getY() + RBMKDials.getColumnHeight(world) + 1, this.pos.getZ(), Library.POS_Y)
+			};
 		}
 	}
 
@@ -105,74 +103,55 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 		}
 		this.usedFlux = flux;
 	}
-	
-	
-	
-	private boolean canProcess() {
-		
+
+
+
+	public boolean canProcess() {
+
 		if(inventory.getStackInSlot(0).isEmpty())
 			return false;
-		
-		int requiredFlux = RBMKOutgasserRecipes.getRequiredFlux(inventory.getStackInSlot(0));
-		if (requiredFlux == -1)
+
+		Tuple.Pair<ItemStack, FluidStack> output = RBMKOutgasserRecipes.getOutput(inventory.getStackInSlot(0));
+
+		if(output == null)
 			return false;
-		duration = requiredFlux;
 
-		ItemStack output = RBMKOutgasserRecipes.getOutput(inventory.getStackInSlot(0));
-		if(output.getItem() == ModItems.fluid_icon) {
-			return ItemFluidIcon.getFluid(output) == gasType && gas.getFluidAmount() + ItemFluidIcon.getQuantity(output) <= gas.getCapacity();
+		FluidStack fluid = output.getValue();
+
+		if(fluid != null) {
+			if(gas.getTankType() != fluid.type && gas.getFill() > 0) return false;
+			gas.setTankType(fluid.type);
+			if(gas.getFill() + fluid.fill > gas.getMaxFill()) return false;
 		}
-		
-		if(inventory.getStackInSlot(1).isEmpty())
+
+		ItemStack out = output.getKey();
+
+		if(inventory.getStackInSlot(1).isEmpty() || out == null)
 			return true;
-		
-		return inventory.getStackInSlot(1).getItem() == output.getItem() && inventory.getStackInSlot(1).getItemDamage() == output.getItemDamage() && inventory.getStackInSlot(1).getCount() + output.getCount() <= inventory.getStackInSlot(1).getMaxStackSize();
+
+		return inventory.getStackInSlot(1).getItem() == out.getItem() && inventory.getStackInSlot(1).getItemDamage() == out.getItemDamage() && inventory.getStackInSlot(1).getCount() + out.getCount() <= inventory.getStackInSlot(1).getMaxStackSize();
 	}
 
-	
+
 	private void process() {
-		
-		ItemStack output = RBMKOutgasserRecipes.getOutput(inventory.getStackInSlot(0));
-		inventory.getStackInSlot(0).shrink(1);
+
+		Tuple.Pair<ItemStack, FluidStack> output = RBMKOutgasserRecipes.getOutput(inventory.getStackInSlot(0));
+		this.inventory.getStackInSlot(0).shrink(1);
 		this.progress = 0;
-		
-		if(output.getItem() == ModItems.fluid_icon) {
-			gas.fill(new FluidStack(gasType, ItemFluidIcon.getQuantity(output)), true);
-			return;
-		}
-		
-		if(inventory.getStackInSlot(1).isEmpty()) {
-			inventory.setStackInSlot(1, output.copy());
-		} else {
-			inventory.getStackInSlot(1).grow(output.getCount());
-		}
-	}
 
-	public void fillFluidInit(FluidTank tank) {
-		fillFluid(this.pos.getX(), this.pos.getY() + RBMKDials.getColumnHeight(world) + 1, this.pos.getZ(), tank);
-		
-		if(world.getBlockState(pos.down()) == ModBlocks.rbmk_loader) {
-
-			fillFluid(this.pos.getX() + 1, this.pos.getY() - 1, this.pos.getZ(), tank);
-			fillFluid(this.pos.getX() - 1, this.pos.getY() - 1, this.pos.getZ(), tank);
-			fillFluid(this.pos.getX(), this.pos.getY() - 1, this.pos.getZ() + 1, tank);
-			fillFluid(this.pos.getX(), this.pos.getY() - 1, this.pos.getZ() - 1, tank);
-			fillFluid(this.pos.getX(), this.pos.getY() - 2, this.pos.getZ(), tank);
+		if(output.getValue() != null) {
+			gas.setFill(gas.getFill() + output.getValue().fill);
 		}
-		
-		if(world.getBlockState(pos.down(2)) == ModBlocks.rbmk_loader) {
 
-			fillFluid(this.pos.getX() + 1, this.pos.getY() - 2, this.pos.getZ(), tank);
-			fillFluid(this.pos.getX() - 1, this.pos.getY() - 2, this.pos.getZ(), tank);
-			fillFluid(this.pos.getX(), this.pos.getY() - 2, this.pos.getZ() + 1, tank);
-			fillFluid(this.pos.getX(), this.pos.getY() - 2, this.pos.getZ() - 1, tank);
-			fillFluid(this.pos.getX(), this.pos.getY() - 1, this.pos.getZ(), tank);
-			fillFluid(this.pos.getX(), this.pos.getY() - 3, this.pos.getZ(), tank);
+		ItemStack out = output.getKey();
+
+		if(out != null) {
+			if(inventory.getStackInSlot(1).isEmpty()) {
+				inventory.setStackInSlot(1, out.copy());
+			} else {
+				inventory.getStackInSlot(1).setCount(inventory.getStackInSlot(1).getCount() + out.getCount());
+			}
 		}
-	}
-
-	public void fillFluid(int x, int y, int z, FluidTank tank) {
-		FFUtils.fillFluid(this, tank, world, new BlockPos(x, y, z), tank.getCapacity());
 	}
 	
 	
@@ -196,8 +175,9 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 	@Override
 	public NBTTagCompound getNBTForConsole() {
 		NBTTagCompound data = new NBTTagCompound();
-		data.setInteger("gas", this.gas.getFluidAmount());
-		data.setInteger("maxGas", this.gas.getCapacity());
+		data.setInteger("gas", this.gas.getFill());
+		data.setInteger("maxGas", this.gas.getMaxFill());
+		data.setShort("type", (short)this.gas.getTankType().getID());
 		data.setDouble("usedFlux", this.usedFlux);
 		data.setDouble("progress", this.progress);
 		data.setDouble("maxProgress", this.duration);
@@ -210,7 +190,7 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 		
 		this.progress = nbt.getDouble("progress");
 		this.duration = nbt.getInteger("duration");
-		this.gas.readFromNBT(nbt.getCompoundTag("gas"));
+		this.gas.readFromNBT(nbt, "gas");
 	}
 	
 	@Override
@@ -219,7 +199,7 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 		
 		nbt.setDouble("progress", this.progress);
 		nbt.setInteger("duration", this.duration);
-		nbt.setTag("gas", gas.writeToNBT(new NBTTagCompound()));
+		this.gas.writeToNBT(nbt, "gas");
 		
 		return nbt;
 	}
@@ -232,45 +212,6 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 	@Override
 	public boolean canExtractItem(int i, ItemStack itemStack, int j) {
 		return i == 1;
-	}
-
-	@Override
-	public void recievePacket(NBTTagCompound[] tags){
-		if(tags.length == 1){
-			gas.readFromNBT(tags[0]);
-		}
-	}
-
-	@Override
-	public IFluidTankProperties[] getTankProperties(){
-		return gas.getTankProperties();
-	}
-
-	@Override
-	public int fill(FluidStack resource, boolean doFill){
-		return 0;
-	}
-
-	@Override
-	public FluidStack drain(FluidStack resource, boolean doDrain){
-		return gas.drain(resource, doDrain);
-	}
-
-	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain){
-		return gas.drain(maxDrain, doDrain);
-	}
-	
-	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing){
-		return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
-	}
-	
-	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing){
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
-			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-		return super.getCapability(capability, facing);
 	}
 
 	@Override
@@ -300,12 +241,22 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 		this.markDirty();
 	}
 
+	@Override
+	public FluidTankNTM[] getAllTanks() {
+		return new FluidTankNTM[] {gas};
+	}
+
+	@Override
+	public FluidTankNTM[] getSendingTanks() {
+		return new FluidTankNTM[] {gas};
+	}
+
 	// control panel
 	@Override
 	public Map<String, DataValue> getQueryData() {
 		Map<String, DataValue> data = super.getQueryData();
 
-		data.put("gas", new DataValueFloat(this.gas.getFluidAmount()));
+		data.put("gas", new DataValueFloat(this.gas.getFill()));
 		data.put("progress", new DataValueFloat((float) this.progress));
 		data.put("maxProgress", new DataValueFloat((float) this.duration));
 

@@ -15,6 +15,8 @@ public class PacketDispatcher {
 	public static final void registerPackets(){
 		int i = 0;
 
+		//Fluid packet for GUI
+		wrapper.registerMessage(TEFluidPacket.Handler.class, TEFluidPacket.class, i++, Side.CLIENT);
 		//PressPacket
 		wrapper.registerMessage(TEPressPacket.Handler.class, TEPressPacket.class, i++, Side.CLIENT);
 		//Send chunk radiation packet to individual players
@@ -41,8 +43,6 @@ public class PacketDispatcher {
 		wrapper.registerMessage(AuxLongPacket.Handler.class, AuxLongPacket.class, i++, Side.CLIENT);
 		//Universal button packet
 		wrapper.registerMessage(AuxButtonPacket.Handler.class, AuxButtonPacket.class, i++, Side.SERVER);
-		//For handling fluid tank type updates
-		wrapper.registerMessage(FluidTypePacketTest.Handler.class, FluidTypePacketTest.class, i++, Side.CLIENT);
 		//Fluid pipe type update for rendering
 		wrapper.registerMessage(TEFluidTypePacketTest.Handler.class, TEFluidTypePacketTest.class, i++, Side.CLIENT);
 		//Turret basic packet for making the client has the right ammo amounts
@@ -91,16 +91,14 @@ public class PacketDispatcher {
 		wrapper.registerMessage(ItemBobmazonPacket.Handler.class, ItemBobmazonPacket.class, i++, Side.SERVER);
 		//Update packet for force field
 		wrapper.registerMessage(TEFFPacket.Handler.class, TEFFPacket.class, i++, Side.CLIENT);
-		//Siren packet for looped sounds Drillgon200: Wrong descriptions, but eh, whatever.
-		wrapper.registerMessage(TERadarPacket.Handler.class, TERadarPacket.class, i++, Side.CLIENT);
-		//Packet for causing pipes to rebuild their connections
-		wrapper.registerMessage(PipeUpdatePacket.Handler.class, PipeUpdatePacket.class, i++, Side.CLIENT);
 		//Packet for updating entities being zapped
 		wrapper.registerMessage(TETeslaPacket.Handler.class, TETeslaPacket.class, i++, Side.CLIENT);
 		//Aux Particle Packet, New Technology: like the APP but with NBT
 		wrapper.registerMessage(AuxParticlePacketNT.Handler.class, AuxParticlePacketNT.class, i++, Side.CLIENT);
 		//Packet to send NBT data to tile entities
 		wrapper.registerMessage(NBTPacket.Handler.class, NBTPacket.class, i++, Side.CLIENT);
+		//Packet to send ByteBuf data to tile entities(faster than NBT one but not really convenient)
+		wrapper.registerMessage(BufPacket.Handler.class, BufPacket.class, i++, Side.CLIENT);
 		//Packet to send sat info to players
 		wrapper.registerMessage(SatPanelPacket.Handler.class, SatPanelPacket.class, i++, Side.CLIENT);
 		//Signals server to do coord based satellite stuff
@@ -117,11 +115,19 @@ public class PacketDispatcher {
 		wrapper.registerMessage(MeathookResetStrafePacket.Handler.class, MeathookResetStrafePacket.class, i++, Side.CLIENT);
 		//Gernal packet for sending door states
 		wrapper.registerMessage(TEDoorAnimationPacket.Handler.class, TEDoorAnimationPacket.class, i++, Side.CLIENT);
+		//Does ExVNT standard player knockback
+		wrapper.registerMessage(ExplosionKnockbackPacket.Handler.class, ExplosionKnockbackPacket.class, i++, Side.CLIENT);
+		//just go fuck yourself already (no I won't lol, doing the port at 4:30 am)
+		wrapper.registerMessage(ExplosionVanillaNewTechnologyCompressedAffectedBlockPositionDataForClientEffectsAndParticleHandlingPacket.Handler.class, ExplosionVanillaNewTechnologyCompressedAffectedBlockPositionDataForClientEffectsAndParticleHandlingPacket.class, i++, Side.CLIENT);
+		//Packet to send NBT data from clients to the serverside held item
+		wrapper.registerMessage(NBTItemControlPacket.Handler.class, NBTItemControlPacket.class, i++, Side.SERVER);
 		//Packets for syncing the keypad
 		wrapper.registerMessage(KeypadServerPacket.Handler.class, KeypadServerPacket.class, i++, Side.SERVER);
 		wrapper.registerMessage(KeypadClientPacket.Handler.class, KeypadClientPacket.class, i++, Side.CLIENT);
 		//Sends a funi text to display like a music disc announcement
 		wrapper.registerMessage(PlayerInformPacket.Handler.class, PlayerInformPacket.class, i++, Side.CLIENT);
+		//An alert from 1.7.10 (like if your lungs are going dead from coal)
+		wrapper.registerMessage(PlayerInformPacketLegacy.Handler.class, PlayerInformPacketLegacy.class, i++, Side.CLIENT);
 		//Activates particle effects or animations without the need for an entity
 		wrapper.registerMessage(GunFXPacket.Handler.class, GunFXPacket.class, i++, Side.CLIENT);
 		//Handles custom death animations (like the gluon gun disintegration effect)

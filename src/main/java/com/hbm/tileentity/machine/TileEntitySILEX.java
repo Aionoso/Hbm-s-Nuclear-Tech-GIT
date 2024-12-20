@@ -9,6 +9,7 @@ import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.NbtComparableStack;
 import com.hbm.inventory.SILEXRecipes;
 import com.hbm.inventory.SILEXRecipes.SILEXRecipe;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.machine.ItemFluidIcon;
 import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
@@ -137,8 +138,8 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 	public static final HashMap<Fluid, ComparableStack> fluidConversion = new HashMap<>();
 	
 	static {
-		fluidConversion.put(ModForgeFluids.uf6, new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.uf6)));
-		fluidConversion.put(ModForgeFluids.puf6, new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.puf6)));
+		fluidConversion.put(ModForgeFluids.uf6, new NbtComparableStack(ItemFluidIcon.make(Fluids.UF6, 1)));
+		fluidConversion.put(ModForgeFluids.puf6, new NbtComparableStack(ItemFluidIcon.make(Fluids.PUF6, 1)));
 	}
 	
 	int loadDelay;

@@ -10,6 +10,7 @@ import static com.hbm.items.ModItems.*;
 import static com.hbm.blocks.ModBlocks.*;
 import static com.hbm.inventory.OreDictManager.DictFrame.*;
 import static com.hbm.inventory.OreNames.*;
+import static com.hbm.items.ModItems.powder_ash;
 
 
 import com.hbm.config.GeneralConfig;
@@ -17,8 +18,10 @@ import com.hbm.hazard.HazardData;
 import com.hbm.hazard.HazardEntry;
 import com.hbm.hazard.HazardRegistry;
 import com.hbm.hazard.HazardSystem;
+import com.hbm.items.ItemEnums;
 import com.hbm.items.ItemEnums.EnumCokeType;
 import com.hbm.items.ItemEnums.EnumTarType;
+import com.hbm.items.ModItems;
 import com.hbm.main.MainRegistry;
 
 
@@ -133,10 +136,10 @@ public class OreDictManager {
 	public static final DictFrame SBD = new DictFrame("Schrabidate");
 	public static final DictFrame SRN = new DictFrame("Schraranium");
 	public static final DictFrame GH336 = new DictFrame("Ghiorsium336", "Gh336");
+	public static final DictFrame MUD = new DictFrame("WatzMud");
 	/*
 	 * STABLE
 	 */
-	public static final DictFrame RAREEARTH = new DictFrame("RareEarth");
 	public static final DictFrame NITANIUM = new DictFrame("Nitanium");
 	/** TITANIUM */ 
 	public static final DictFrame TI = new DictFrame("Titanium");
@@ -153,11 +156,18 @@ public class OreDictManager {
 	public static final DictFrame TCALLOY = new DictFrame("TcAlloy");
 	/** CADMIUM STEEL */
 	public static final DictFrame CDALLOY = new DictFrame("CdAlloy");
+	/** BISMUTH BRONZE */
+	public static final DictFrame BBRONZE = new DictFrame("BismuthBronze");
+	/** ARSENIC BRONZE */
+	public static final DictFrame ABRONZE = new DictFrame("ArsenicBronze");
+	/** BISMUTH STRONTIUM CALCIUM COPPER OXIDE */
+	public static final DictFrame BSCCO = new DictFrame("BSCCO");
 	/** LEAD */ 
 	public static final DictFrame PB = new DictFrame("Lead");
-	//public static final DictFrame BI = new DictFrame("Bismuth");
+	public static final DictFrame BI = new DictFrame("Bismuth");
 	public static final DictFrame CD = new DictFrame("Cadmium");
 	public static final DictFrame AS = new DictFrame("Arsenic");
+	public static final DictFrame CA = new DictFrame("Calcium");
 	/** TANTALUM */ 
 	public static final DictFrame TA = new DictFrame("Tantalum");
 	public static final DictFrame COLTAN = new DictFrame("Coltan");
@@ -169,12 +179,18 @@ public class OreDictManager {
 	public static final DictFrame CO = new DictFrame("Cobalt");
 	/** BORON */ 
 	public static final DictFrame B = new DictFrame("Boron");
+	/** SILICON */
+	public static final DictFrame SI = new DictFrame("Silicon");
 	public static final DictFrame GRAPHITE = new DictFrame("Graphite");
+	public static final DictFrame CARBON = new DictFrame("Carbon");
 	public static final DictFrame DURA = new DictFrame("DuraSteel");
 	public static final DictFrame POLYMER = new DictFrame("Polymer");
 	public static final DictFrame BAKELITE = new DictFrame("Bakelite");
-	public static final DictFrame RUBBER = new DictFrame("Rubber");
+	public static final DictFrame PET = new DictFrame("PET");
+	public static final DictFrame PC = new DictFrame("Polycarbonate");
+	public static final DictFrame PVC = new DictFrame("PVC");
 	public static final DictFrame LATEX = new DictFrame("Latex");
+	public static final DictFrame RUBBER = new DictFrame("Rubber");
 	public static final DictFrame MAGTUNG = new DictFrame("MagnetizedTungsten");
 	public static final DictFrame CMB = new DictFrame("CMBSteel");
 	public static final DictFrame DESH = new DictFrame("WorkersAlloy");
@@ -201,6 +217,9 @@ public class OreDictManager {
 	public static final DictFrame LIGCOKE = new DictFrame("LigniteCoke");
 	public static final DictFrame CINNABAR = new DictFrame("Cinnabar");
 	public static final DictFrame BORAX = new DictFrame("Borax");
+	public static final DictFrame CHLOROCALCITE = new DictFrame("Chlorocalcite");
+	public static final DictFrame MOLYSITE = new DictFrame("Molysite");
+	public static final DictFrame SODALITE = new DictFrame("Sodalite");
 	public static final DictFrame VOLCANIC = new DictFrame("Volcanic");
 	public static final DictFrame HEMATITE = new DictFrame("Hematite");
 	public static final DictFrame MALACHITE = new DictFrame("Malachite");
@@ -212,6 +231,8 @@ public class OreDictManager {
 	 */
 	/** LITHIUM */ 
 	public static final DictFrame LI = new DictFrame("Lithium");
+	/** SODIUM */
+	public static final DictFrame NA = new DictFrame("Sodium");
 	/*
 	 * PHOSPHORUS
 	 */
@@ -229,6 +250,7 @@ public class OreDictManager {
 	/*
 	 * RARE EARTHS
 	 */
+	public static final DictFrame RAREEARTH = new DictFrame("RareEarth");
 	/** LANTHANUM */ 
 	public static final DictFrame LA = new DictFrame("Lanthanum");
 	/** ACTINIUM */ 
@@ -285,6 +307,7 @@ public class OreDictManager {
 	public static final DictGroup ANY_TAR = new DictGroup("Tar", KEY_OIL_TAR, KEY_COAL_TAR, KEY_CRACK_TAR);
 	/** Any special psot-RBMK gating material, namely bismuth and arsenic */
 	public static final DictFrame ANY_BISMOID = new DictFrame("AnyBismoid");
+	public static final DictFrame ANY_ASH = new DictFrame("Ash");
 	
 
 	// order: nugget billet ingot dust dustTiny block crystal plate gem ore oreNether
@@ -412,10 +435,11 @@ public class OreDictManager {
 		ANY_CONCRETE			.any(concrete, concrete_smooth, concrete_asbestos, ducrete, ducrete_smooth);
 
 		ANY_COKE																																																.block(block_coke)			.gem(fromAll(coke, EnumCokeType.class));
-		LIGNITE																																			.dust(powder_lignite)									.block(block_lignite)		.gem(lignite)																.ore(ore_lignite);
-		//COALCOKE																																																							.gem(fromOne(coke, EnumCokeType.COAL));
-		//PETCOKE																																																							.gem(fromOne(coke, EnumCokeType.PETROLEUM));
-		//LIGCOKE																																																								.gem(fromOne(coke, EnumCokeType.LIGNITE));
+		ANY_ASH					.any(fromOne(ModItems.powder_ash, ItemEnums.EnumAshType.WOOD), fromOne(ModItems.powder_ash, ItemEnums.EnumAshType.COAL), fromOne(ModItems.powder_ash, ItemEnums.EnumAshType.MISC), fromOne(ModItems.powder_ash, ItemEnums.EnumAshType.FLY), fromOne(ModItems.powder_ash, ItemEnums.EnumAshType.SOOT));
+		LIGNITE							.gem(lignite)									.dust(powder_lignite)							.ore(ore_lignite);
+		COALCOKE						.gem(fromOne(coke, EnumCokeType.COAL))									.block(fromOne(block_coke, EnumCokeType.COAL));
+		PETCOKE							.gem(fromOne(coke, EnumCokeType.PETROLEUM))								.block(fromOne(block_coke, EnumCokeType.PETROLEUM));
+		LIGCOKE							.gem(fromOne(coke, EnumCokeType.LIGNITE))								.block(fromOne(block_coke, EnumCokeType.LIGNITE));
 		CINNABAR																																																							.gem(cinnebar)		.crystal(crystal_cinnebar)								.ore(ore_cinnebar, ore_depth_cinnebar);
 		BORAX																																			.dust(powder_borax)																																				.ore(ore_depth_borax);
 		VOLCANIC																																																							.gem(gem_volcanic)															.ore(basalt_gem);
@@ -449,8 +473,8 @@ public class OreDictManager {
 		
 		for(String name : new String[] {"fuelCoke", "coke"}) {
 			OreDictionary.registerOre(name, fromOne(coke, EnumCokeType.COAL));
-		// 	OreDictionary.registerOre(name, fromOne(coke, EnumCokeType.LIGNITE));
-		// 	OreDictionary.registerOre(name, fromOne(coke, EnumCokeType.PETROLEUM));
+		 	OreDictionary.registerOre(name, fromOne(coke, EnumCokeType.LIGNITE));
+		 	OreDictionary.registerOre(name, fromOne(coke, EnumCokeType.PETROLEUM));
 		}
 		
 		OreDictionary.registerOre(getReflector(), neutron_reflector);
@@ -491,6 +515,13 @@ public class OreDictManager {
 		OreDictionary.registerOre("dyeBlack", fromOne(oil_tar, EnumTarType.CRUDE));
 		// OreDictionary.registerOre("dyeBlack", fromOne(oil_tar, EnumTarType.CRACK));
 		OreDictionary.registerOre("dye", oil_tar);
+		OreDictionary.registerOre("dyeLightGray", fromOne(powder_ash, ItemEnums.EnumAshType.WOOD));
+		OreDictionary.registerOre("dyeBlack", fromOne(powder_ash, ItemEnums.EnumAshType.COAL));
+		OreDictionary.registerOre("dyeGray", fromOne(powder_ash, ItemEnums.EnumAshType.MISC));
+		OreDictionary.registerOre("dyeBrown", fromOne(powder_ash, ItemEnums.EnumAshType.FLY));
+		OreDictionary.registerOre("dyeBlack", fromOne(powder_ash, ItemEnums.EnumAshType.SOOT));
+		OreDictionary.registerOre("dyeMagenta", fromOne(powder_ash, ItemEnums.EnumAshType.FULLERENE));
+		OreDictionary.registerOre("dye", new ItemStack(powder_ash, 1, OreDictionary.WILDCARD_VALUE));
 
 		OreDictionary.registerOre("blockGlass", glass_boron);
 		OreDictionary.registerOre("blockGlass", glass_lead);

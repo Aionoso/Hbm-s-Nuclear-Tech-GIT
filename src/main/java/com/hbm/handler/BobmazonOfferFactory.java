@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.forgefluid.ModForgeFluids;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.gui.GUIScreenBobmazon.Offer;
 import com.hbm.inventory.gui.GUIScreenBobmazon.Requirement;
 import com.hbm.items.ModItems;
@@ -53,12 +54,11 @@ public class BobmazonOfferFactory {
 		materials.add(new Offer(new ItemStack(ModItems.lithium), Requirement.CHEMICS, 6 * inflation));
 		materials.add(new Offer(new ItemStack(ModItems.solid_fuel), Requirement.OIL, 4 * inflation));
 		materials.add(new Offer(new ItemStack(ModItems.lignite), Requirement.STEEL, 2 * inflation));
-		materials.add(new Offer(ItemFluidCanister.getFullCanister(ModForgeFluids.oil), Requirement.OIL, 4 * inflation));
-		materials.add(new Offer(ItemFluidCanister.getFullCanister(ModForgeFluids.diesel), Requirement.OIL, 16 * inflation));
-		materials.add(new Offer(ItemFluidCanister.getFullCanister(ModForgeFluids.petroil), Requirement.OIL, 12 * inflation));
-		materials.add(new Offer(ItemFluidCanister.getFullCanister(ModForgeFluids.kerosene), Requirement.OIL, 20 * inflation));
-		materials.add(new Offer(ItemFluidCanister.getFullCanister(ModForgeFluids.nitan), Requirement.OIL, 100 * inflation));
-		materials.add(new Offer(ItemGasCanister.getFullCanister(ModForgeFluids.gas), Requirement.OIL, 8 * inflation));
+		materials.add(new Offer(new ItemStack(ModItems.canister_generic, 1, Fluids.OIL.getID()), Requirement.OIL, 4 * inflation));
+		materials.add(new Offer(new ItemStack(ModItems.canister_generic, 1, Fluids.DIESEL.getID()), Requirement.OIL, 16 * inflation));
+		materials.add(new Offer(new ItemStack(ModItems.canister_generic, 1, Fluids.PETROIL.getID()), Requirement.OIL, 12 * inflation));
+		materials.add(new Offer(new ItemStack(ModItems.canister_generic, 1, Fluids.KEROSENE.getID()), Requirement.OIL, 20 * inflation));
+		materials.add(new Offer(new ItemStack(ModItems.canister_generic, 1, Fluids.NITAN.getID()), Requirement.OIL, 100 * inflation));
 		materials.add(new Offer(new ItemStack(ModItems.motor), Requirement.ASSEMBLY, 12 * inflation));
 		materials.add(new Offer(new ItemStack(ModItems.rtg_unit), Requirement.NUCLEAR, 25 * inflation));
 		materials.add(new Offer(new ItemStack(ModItems.circuit_aluminium), Requirement.ASSEMBLY, 4 * inflation));

@@ -6,6 +6,9 @@ import java.util.List;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.inventory.BedrockOreRegistry;
+import com.hbm.inventory.fluid.FluidStack;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.util.I18nUtil;
 
 import net.minecraft.block.BlockContainer;
@@ -19,7 +22,6 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Pre;
 
 public class BlockBedrockOreTE extends BlockContainer implements ILookOverlay {
@@ -62,7 +64,7 @@ public class BlockBedrockOreTE extends BlockContainer implements ILookOverlay {
 		text.add(I18nUtil.resolveKey("desc.tier", ore.tier));
 		
 		if(ore.acidRequirement != null) {
-			text.add(I18nUtil.resolveKey("desc.requires", ore.acidRequirement.amount, ore.acidRequirement.getFluid().getLocalizedName(ore.acidRequirement)));
+			text.add(I18nUtil.resolveKey("desc.requires", ore.acidRequirement.fill, ore.acidRequirement.type.getLocalizedName()));
 		}
 		
 		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
@@ -100,7 +102,11 @@ public class BlockBedrockOreTE extends BlockContainer implements ILookOverlay {
 			this.oreName = nbt.getString("ore");
 			this.tier = nbt.getInteger("tier");
 			this.color = nbt.getInteger("color");
-			this.acidRequirement = FluidStack.loadFluidStackFromNBT(nbt);
+			FluidType type = Fluids.fromID(nbt.getInteger("fluid"));
+
+			if(type != Fluids.NONE) {
+				this.acidRequirement = new FluidStack(type, nbt.getInteger("amount"));
+			}
 		}
 		
 		@Override
@@ -109,8 +115,10 @@ public class BlockBedrockOreTE extends BlockContainer implements ILookOverlay {
 			nbt.setString("ore", this.oreName);
 			nbt.setInteger("tier", this.tier);
 			nbt.setInteger("color", this.color);
-			if(this.acidRequirement != null)
-				this.acidRequirement.writeToNBT(nbt);
+			if(this.acidRequirement != null) {
+				nbt.setInteger("fluid", this.acidRequirement.type.getID());
+				nbt.setInteger("amount", this.acidRequirement.fill);
+			}
 			return nbt;
 		}
 

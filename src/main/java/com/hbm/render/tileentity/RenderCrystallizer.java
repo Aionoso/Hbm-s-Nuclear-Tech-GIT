@@ -3,7 +3,6 @@ package com.hbm.render.tileentity;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.main.ResourceManager;
-import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.render.RenderHelper;
 import com.hbm.tileentity.machine.TileEntityMachineCrystallizer;
 
@@ -54,14 +53,14 @@ public class RenderCrystallizer extends TileEntitySpecialRenderer<TileEntityMach
 	}
 
 	public void renderFill(TileEntityMachineCrystallizer crys){
-		if(crys.tank.getFluid() == null) return;
+		if(crys.tankNew.getTankType() == null) return;
 		GL11.glPushMatrix();
 		GlStateManager.enableCull();
 		GlStateManager.disableTexture2D();
        	GlStateManager.enableBlend();
 		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
 		
-		RenderHelper.setColor(ModForgeFluids.getFluidColor(crys.tank.getFluid().getFluid()));
+		RenderHelper.setColor(crys.tankNew.getTankType().getColor());
 		ResourceManager.crystallizer.renderPart("Windows");
 
 		

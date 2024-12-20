@@ -229,12 +229,12 @@ public class MachineFENSU extends BlockDummyableMBB implements ILookOverlay {
 		TileEntityMachineFENSU battery = (TileEntityMachineFENSU) te;
 		List<String> text = new ArrayList();
 		text.add("§6<> §rStored Energy: " + Library.getShortNumber(battery.power) + "/9.22EHE");
-		if(battery.powerDelta == 0)
+		if(battery.delta == 0)
 			text.add("§e-- §r0HE/s");
-		else if(battery.powerDelta > 0)
-			text.add("§a-> §r" + Library.getShortNumber(battery.powerDelta) + "HE/s");
+		else if(battery.delta > 0)
+			text.add("§a-> §r" + Library.getShortNumber(battery.delta) + "HE/s");
 		else
-			text.add("§c<- §r" + Library.getShortNumber(-battery.powerDelta) + "HE/s");
+			text.add("§c<- §r" + Library.getShortNumber(-battery.delta) + "HE/s");
 		text.add("&["+Library.getColorProgress((double)battery.power/(double)Long.MAX_VALUE)+"&]    "+Library.getPercentage((double)battery.power/(double)Long.MAX_VALUE)+"%");
 		ILookOverlay.printGeneric(event, getLocalizedName(), 0xffff00, 0x404000, text);
 	}

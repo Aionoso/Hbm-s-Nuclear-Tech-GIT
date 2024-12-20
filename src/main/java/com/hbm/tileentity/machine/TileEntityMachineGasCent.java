@@ -1,62 +1,59 @@
 package com.hbm.tileentity.machine;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import com.hbm.forgefluid.FFUtils;
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardReceiver;
+import com.hbm.blocks.BlockDummyable;
 import com.hbm.forgefluid.ModForgeFluids;
-import com.hbm.interfaces.ITankPacketAcceptor;
-import com.hbm.inventory.MachineRecipes;
-import com.hbm.inventory.MachineRecipes.GasCentOutput;
+import com.hbm.interfaces.IFFtoNTMF;
+import com.hbm.inventory.GasCentrifugeRecipes;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
+import com.hbm.items.ModItems;
+import com.hbm.items.machine.IItemFluidIdentifier;
+import com.hbm.lib.DirPos;
+import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.Library;
-import com.hbm.packet.AuxElectricityPacket;
-import com.hbm.packet.AuxGaugePacket;
-import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.LoopedSoundPacket;
-import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyUser;
-import net.minecraft.entity.player.EntityPlayer;
+import com.hbm.util.BufferUtil;
+import com.hbm.util.InventoryUtil;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityMachineGasCent extends TileEntityMachineBase implements ITickable, IEnergyUser, ITankPacketAcceptor, IFluidHandler {
+public class TileEntityMachineGasCent extends TileEntityMachineBase implements ITickable, IEnergyReceiverMK2, IFluidStandardReceiver, IFFtoNTMF {
 
 	
 	public long power;
 	public int progress;
 	public boolean isProgressing;
 	public static final int maxPower = 100000;
-	public static final int processingSpeed = 200;
+	public static final int processingSpeed = 150;
 	public boolean needsUpdate = false;
 	
+	public FluidTankNTM tankNew;
 	public FluidTank tank;
-	
-	//private static final int[] slots_top = new int[] {3};
-	//private static final int[] slots_bottom = new int[] {5, 6, 7, 8};
-	//private static final int[] slots_side = new int[] {0, 3};
-	
-	private String customName;
+	public Fluid oldFluid;
+	public PseudoFluidTank inputTank;
+	public PseudoFluidTank outputTank;
+
+	private static boolean converted = false;
 	
 	public TileEntityMachineGasCent() {
 		super(9);
 		tank = new FluidTank(8000);
+		tankNew = new FluidTankNTM(Fluids.UF6, 2000);
+		inputTank = new PseudoFluidTank(GasCentrifugeRecipes.PseudoFluidType.NUF6, 8000);
+		outputTank = new PseudoFluidTank(GasCentrifugeRecipes.PseudoFluidType.LEUF6, 8000);
 	}
 	
 	public String getName() {
@@ -65,9 +62,14 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 	
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
-		power = nbt.getLong("powerTime");
-		progress = nbt.getShort("CookTime");
-		tank.readFromNBT(nbt);
+		power = nbt.getLong("power");
+		progress = nbt.getShort("progress");
+		if (!converted) {
+			tank.readFromNBT(nbt);
+			oldFluid = tank.getFluid() != null ? tank.getFluid().getFluid() : ModForgeFluids.none;
+		} else tankNew.readFromNBT(nbt, "tank");
+		inputTank.readFromNBT(nbt, "inputTank");
+		outputTank.readFromNBT(nbt, "outputTank");
 		if(nbt.hasKey("inventory"))
 			inventory.deserializeNBT(nbt.getCompoundTag("inventory"));
 		
@@ -76,9 +78,11 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 	
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		nbt.setLong("powerTime", power);
-		nbt.setShort("cookTime", (short) progress);
-		tank.writeToNBT(nbt);
+		nbt.setLong("power", power);
+		nbt.setShort("progress", (short) progress);
+		if(!converted) tank.writeToNBT(nbt); else tankNew.writeToNBT(nbt, "tank");
+		inputTank.writeToNBT(nbt, "inputTank");
+		outputTank.writeToNBT(nbt, "outputTank");
 		nbt.setTag("inventory", inventory.serializeNBT());
 		return super.writeToNBT(nbt);
 	}
@@ -90,157 +94,195 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 	public long getPowerRemainingScaled(int i) {
 		return (power * i) / maxPower;
 	}
-	
-	private boolean canProcess() {
-		
-		if(power > 0 && this.tank.getFluidAmount() >= MachineRecipes.getFluidConsumedGasCent(tank.getFluid() == null ? null : tank.getFluid().getFluid())) {
-			
-			List<GasCentOutput> list = MachineRecipes.getGasCentOutput(tank.getFluid() == null ? null : tank.getFluid().getFluid());
-			
+
+	private boolean canEnrich() {
+		if(power > 0 && this.inputTank.getFill() >= inputTank.getTankType().getFluidConsumed() && this.outputTank.getFill() + this.inputTank.getTankType().getFluidProduced() <= outputTank.getMaxFill()) {
+
+			ItemStack[] list = inputTank.getTankType().getOutput();
+
 			if(list == null)
 				return false;
-			
-			if(list.size() < 1 || list.size() > 4)
+
+			if(list.length < 1)
 				return false;
-			
-			for(int i = 0; i < list.size(); i++) {
-				
-				int slot = i + 5;
-				
-				if(inventory.getStackInSlot(slot).isEmpty())
-					continue;
-				
-				if(inventory.getStackInSlot(slot).getItem() == list.get(i).output.getItem() &&
-						inventory.getStackInSlot(slot).getItemDamage() == list.get(i).output.getItemDamage() &&
-						inventory.getStackInSlot(slot).getCount() + list.get(i).output.getCount() <= inventory.getStackInSlot(slot).getMaxStackSize())
-					continue;
-				
-				return false;
-			}
-			
-			return true;
+
+			if(InventoryUtil.doesArrayHaveSpace(inventory, 0, 3, list))
+				return true;
 		}
-		
+
 		return false;
 	}
-	
-	private void process() {
 
-		List<GasCentOutput> out = MachineRecipes.getGasCentOutput(tank.getFluid() == null ? null : tank.getFluid().getFluid());
+	private void enrich() {
+		ItemStack[] output = inputTank.getTankType().getOutput();
+
 		this.progress = 0;
-		tank.drain(MachineRecipes.getFluidConsumedGasCent(tank.getFluid() == null ? null : tank.getFluid().getFluid()), true);
-		
-		List<GasCentOutput> random = new ArrayList<GasCentOutput>();
-		
-		for(int i = 0; i < out.size(); i++) {
-			for(int j = 0; j < out.get(i).weight; j++) {
-				random.add(out.get(i));
+		inputTank.setFill(inputTank.getFill() - inputTank.getTankType().getFluidConsumed());
+		outputTank.setFill(outputTank.getFill() + inputTank.getTankType().getFluidProduced());
+
+		for(byte i = 0; i < output.length; i++)
+			InventoryUtil.tryAddItemToInventory(inventory, 0, 3, output[i].copy()); //reference types almost got me again
+	}
+
+	private void attemptConversion() {
+		if(inputTank.getFill() < inputTank.getMaxFill() && tankNew.getFill() > 0) {
+			int fill = Math.min(inputTank.getMaxFill() - inputTank.getFill(), tankNew.getFill());
+
+			tankNew.setFill(tankNew.getFill() - fill);
+			inputTank.setFill(inputTank.getFill() + fill);
+		}
+	}
+
+	private boolean attemptTransfer(TileEntity te) {
+		if(te instanceof TileEntityMachineGasCent) {
+			TileEntityMachineGasCent cent = (TileEntityMachineGasCent) te;
+
+			if(cent.tankNew.getFill() == 0 && cent.tankNew.getTankType() == tankNew.getTankType()) {
+				if(cent.inputTank.getTankType() != outputTank.getTankType() && outputTank.getTankType() != GasCentrifugeRecipes.PseudoFluidType.NONE) {
+					cent.inputTank.setTankType(outputTank.getTankType());
+					cent.outputTank.setTankType(outputTank.getTankType().getOutputType());
+				}
+
+				//God, why did I forget about the entirety of the fucking math library?
+				if(cent.inputTank.getFill() < cent.inputTank.getMaxFill() && outputTank.getFill() > 0) {
+					int fill = Math.min(cent.inputTank.getMaxFill() - cent.inputTank.getFill(), outputTank.getFill());
+
+					outputTank.setFill(outputTank.getFill() - fill);
+					cent.inputTank.setFill(cent.inputTank.getFill() + fill);
+				}
+
+				return true;
 			}
 		}
-		
-		Collections.shuffle(random);
-		
-		GasCentOutput result = random.get(world.rand.nextInt(random.size()));
-		
-		int slot = result.slot + 4;
-		
-		if(inventory.getStackInSlot(slot).isEmpty()) {
-			inventory.setStackInSlot(slot, result.output.copy());
-		} else {
-			inventory.getStackInSlot(slot).grow(result.output.getCount());
-		}
+
+		return false;
 	}
 	
 	@Override
 	public void update() {
 		
 		if(!world.isRemote) {
-			
-			if (needsUpdate) {
-				needsUpdate = false;
+			if(!converted){
+				convertAndSetFluid(oldFluid, tank, tankNew);
+				converted = true;
 			}
-			this.updateConnectionsExcept(world, pos, Library.POS_Y);
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-			
-			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
-			
-			//First number doesn't matter, there's only one tank.
-			if(this.inputValidForTank(-1, 3))
-				FFUtils.fillFromFluidContainer(inventory, tank, 3, 4);
-			
-			
-			
-			if(canProcess()) {
-				
+			updateConnections();
+
+			power = Library.chargeTEFromItems(inventory, 4, power, maxPower);
+			setTankType(5);
+
+			if (GasCentrifugeRecipes.fluidConversions.containsValue(inputTank.getTankType())) {
+				attemptConversion();
+			}
+
+			if (canEnrich()) {
+
 				isProgressing = true;
-				
 				this.progress++;
-				
 				this.power -= 200;
-				
-				if(this.power < 0)
+
+				if (this.power < 0) {
 					power = 0;
-				
-				if(progress >= processingSpeed) {
-					process();
+					this.progress = 0;
 				}
-				
+
+				if (progress >= processingSpeed)
+					enrich();
+
 			} else {
 				isProgressing = false;
 				this.progress = 0;
 			}
 
-			PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
-			detectAndSendChanges();
+			if (world.getTotalWorldTime() % 10 == 0) {
+				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
+				TileEntity te = world.getTileEntity(pos.add(-dir.offsetX, 0, -dir.offsetZ));
+
+				//*AT THE MOMENT*, there's not really any need for a dedicated method for this. Yet.
+				if (!attemptTransfer(te) && this.inputTank.getTankType() == GasCentrifugeRecipes.PseudoFluidType.LEUF6) {
+					ItemStack[] converted = new ItemStack[]{new ItemStack(ModItems.nugget_uranium_fuel, 6), new ItemStack(ModItems.fluorite)};
+
+					if (this.outputTank.getFill() >= 600 && InventoryUtil.doesArrayHaveSpace(inventory, 0, 3, converted)) {
+						this.outputTank.setFill(this.outputTank.getFill() - 600);
+						for (ItemStack stack : converted)
+							InventoryUtil.tryAddItemToInventory(inventory, 0, 3, stack);
+					}
+				}
+			}
+
+			this.networkPackNT(50);
 		}
 
 		
 	}
-	
-	private long detectPower;
-	private int detectProgress;
-	private boolean detectIsProgressing;
-	private FluidTank detectTank;
-	
-	private void detectAndSendChanges(){
-		boolean mark = false;
-		if(detectPower != power){
-			detectPower = power;
-			mark = true;
-		}
-		if(detectProgress != progress){
-			detectProgress = progress;
-			mark = true;
-		}
-		if(detectIsProgressing != isProgressing){
-			detectIsProgressing = isProgressing;
-			mark = true;
-		}
-		if(!FFUtils.areTanksEqual(tank, detectTank)){
-			detectTank = FFUtils.copyTank(tank);
-			needsUpdate = true;
-			mark = true;
-		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), progress, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), isProgressing ? 1 : 0, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
-		if(mark)
-			markDirty();
+
+	@Override
+	public void serialize(ByteBuf buf) {
+		super.serialize(buf);
+		buf.writeLong(power);
+		buf.writeInt(progress);
+		buf.writeBoolean(isProgressing);
+		//pseudofluids can be refactored another day
+		buf.writeInt(inputTank.getFill());
+		buf.writeInt(outputTank.getFill());
+		BufferUtil.writeString(buf, inputTank.getTankType().name); //cough cough
+		BufferUtil.writeString(buf, outputTank.getTankType().name);
+
+		tankNew.serialize(buf);
 	}
 
-	protected boolean inputValidForTank(int tank, int slot){
-		if(!inventory.getStackInSlot(slot).isEmpty()){
-			if(isValidFluid(FluidUtil.getFluidContained(inventory.getStackInSlot(slot)))){
-				return true;
+	@Override
+	public void deserialize(ByteBuf buf) {
+		super.deserialize(buf);
+		power = buf.readLong();
+		progress = buf.readInt();
+		isProgressing = buf.readBoolean();
+
+		inputTank.setFill(buf.readInt());
+		outputTank.setFill(buf.readInt());
+		inputTank.setTankType(GasCentrifugeRecipes.PseudoFluidType.types.get(BufferUtil.readString(buf)));
+		outputTank.setTankType(GasCentrifugeRecipes.PseudoFluidType.types.get(BufferUtil.readString(buf)));
+
+		tankNew.deserialize(buf);
+	}
+
+	private void updateConnections() {
+		for(DirPos pos : getConPos()) {
+			this.trySubscribe(world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+
+			if(GasCentrifugeRecipes.fluidConversions.containsValue(inputTank.getTankType())) {
+				this.trySubscribe(tankNew.getTankType(), world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
 			}
 		}
-		return false;
 	}
-	
-	private boolean isValidFluid(FluidStack stack) {
-		if(stack == null)
-			return false;
-		return MachineRecipes.getFluidConsumedGasCent(stack.getFluid()) != 0;
+
+	private DirPos[] getConPos() {
+		return new DirPos[] {
+				new DirPos(pos.getX(), pos.getY() - 1, pos.getZ(), Library.NEG_Y),
+				new DirPos(pos.getX() + 1, pos.getY(), pos.getZ(), Library.POS_X),
+				new DirPos(pos.getX() - 1, pos.getY(), pos.getZ(), Library.NEG_X),
+				new DirPos(pos.getX(), pos.getY(), pos.getZ() + 1, Library.POS_Z),
+				new DirPos(pos.getX(), pos.getY(), pos.getZ() - 1, Library.NEG_Z)
+		};
+	}
+
+	public void setTankType(int in) {
+
+		if(inventory.getStackInSlot(in) != ItemStack.EMPTY && inventory.getStackInSlot(in).getItem() instanceof IItemFluidIdentifier) {
+			IItemFluidIdentifier id = (IItemFluidIdentifier) inventory.getStackInSlot(in).getItem();
+			FluidType newType = id.getType(world, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(in));
+
+			if(tankNew.getTankType() != newType) {
+				GasCentrifugeRecipes.PseudoFluidType pseudo = GasCentrifugeRecipes.fluidConversions.get(newType);
+
+				if(pseudo != null) {
+					inputTank.setTankType(pseudo);
+					outputTank.setTankType(pseudo.getOutputType());
+					tankNew.setTankType(newType);
+				}
+			}
+
+		}
 	}
 
 	@Override
@@ -282,48 +324,120 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 	}
 
 	@Override
-	public void recievePacket(NBTTagCompound[] tags) {
-		if(tags.length != 1){
-			return;
-		} else {
-			tank.readFromNBT(tags[0]);
+	public FluidTankNTM[] getReceivingTanks() {
+		return new FluidTankNTM[] {tankNew};
+	}
+
+	@Override
+	public FluidTankNTM[] getAllTanks() {
+		return new FluidTankNTM[] {tankNew};
+	}
+
+	public class PseudoFluidTank {
+		GasCentrifugeRecipes.PseudoFluidType type;
+		int fluid;
+		int maxFluid;
+
+		public PseudoFluidTank(GasCentrifugeRecipes.PseudoFluidType type, int maxFluid) {
+			this.type = type;
+			this.maxFluid = maxFluid;
 		}
-	}
 
-	@Override
-	public IFluidTankProperties[] getTankProperties() {
-		return new IFluidTankProperties[]{tank.getTankProperties()[0]};
-	}
-
-	@Override
-	public int fill(FluidStack resource, boolean doFill) {
-		if (isValidFluid(resource)) {
-			return tank.fill(resource, doFill);
+		public void setFill(int i) {
+			fluid = i;
 		}
-		return 0;
-	}
 
-	@Override
-	public FluidStack drain(FluidStack resource, boolean doDrain) {
-		return null;
-	}
+		public void setTankType(GasCentrifugeRecipes.PseudoFluidType type) {
 
-	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain) {
-		return null;
-	}
-	
-	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-		return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
-	}
-	
-	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY){
-			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-		} else {
-			return super.getCapability(capability, facing);
+			if(this.type.equals(type))
+				return;
+
+			if(type == null)
+				this.type = GasCentrifugeRecipes.PseudoFluidType.NONE;
+			else
+				this.type = type;
+
+			this.setFill(0);
 		}
+
+		public GasCentrifugeRecipes.PseudoFluidType getTankType() {
+			return type;
+		}
+
+		public int getFill() {
+			return fluid;
+		}
+
+		public int getMaxFill() {
+			return maxFluid;
+		}
+
+		//Called by TE to save fillstate
+		public void writeToNBT(NBTTagCompound nbt, String s) {
+			nbt.setInteger(s, fluid);
+			nbt.setInteger(s + "_max", maxFluid);
+			nbt.setString(s + "_type", type.name);
+		}
+
+		//Called by TE to load fillstate
+		public void readFromNBT(NBTTagCompound nbt, String s) {
+			fluid = nbt.getInteger(s);
+			int max = nbt.getInteger(s + "_max");
+			if(max > 0) maxFluid = nbt.getInteger(s + "_max");
+			type = GasCentrifugeRecipes.PseudoFluidType.types.get(nbt.getString(s + "_type"));
+			if(type == null) type = GasCentrifugeRecipes.PseudoFluidType.NONE;
+		}
+
+		/*        ______      ______
+		 *       _I____I_    _I____I_
+		 *      /      \\\  /      \\\
+		 *     |IF{    || ||     } || |
+		 *     | IF{   || ||    }  || |
+		 *     |  IF{  || ||   }   || |
+		 *     |   IF{ || ||  }    || |
+		 *     |    IF{|| || }     || |
+		 *     |       || ||       || |
+		 *     |     } || ||IF{    || |
+		 *     |    }  || || IF{   || |
+		 *     |   }   || ||  IF{  || |
+		 *     |  }    || ||   IF{ || |
+		 *     | }     || ||    IF{|| |
+		 *     |IF{    || ||     } || |
+		 *     | IF{   || ||    }  || |
+		 *     |  IF{  || ||   }   || |
+		 *     |   IF{ || ||  }    || |
+		 *     |    IF{|| || }     || |
+		 *     |       || ||       || |
+		 *     |     } || ||IF{	   || |
+		 *     |    }  || || IF{   || |
+		 *     |   }   || ||  IF{  || |
+		 *     |  }    || ||   IF{ || |
+		 *     | }     || ||    IF{|| |
+		 *     |IF{    || ||     } || |
+		 *     | IF{   || ||    }  || |
+		 *     |  IF{  || ||   }   || |
+		 *     |   IF{ || ||  }    || |
+		 *     |    IF{|| || }     || |
+		 *     |       || ||       || |
+		 *     |     } || ||IF{	   || |
+		 *     |    }  || || IF{   || |
+		 *     |   }   || ||  IF{  || |
+		 *     |  }    || ||   IF{ || |
+		 *     | }     || ||    IF{|| |
+		 *    _|_______||_||_______||_|_
+		 *   |                          |
+		 *   |                          |
+		 *   |       |==========|       |
+		 *   |       |NESTED    |       |
+		 *   |       |IF  (:    |       |
+		 *   |       |STATEMENTS|       |
+		 *   |       |==========|       |
+		 *   |                          |
+		 *   |                          |
+		 *   ----------------------------
+		 *
+		 *that's sick af..
+		 *
+		 */
 	}
 }

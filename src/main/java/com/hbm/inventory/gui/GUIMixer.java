@@ -3,11 +3,12 @@ package com.hbm.inventory.gui;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hbm.inventory.MixerRecipes;
+import com.mojang.realmsclient.gui.ChatFormatting;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.inventory.container.ContainerMixer;
 import com.hbm.lib.RefStrings;
-import com.hbm.forgefluid.FFUtils;
 import com.hbm.tileentity.machine.TileEntityMachineMixer;
 
 import net.minecraft.client.Minecraft;
@@ -34,9 +35,23 @@ public class GUIMixer extends GuiInfoContainer {
 		
 		this.drawElectricityInfo(this, mouseX, mouseY, guiLeft + 23, guiTop + 22, 16, 52, mixer.getPower(), mixer.getMaxPower());
 
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 43, guiTop + 22, 7, 52, mixer.tanks[0]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 52, guiTop + 22, 7, 52, mixer.tanks[1]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 117, guiTop + 22, 16, 52, mixer.tanks[2], mixer.outputFluid);
+		MixerRecipes.MixerRecipe[] recipes = MixerRecipes.getOutput(mixer.tanksNew[2].getTankType());
+
+		if(recipes != null && recipes.length > 1) {
+			List<String> label = new ArrayList();
+			label.add(ChatFormatting.YELLOW + "Current recipe (" + (mixer.recipeIndex + 1) + "/" + recipes.length + "):");
+			MixerRecipes.MixerRecipe recipe = recipes[mixer.recipeIndex % recipes.length];
+			if(recipe.input1 != null) label.add("-" + recipe.input1.type.getLocalizedName());
+			if(recipe.input2 != null) label.add("-" + recipe.input2.type.getLocalizedName());
+			if(recipe.solidInput != null) label.add("-" + recipe.solidInput.getStackList().get(20).getDisplayName());
+			label.add(ChatFormatting.RED + "Click to change!");
+			String[] labelArray = label.toArray(new String[0]);
+			this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 62, guiTop + 22, 12, 12, mouseX, mouseY, labelArray);
+		}
+
+		mixer.tanksNew[0].renderTankInfo(this, mouseX, mouseY, guiLeft + 43, guiTop + 23, 7, 52);
+		mixer.tanksNew[1].renderTankInfo(this, mouseX, mouseY, guiLeft + 52, guiTop + 23, 7, 52);
+		mixer.tanksNew[2].renderTankInfo(this, mouseX, mouseY, guiLeft + 117, guiTop + 23, 16, 52);
 		super.renderHoveredToolTip(mouseX, mouseY);
 	}
 
@@ -62,9 +77,5 @@ public class GUIMixer extends GuiInfoContainer {
 			int j = mixer.progress * 53 / mixer.processTime;
 			drawTexturedModalRect(guiLeft + 62, guiTop + 36, 192, 0, j, 44);
 		}
-		
-		FFUtils.drawLiquid(mixer.tanks[0], guiLeft, guiTop, zLevel, 7, 52, 43, 103, mixer.uuMixer);
-		FFUtils.drawLiquid(mixer.tanks[1], guiLeft, guiTop, zLevel, 7, 52, 52, 103, mixer.uuMixer);
-		FFUtils.drawLiquid(mixer.tanks[2], guiLeft, guiTop, zLevel, 16, 52, 117, 103, mixer.uuMixer);
 	}
 }

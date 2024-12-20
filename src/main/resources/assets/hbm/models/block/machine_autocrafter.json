@@ -1,0 +1,8 @@
+{
+	"parent": "block/cube_bottom_top",
+	"textures": {
+		"top": "hbm:blocks/machine_autocrafter_top",
+		"bottom": "hbm:blocks/machine_autocrafter_bottom",
+		"side": "hbm:blocks/machine_autocrafter_side"
+	}
+}

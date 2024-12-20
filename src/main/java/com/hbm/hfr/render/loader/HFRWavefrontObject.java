@@ -609,6 +609,10 @@ public class HFRWavefrontObject implements IModelCustom
         return groupObjectMatcher.matches();
     }
 
+    public WavefrontObjVBO asVBO() {
+        return new WavefrontObjVBO(this);
+    }
+
     @Override
     public String getType()
     {

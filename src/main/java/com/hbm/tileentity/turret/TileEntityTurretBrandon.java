@@ -1,5 +1,7 @@
 package com.hbm.tileentity.turret;
 
+import net.minecraft.entity.player.EntityPlayer;
+
 import java.util.List;
 
 public class TileEntityTurretBrandon extends TileEntityTurretBaseNT {
@@ -13,7 +15,6 @@ public class TileEntityTurretBrandon extends TileEntityTurretBaseNT {
 	@Override
 	public void updateFiringTick() {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

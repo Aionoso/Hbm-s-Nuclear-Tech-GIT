@@ -76,7 +76,7 @@ public class TEPylonSenderPacket implements IMessage {
 							
 						TileEntityPylonBase pyl = (TileEntityPylonBase) te;
 						if(m.addOrRemove){
-							pyl.addConnection(new BlockPos(m.conX, m.conY, m.conZ));
+							pyl.addConnection(m.conX, m.conY, m.conZ);
 						}else{
 							pyl.removeConnection(new BlockPos(m.conX, m.conY, m.conZ));
 						}

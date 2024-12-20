@@ -33,22 +33,6 @@ public class ItemReactorSensor extends Item {
 	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		ItemStack stack = player.getHeldItem(hand);
 		Block b = world.getBlockState(pos).getBlock();
-
-		if(b == ModBlocks.machine_reactor_small || b == ModBlocks.dummy_block_reactor_small || b == ModBlocks.dummy_port_reactor_small) {
-
-			if(stack.getTagCompound() == null)
-				stack.setTagCompound(new NBTTagCompound());
-
-			stack.getTagCompound().setInteger("x", pos.getX());
-			stack.getTagCompound().setInteger("y", pos.getY());
-			stack.getTagCompound().setInteger("z", pos.getZ());
-
-			world.playSound(null, player.posX, player.posY, player.posZ, HBMSoundHandler.techBoop, SoundCategory.PLAYERS, 1.0F, 1.0F);
-
-			player.swingArm(hand);
-			return EnumActionResult.SUCCESS;
-
-		}
 		if(b == ModBlocks.reactor_hatch || b == ModBlocks.reactor_ejector || b == ModBlocks.reactor_inserter) {
 
 			EnumFacing meta = world.getBlockState(pos).getValue(BlockHorizontal.FACING);

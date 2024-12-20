@@ -1,17 +1,16 @@
 package com.hbm.items.special;
 
 import java.util.List;
-import java.util.Random;
 
-import com.hbm.blocks.bomb.BlockCrashedBomb;
 import com.hbm.config.BombConfig;
 import com.hbm.config.WeaponConfig;
 import com.hbm.entity.effect.EntityCloudFleija;
 import com.hbm.entity.logic.EntityNukeExplosionMK3;
-import com.hbm.forgefluid.HbmFluidHandlerCell;
 import com.hbm.forgefluid.HbmFluidHandlerItemStack;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.forgefluid.SpecialContainerFillLists.EnumCell;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
 import com.hbm.util.ContaminationUtil;
 import com.hbm.util.ContaminationUtil.ContaminationType;
@@ -31,18 +30,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -123,11 +117,11 @@ public class ItemCell extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public String getItemStackDisplayName(ItemStack stack) {
-		FluidStack f = FluidUtil.getFluidContained(stack);
+		FluidType f = Fluids.fromID(stack.getItemDamage());
 		if(f != null){
 			//Why is there a npe here? I have no idea, and I can't replicate it. Stupid try/catch it is.
 			try {
-				return I18n.format(EnumCell.getEnumFromFluid(f.getFluid()).getTranslateKey());
+				return I18n.format(EnumCell.getEnumFromFluid(f).getTranslateKey());
 			} catch(NullPointerException e){ }
 		}
 		return I18n.format("item.cell_empty.name");
@@ -136,11 +130,11 @@ public class ItemCell extends Item {
 	@Override
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
 		if(tab == this.getCreativeTab() || tab == CreativeTabs.SEARCH) {
-			for(Fluid f : EnumCell.getFluids()) {
+			for(FluidType f : EnumCell.getFluids()) {
 				ItemStack stack = new ItemStack(this, 1, 0);
 				stack.setTagCompound(new NBTTagCompound());
 				if(f != null)
-					stack.getTagCompound().setTag(HbmFluidHandlerCell.FLUID_NBT_KEY, new FluidStack(f, 1000).writeToNBT(new NBTTagCompound()));
+					stack.getTagCompound().setTag("HbmFluidKey", f.writeToNBT(new NBTTagCompound()));
 				items.add(stack);
 			}
 		}
@@ -170,13 +164,6 @@ public class ItemCell extends Item {
 		}
 	}
 
-	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
-		if(stack.getTagCompound() == null)
-			stack.setTagCompound(new NBTTagCompound());
-		return new HbmFluidHandlerCell(stack, 1000);
-	}
-
 	public static boolean isFullCell(ItemStack stack, Fluid fluid) {
 		if(stack != null) {
 			if(stack.getItem() instanceof ItemCell && FluidUtil.getFluidContained(stack) != null && FluidUtil.getFluidContained(stack).getFluid() == fluid && FluidUtil.getFluidContained(stack).amount == 1000)
@@ -188,7 +175,7 @@ public class ItemCell extends Item {
 	public static boolean isEmptyCell(ItemStack stack) {
 		if(stack != null) {
 			if(stack.getItem() == ModItems.cell && stack.getTagCompound() != null) {
-				FluidStack s = FluidStack.loadFluidStackFromNBT(stack.getTagCompound().getCompoundTag(HbmFluidHandlerCell.FLUID_NBT_KEY));
+				FluidStack s = FluidStack.loadFluidStackFromNBT(stack.getTagCompound().getCompoundTag("HbmFluidKey"));
 				if(s == null || s.amount <= 0)
 					return true;
 			} else if (stack.getItem() == ModItems.cell && stack.getTagCompound() == null){
@@ -206,17 +193,17 @@ public class ItemCell extends Item {
 		return false;
 	}
 
-	public static ItemStack getFullCell(Fluid fluid, int amount) {
+	public static ItemStack getFullCell(FluidType fluid, int amount) {
 		if(EnumCell.contains(fluid)) {
 			ItemStack stack = new ItemStack(ModItems.cell, amount, 0);
 			stack.setTagCompound(new NBTTagCompound());
-			stack.getTagCompound().setTag(HbmFluidHandlerCell.FLUID_NBT_KEY, new FluidStack(fluid, 1000).writeToNBT(new NBTTagCompound()));
+			stack.getTagCompound().setTag("HbmFluidKey", fluid.writeToNBT(new NBTTagCompound()));
 			return stack;
 		}
 		return ItemStack.EMPTY;
 	}
 	
-	public static ItemStack getFullCell(Fluid fluid) {
+	public static ItemStack getFullCell(FluidType fluid) {
 		return getFullCell(fluid, 1);
 	}
 	

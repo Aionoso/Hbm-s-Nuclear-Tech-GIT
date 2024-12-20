@@ -19,13 +19,10 @@ import com.hbm.tileentity.machine.TileEntityMachineBoiler;
 import com.hbm.tileentity.machine.TileEntityMachineBoilerElectric;
 import com.hbm.tileentity.machine.TileEntityMachineBoilerRTG;
 import com.hbm.tileentity.machine.TileEntityMachineCentrifuge;
-import com.hbm.tileentity.machine.TileEntityMachineCoal;
 import com.hbm.tileentity.machine.TileEntityMachineDiesel;
 import com.hbm.tileentity.machine.TileEntityMachineElectricFurnace;
 import com.hbm.tileentity.machine.TileEntityMachineGasCent;
-import com.hbm.tileentity.machine.TileEntityMachineGenerator;
 import com.hbm.tileentity.machine.TileEntityMachineReactorLarge;
-import com.hbm.tileentity.machine.TileEntityMachineReactorSmall;
 import com.hbm.tileentity.machine.TileEntityMachineSeleniumEngine;
 import com.hbm.tileentity.machine.TileEntitySlidingBlastDoor;
 import com.hbm.tileentity.machine.TileEntityWatzCore;
@@ -137,17 +134,6 @@ public class AuxGaugePacket implements IMessage {
 						TileEntityMachineDiesel selenium = (TileEntityMachineDiesel) te;
 
 						selenium.powerCap = m.value;
-					} else if(te instanceof TileEntityMachineReactorSmall) {
-						TileEntityMachineReactorSmall reactor = (TileEntityMachineReactorSmall) te;
-
-						if(m.id == 0)
-							reactor.rods = m.value;
-						if(m.id == 1)
-							reactor.retracting = m.value == 1;
-						if(m.id == 2)
-							reactor.coreHeat = m.value;
-						if(m.id == 3)
-							reactor.hullHeat = m.value;
 					} else if(te instanceof TileEntityMachineGasCent) {
 						TileEntityMachineGasCent cent = (TileEntityMachineGasCent) te;
 
@@ -176,11 +162,6 @@ public class AuxGaugePacket implements IMessage {
 							rtgBoiler.heat = m.value;
 						if(m.id == 1)
 							rtgBoiler.rtgPower = m.value;
-					} else if(te instanceof TileEntityMachineCoal) {
-						TileEntityMachineCoal coalgen = (TileEntityMachineCoal) te;
-
-						if(m.id == 0)
-							coalgen.burnTime = m.value;
 					} else if(te instanceof TileEntityMachineElectricFurnace) {
 						TileEntityMachineElectricFurnace furn = (TileEntityMachineElectricFurnace) te;
 
@@ -248,9 +229,6 @@ public class AuxGaugePacket implements IMessage {
 					} else if(te instanceof TileEntityCoreStabilizer) {
 						if(m.id == 0)
 							((TileEntityCoreStabilizer) te).beam = m.value;
-					} else if(te instanceof TileEntityMachineGenerator){
-						if(m.id == 0)
-							((TileEntityMachineGenerator) te).heat = m.value;
 					} else if(te instanceof TileEntityWatzCore){
 						TileEntityWatzCore core = (TileEntityWatzCore) te;
 						if(m.id == 0)

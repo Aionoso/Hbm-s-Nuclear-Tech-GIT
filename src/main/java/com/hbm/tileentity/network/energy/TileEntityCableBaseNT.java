@@ -1,108 +1,60 @@
 package com.hbm.tileentity.network.energy;
 
+import api.hbm.energymk2.IEnergyConductorMK2;
+import api.hbm.energymk2.Nodespace;
 import com.hbm.lib.ForgeDirection;
-import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyConductor;
-import api.hbm.energy.IPowerNet;
-import api.hbm.energy.PowerNet;
 import net.minecraft.util.ITickable;
 import net.minecraft.tileentity.TileEntity;
 
-public class TileEntityCableBaseNT extends TileEntity implements ITickable, IEnergyConductor {
+public class TileEntityCableBaseNT extends TileEntity implements ITickable, IEnergyConductorMK2 {
 	
-	protected IPowerNet network;
+	protected Nodespace.PowerNode node;
 
 	@Override
 	public void update() {
-		
-		if(!world.isRemote && canUpdate()) {
-			
-			//we got here either because the net doesn't exist or because it's not valid, so that's safe to assume
-			this.setPowerNet(null);
-			
-			this.connect();
-			
-			if(this.getPowerNet() == null) {
-				this.setPowerNet(new PowerNet().joinLink(this));
+
+		if(!world.isRemote) {
+
+			if(this.node == null || this.node.expired) {
+
+				if(this.shouldCreateNode()) {
+					this.node = Nodespace.getNode(world, pos);
+
+					if(this.node == null || this.node.expired) {
+						this.node = this.createNode();
+						Nodespace.createNode(world, this.node);
+					}
+				}
 			}
 		}
 	}
-	
-	protected void connect() {
-		
-		for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-			
-			TileEntity te = world.getTileEntity(pos.add(dir.offsetX, dir.offsetY, dir.offsetZ));
-			
-			if(te instanceof IEnergyConductor) {
-				
-				IEnergyConductor conductor = (IEnergyConductor) te;
-				
-				if(!conductor.canConnect(dir.getOpposite()))
-					continue;
-				
-				if(this.getPowerNet() == null && conductor.getPowerNet() != null) {
-					conductor.getPowerNet().joinLink(this);
-				}
-				
-				if(this.getPowerNet() != null && conductor.getPowerNet() != null && this.getPowerNet() != conductor.getPowerNet()) {
-					conductor.getPowerNet().joinNetworks(this.getPowerNet());
-				}
-			}
-		}
+
+	public boolean canUpdate() {
+		return (this.node == null || !this.node.hasValidNet()) && !this.isInvalid();
+	}
+
+	public boolean shouldCreateNode() {
+		return true;
+	}
+
+	public void onNodeDestroyedCallback() {
+		this.node = null;
 	}
 
 	@Override
 	public void invalidate() {
 		super.invalidate();
-		
+
 		if(!world.isRemote) {
-			if(this.network != null) {
-				this.network.reevaluate();
-				this.network = null;
+			if(this.node != null) {
+				Nodespace.destroyNode(world, pos);
 			}
 		}
-	}
-
-	/**
-	 * Only update until a power net is formed, in >99% of the cases it should be the first tick. Everything else is handled by neighbors and the net itself.
-	 */
-	public boolean canUpdate() {
-		return (this.network == null || !this.network.isValid()) && !this.isInvalid();
 	}
 
 	@Override
 	public boolean canConnect(ForgeDirection dir) {
 		return dir != ForgeDirection.UNKNOWN;
-	}
-
-	@Override
-	public long getPower() {
-		return 0;
-	}
-
-	@Override
-	public long getMaxPower() {
-		return 0;
-	}
-
-	@Override
-	public void setPowerNet(IPowerNet network) {
-		this.network = network;
-	}
-
-	@Override
-	public long transferPower(long power) {
-		
-		if(this.network == null)
-			return power;
-		
-		return this.network.transferPower(power);
-	}
-
-	@Override
-	public IPowerNet getPowerNet() {
-		return this.network;
 	}
 }

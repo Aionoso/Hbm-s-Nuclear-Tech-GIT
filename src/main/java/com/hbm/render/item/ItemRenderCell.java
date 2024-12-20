@@ -1,5 +1,6 @@
 package com.hbm.render.item;
 
+import com.hbm.inventory.fluid.Fluids;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.forgefluid.SpecialContainerFillLists.EnumCell;
@@ -15,8 +16,8 @@ public class ItemRenderCell extends TEISRBase {
 	@Override
 	public void renderByItem(ItemStack stack) {
 		IBakedModel model = null;
-		if(FluidUtil.getFluidContained(stack) != null && EnumCell.contains(FluidUtil.getFluidContained(stack).getFluid()))
-			model = EnumCell.getEnumFromFluid(FluidUtil.getFluidContained(stack).getFluid()).getRenderModel();
+		if(FluidUtil.getFluidContained(stack) != null && EnumCell.contains(Fluids.fromID(stack.getItemDamage())))
+			model = EnumCell.getEnumFromFluid(Fluids.fromID(stack.getItemDamage())).getRenderModel();
 		if(model == null){
 			model = itemModel;
 		}

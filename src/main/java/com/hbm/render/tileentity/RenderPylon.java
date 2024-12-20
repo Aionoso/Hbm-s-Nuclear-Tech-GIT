@@ -53,8 +53,8 @@ public class RenderPylon extends TileEntitySpecialRenderer<TileEntityPylon> {
 		GL11.glTranslatef((float) x, (float) y, (float) z);
 		for (int i = 0; i < pyl.connected.size(); i++) {
 
-			BlockPos otherPylon = pyl.connected.get(i);
-			TileEntity tile = pyl.getWorld().getTileEntity(otherPylon);
+			int[] otherPylon = pyl.connected.get(i);
+			TileEntity tile = pyl.getWorld().getTileEntity(new BlockPos(otherPylon[0], otherPylon[1], otherPylon[2]));
 
 			if(tile instanceof TileEntityPylonBase) {
 				TileEntityPylonBase pylon = (TileEntityPylonBase) tile;
@@ -74,7 +74,7 @@ public class RenderPylon extends TileEntitySpecialRenderer<TileEntityPylon> {
 					Vec3 first = m1[line % m1.length];
 					Vec3 second = m2[secondIndex];
 
-					Vec3 mid = new Vec3(otherPylon).add(second).subtract(new Vec3(pyl.getPos()).add(first));
+					Vec3 mid = new Vec3(new BlockPos(otherPylon[0], otherPylon[1], otherPylon[2])).add(second).subtract(new Vec3(pyl.getPos()).add(first));
 					drawLine(first, first.add(new Vec3(mid.xCoord*0.5, mid.yCoord*0.5, mid.zCoord*0.5)), lineCount == 1 ? 0.03125F : 0.055F, mid.lengthVector()*0.045);
 				}
 			}

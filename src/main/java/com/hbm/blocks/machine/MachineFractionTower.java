@@ -6,7 +6,9 @@ import java.util.List;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.inventory.RefineryRecipes;
+import com.hbm.inventory.fluid.FluidType;
 import com.hbm.items.ModItems;
+import com.hbm.items.machine.IItemFluidIdentifier;
 import com.hbm.items.machine.ItemForgeFluidIdentifier;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.TileEntityProxyCombo;
@@ -78,7 +80,7 @@ public class MachineFractionTower extends BlockDummyable implements ILookOverlay
 						player.sendMessage(new TextComponentTranslation("chat.fractioning.y", pos[1]));
 
 						for(int i = 0; i < frac.tanks.length; i++)
-							player.sendMessage(new TextComponentTranslation(frac.types[i].getUnlocalizedName()).appendSibling(new TextComponentString(": " + frac.tanks[i].getFluidAmount() + "/" + frac.tanks[i].getCapacity() + "mB")));
+							player.sendMessage(new TextComponentTranslation(frac.tanks[i].getTankType().getUnlocalizedName()).appendSibling(new TextComponentString(": " + frac.tanks[i].getFill() + "/" + frac.tanks[i].getMaxFill() + "mB")));
 					}
 				} else {
 					
@@ -87,19 +89,10 @@ public class MachineFractionTower extends BlockDummyable implements ILookOverlay
 							player.sendMessage(new TextComponentTranslation("chat.fractioning.onlybottom"));
 						}
 					} else {
-						Fluid type = ItemForgeFluidIdentifier.getType(player.getHeldItem(hand));
-						if(RefineryRecipes.getFractions(type) == null){
-							if(world.isRemote){
-								player.sendMessage(new TextComponentTranslation("chat.fractioning.norecipe", type.getLocalizedName(new FluidStack(type, 1))));
-							}
-							return false;
-						}
-						
-						frac.setTankType(0, type);
+						FluidType type = ((IItemFluidIdentifier) player.getHeldItem(hand).getItem()).getType(world, pos[0], pos[1], pos[2], player.getHeldItem(hand));
+						frac.tanks[0].setTankType(type);
 						frac.markDirty();
-						if(world.isRemote){
-							player.sendMessage(new TextComponentTranslation("chat.fractioning.changedto", I18n.format(type.getUnlocalizedName())));
-						}
+						player.sendMessage(new TextComponentTranslation("chat.fractioning.changedto", I18n.format(type.getConditionalName())));
 					}
 				}
 				
@@ -141,9 +134,9 @@ public class MachineFractionTower extends BlockDummyable implements ILookOverlay
 		
 		List<String> text = new ArrayList();
 
-		for(int i = 0; i < frac.types.length; i++){
-			if(frac.types[i] != null){
-				text.add((i < 1 ? ("§a" + "-> ") : ("§c" + "<- ")) + "§r" + frac.types[i].getLocalizedName(new FluidStack(frac.types[i], 1)) + ": " + frac.tanks[i].getFluidAmount() + "/" + frac.tanks[i].getCapacity() + "mB");
+		for(int i = 0; i < frac.tanks.length; i++){
+			if(frac.tanks[i] != null){
+				text.add((i < 1 ? ("§a" + "-> ") : ("§c" + "<- ")) + "§r" + frac.tanks[i].getTankType().getLocalizedName() + ": " + frac.tanks[i].getFill() + "/" + frac.tanks[i].getMaxFill() + "mB");
 			}
 		}
 

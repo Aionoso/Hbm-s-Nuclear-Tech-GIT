@@ -3,7 +3,6 @@ package com.hbm.inventory.gui;
 import com.hbm.util.I18nUtil;
 import org.lwjgl.opengl.GL11;
 
-import com.hbm.forgefluid.FFUtils;
 import com.hbm.inventory.container.ContainerMachineBoilerRTG;
 import com.hbm.lib.RefStrings;
 import com.hbm.tileentity.machine.TileEntityMachineBoilerRTG;
@@ -34,8 +33,8 @@ public class GUIMachineBoilerRTG extends GuiInfoContainer {
 		if(rtgBoiler.isInvalid() && rtgBoiler.getWorld().getTileEntity(rtgBoiler.getPos()) instanceof TileEntityMachineBoilerRTG)
 			dud = (TileEntityMachineBoilerRTG) rtgBoiler.getWorld().getTileEntity(rtgBoiler.getPos());
 
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 44, guiTop + 69 - 52, 16, 52, dud.tanks[0]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 116, guiTop + 69 - 52, 16, 52, dud.tanks[1]);
+		dud.tanksNew[0].renderTankInfo(this, mouseX, mouseY, guiLeft + 62, guiTop + 69 - 52, 16, 52);
+		dud.tanksNew[1].renderTankInfo(this, mouseX, mouseY, guiLeft + 134, guiTop + 69 - 52, 16, 52);
 
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 84, guiTop + 16, 8, 18, mouseX, mouseY, new String[] { String.valueOf((int)((double)dud.heat / 100D)) + "°C"});
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + 79, guiTop + 34, 18, 18, mouseX, mouseY, new String[] { "RTG Heat: "+dud.rtgPower });
@@ -78,9 +77,9 @@ public class GUIMachineBoilerRTG extends GuiInfoContainer {
 
 		this.drawInfoPanel(guiLeft - 16, guiTop + 36, 16, 16, 2);
 		this.drawInfoPanel(guiLeft - 16, guiTop + 36 + 16, 16, 16, 3);
-		
-		
-		FFUtils.drawLiquid(dud.tanks[0], guiLeft, guiTop, this.zLevel, 16, 52, 44, 97);
-		FFUtils.drawLiquid(dud.tanks[1], guiLeft, guiTop, this.zLevel, 16, 52, 116, 97);
+
+
+		dud.tanksNew[0].renderTank(guiLeft + 62, guiTop + 69, this.zLevel, 16, 52);
+		dud.tanksNew[1].renderTank(guiLeft + 134, guiTop + 69, this.zLevel, 16, 52);
 	}
 }

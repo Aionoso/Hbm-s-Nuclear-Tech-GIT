@@ -2,8 +2,8 @@ package com.hbm.tileentity.machine;
 
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyProviderMK2;
 import com.hbm.entity.particle.EntitySSmokeFX;
-import com.hbm.entity.particle.EntityTSmokeFX;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.items.ModItems;
@@ -17,12 +17,10 @@ import com.hbm.sound.AudioWrapper;
 import com.hbm.packet.AuxElectricityPacket;
 import com.hbm.packet.AuxParticlePacketNT;
 import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.LoopedSoundPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.TETurbofanPacket;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyGenerator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,7 +29,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.DamageSource;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.SoundCategory;
@@ -48,7 +45,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
-public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor {
+public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements ITickable, IEnergyProviderMK2, IFluidHandler, ITankPacketAcceptor {
 
 	public ItemStackHandler inventory;
 
@@ -380,10 +377,10 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - 10).getRotation(ForgeDirection.UP);
 		ForgeDirection rot = dir.getRotation(ForgeDirection.DOWN);
 		
-		this.sendPower(world, pos.add(rot.offsetX * 2, 0, rot.offsetZ * 2), rot);
-		this.sendPower(world, pos.add(rot.offsetX * 2 - dir.offsetX, 0, rot.offsetZ * 2 - dir.offsetZ), rot);
-		this.sendPower(world, pos.add(rot.offsetX * -2, 0, rot.offsetZ * -2), rot.getOpposite());
-		this.sendPower(world, pos.add(rot.offsetX * -2 - dir.offsetX, 0, rot.offsetZ * -2 - dir.offsetZ), rot.getOpposite());
+		this.tryProvide(world, pos.getX() + rot.offsetX * 2, pos.getY(), pos.getZ() + rot.offsetZ * 2, rot);
+		this.tryProvide(world, pos.getX() + rot.offsetX * 2 - dir.offsetX, pos.getY(), pos.getZ() + rot.offsetZ * 2 - dir.offsetZ, rot);
+		this.tryProvide(world, pos.getX() + rot.offsetX * -2, pos.getY(), pos.getZ() + rot.offsetZ * -2, rot.getOpposite());
+		this.tryProvide(world, pos.getX() + rot.offsetX * -2 - dir.offsetX, pos.getY(), pos.getZ() + rot.offsetZ * -2 - dir.offsetZ, rot.getOpposite());
 	}
 	
 	@Override

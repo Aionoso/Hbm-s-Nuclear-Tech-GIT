@@ -3,12 +3,13 @@ package com.hbm.tileentity.machine;
 import java.util.ArrayList;
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.blocks.machine.MachineCharger;
+import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IBatteryItem;
-import api.hbm.energy.IEnergyUser;
+import api.hbm.energymk2.IBatteryItem;
 import net.minecraft.util.ITickable;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,7 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.AxisAlignedBB;
 
-public class TileEntityCharger extends TileEntityLoadedBase implements ITickable, IEnergyUser, INBTPacketReceiver {
+public class TileEntityCharger extends TileEntityLoadedBase implements ITickable, IEnergyReceiverMK2, INBTPacketReceiver {
 	
 	public static final int range = 3;
 
@@ -33,13 +34,14 @@ public class TileEntityCharger extends TileEntityLoadedBase implements ITickable
 
 	@Override
 	public void update() {
+		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata()).getOpposite();
 		
 		if(!world.isRemote) {
 			MachineCharger c = (MachineCharger)world.getBlockState(pos).getBlock();
 			this.maxChargeRate = c.maxThroughput;
 			this.pointingUp = c.pointingUp;
 
-			this.updateStandardConnections(world, pos);
+			this.trySubscribe(world, pos.getX() + dir.offsetX, pos.getY(), pos.getZ() + dir.offsetZ, dir);
 			
 			players = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + (pointingUp ? range : -range), pos.getZ() + 1));
 			

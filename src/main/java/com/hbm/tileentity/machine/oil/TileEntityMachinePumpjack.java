@@ -180,10 +180,10 @@ public class TileEntityMachinePumpjack extends TileEntityOilDrillBase {
 		ForgeDirection dir = ForgeDirection.getOrientation(world.getBlockState(pos).getValue(MachinePumpjack.FACING).ordinal());
 		ForgeDirection rot = dir.getRotation(ForgeDirection.DOWN);
 		
-		this.trySubscribe(world, pos.add(rot.offsetX * 2 + dir.offsetX * 2, 0, rot.offsetZ * 2 + dir.offsetZ * 2), dir);
-		this.trySubscribe(world, pos.add(rot.offsetX * 2 + dir.offsetX * 2, 0, rot.offsetZ * 4 - dir.offsetZ * 2), dir.getOpposite());
-		this.trySubscribe(world, pos.add(rot.offsetX * 4 - dir.offsetX * 2, 0, rot.offsetZ * 4 + dir.offsetZ * 2), dir);
-		this.trySubscribe(world, pos.add(rot.offsetX * 4 - dir.offsetX * 2, 0, rot.offsetZ * 2 - dir.offsetZ * 2), dir.getOpposite());
+		this.trySubscribe(world, pos.getX() + rot.offsetX * 2 + dir.offsetX * 2, pos.getY(), pos.getZ() + rot.offsetZ * 2 + dir.offsetZ * 2, dir);
+		this.trySubscribe(world, pos.getX() + rot.offsetX * 2 + dir.offsetX * 2, pos.getY(), pos.getZ() + rot.offsetZ * 4 - dir.offsetZ * 2, dir.getOpposite());
+		this.trySubscribe(world, pos.getX() + rot.offsetX * 4 - dir.offsetX * 2, pos.getY(), pos.getZ() + rot.offsetZ * 4 + dir.offsetZ * 2, dir);
+		this.trySubscribe(world, pos.getX() + rot.offsetX * 4 - dir.offsetX * 2, pos.getY(), pos.getZ() + rot.offsetZ * 2 - dir.offsetZ * 2, dir.getOpposite());
 	}
 
 

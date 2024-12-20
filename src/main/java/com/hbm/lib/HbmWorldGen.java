@@ -57,7 +57,7 @@ import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.*;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.feature.WorldGenMinable;
@@ -83,7 +83,36 @@ public class HbmWorldGen implements IWorldGenerator {
 			t.printStackTrace();
 		}
 	}
+	// TODO This is for plants
+/*
+	private void generateSurface(World world, Random rand, int i, int j) {
 
+		Biome biome = world.getWorldChunkManager().getBiomeGenAt(i, j);
+
+		if (!TomSaveData.forWorld(world).impact) {
+
+			if (biome instanceof BiomeForest && rand.nextInt(16) == 0) {
+				DungeonToolbox.generateFlowers(world, rand, i, j, ModBlocks.plant_flower, EnumFlowerType.FOXGLOVE.ordinal());
+			}
+			// There should be roofed forest
+			if (biome instanceof BiomeForest && rand.nextInt(8) == 0) {
+				DungeonToolbox.generateFlowers(world, rand, i, j, ModBlocks.plant_flower, EnumFlowerType.NIGHTSHADE.ordinal());
+			}
+			if (biome instanceof BiomeJungle && rand.nextInt(8) == 0) {
+				DungeonToolbox.generateFlowers(world, rand, i, j, ModBlocks.plant_flower, EnumFlowerType.TOBACCO.ordinal());
+			}
+			if (rand.nextInt(64) == 0) {
+				DungeonToolbox.generateFlowers(world, rand, i, j, ModBlocks.plant_flower, EnumFlowerType.WEED.ordinal());
+			}
+			if (biome instanceof BiomeRiver && rand.nextInt(4) == 0) {
+				DungeonToolbox.generateFlowers(world, rand, i, j, ModBlocks.reeds, 0);
+			}
+			if (biome instanceof BiomeBeach && rand.nextInt(8) == 0) {
+				DungeonToolbox.generateFlowers(world, rand, i, j, ModBlocks.reeds, 0);
+			}
+		}
+	}
+	*/
 	public void generateOres(World world, Random rand, int i, int j){
 		int dimID = world.provider.getDimension();
 

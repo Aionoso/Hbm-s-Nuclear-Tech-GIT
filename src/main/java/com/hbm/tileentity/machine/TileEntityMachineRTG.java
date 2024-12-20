@@ -1,30 +1,24 @@
 package com.hbm.tileentity.machine;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.hbm.items.ModItems;
-import com.hbm.lib.Library;
+import api.hbm.energymk2.IEnergyProviderMK2;
+import com.hbm.lib.ForgeDirection;
 import com.hbm.packet.AuxElectricityPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.items.machine.ItemRTGPellet;
 import com.hbm.tileentity.TileEntityLoadedBase;
 import com.hbm.util.RTGUtil;
 
-import api.hbm.energy.IEnergyGenerator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
-public class TileEntityMachineRTG extends TileEntityLoadedBase implements ITickable, IEnergyGenerator {
+public class TileEntityMachineRTG extends TileEntityLoadedBase implements ITickable, IEnergyProviderMK2 {
 
 	public ItemStackHandler inventory;
 	
@@ -77,7 +71,8 @@ public class TileEntityMachineRTG extends TileEntityLoadedBase implements ITicka
 	public void update() {
 		if(!world.isRemote)
 		{
-			this.sendPower(world, pos);
+			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS)
+				this.tryProvide(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
 			int[] slots = new int[inventory.getSlots()];
 			for(int i = 0; i < inventory.getSlots();i++){
 				slots[i] = i;

@@ -69,7 +69,7 @@ public class ItemGunVortex extends ItemGunBase {
 		
 		for(Entity e : entsOnBeam){
 			if((e instanceof EntityLivingBase) && CompatibilityConfig.isWarDim(world)){
-				float dmg = 30;
+				float dmg = 100;
 				try {
 					if (ItemGunBase.hurtResistantTime == null)
 						ItemGunBase.hurtResistantTime = ReflectionHelper.findField(Entity.class, "hurtResistantTime", "field_70172_ad");

@@ -161,13 +161,13 @@ public class GunEnergyFactory {
 		config.hasSights = false;
 		config.reloadDuration = 20;
 		config.firingDuration = 0;
-		config.ammoCap = 10;
+		config.ammoCap = 8;
 		config.reloadType = GunConfiguration.RELOAD_FULL;
 		config.allowsInfinity = true;
 		config.crosshair = Crosshair.NONE;
-		config.durability = 10000;
-		config.reloadSound = GunConfiguration.RSOUND_MAG;
-		config.firingSound = HBMSoundHandler.hksShoot;
+		config.durability = 20000;
+		config.reloadSound = GunConfiguration.RSOUND_VORTEX;
+		config.firingSound = HBMSoundHandler.vortexShoot;
 		config.reloadSoundEnd = false;
 
 		config.name = "Visual Operation Ranged Tactical Electromagnetic Xenoblaster";

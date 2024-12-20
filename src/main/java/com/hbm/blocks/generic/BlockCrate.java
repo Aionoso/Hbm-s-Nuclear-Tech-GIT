@@ -6,6 +6,7 @@ import java.util.Random;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.forgefluid.ModForgeFluids;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
 import com.hbm.items.special.ItemCell;
 import com.hbm.lib.HBMSoundHandler;
@@ -136,10 +137,10 @@ public class BlockCrate extends BlockFalling {
     	BlockCrate.addToListWithWeight(leadList, ModItems.nugget_uranium_fuel, 8);
     	BlockCrate.addToListWithWeight(leadList, ModItems.nugget_plutonium_fuel, 7);
     	BlockCrate.addToListWithWeight(leadList, ModItems.nugget_mox_fuel, 6);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.deuterium), 8);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.tritium), 8);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.uf6), 8);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.puf6), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(Fluids.DEUTERIUM), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(Fluids.TRITIUM), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(Fluids.UF6), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(Fluids.PUF6), 8);
     	BlockCrate.addToListWithWeight(leadList, ModItems.pellet_rtg, 6);
     	BlockCrate.addToListWithWeight(leadList, ModItems.pellet_rtg_weak, 7);
     	BlockCrate.addToListWithWeight(leadList, ModItems.tritium_deuterium_cake, 5);
@@ -148,9 +149,7 @@ public class BlockCrate extends BlockFalling {
     	//Metal Crate
     	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_press), 10);
     	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_difurnace_off), 9);
-    	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_reactor), 6);
     	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_nuke_furnace_off), 7);
-    	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_coal_off), 10);
     	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_diesel), 8);
     	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_selenium), 7);
     	BlockCrate.addToListWithWeight(metalList, Item.getItemFromBlock(ModBlocks.machine_rtg_grey), 4);

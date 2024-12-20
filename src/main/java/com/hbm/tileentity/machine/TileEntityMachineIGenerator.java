@@ -1,10 +1,9 @@
 package com.hbm.tileentity.machine;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import api.hbm.energymk2.IEnergyProviderMK2;
 import com.google.common.collect.HashBiMap;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.forgefluid.FFUtils;
@@ -18,7 +17,6 @@ import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyGenerator;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -26,7 +24,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -37,7 +34,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityMachineIGenerator extends TileEntityMachineBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor {
+public class TileEntityMachineIGenerator extends TileEntityMachineBase implements ITickable, IEnergyProviderMK2, IFluidHandler, ITankPacketAcceptor {
 
 	public long power;
 	public static final long maxPower = 1000000;
@@ -410,7 +407,7 @@ public class TileEntityMachineIGenerator extends TileEntityMachineBase implement
 		for(int ix = -rot[4]; ix <= rot[5]; ix++) {
 			for(int iz = -rot[2]; iz <= rot[3]; iz++) {
 				if(ix == -rot[4] || ix == rot[5] || iz == -rot[2] || iz == rot[3]) {
-					this.sendPower(world, pos.add(dir.offsetX * 2 + ix, -1, dir.offsetZ * 2 + iz), ForgeDirection.DOWN);
+					this.tryProvide(world, pos.getX() + dir.offsetX * 2 + ix, pos.getY() -1, pos.getZ() + dir.offsetZ * 2 + iz, ForgeDirection.DOWN);
 				}
 			}
 		}

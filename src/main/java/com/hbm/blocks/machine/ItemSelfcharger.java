@@ -5,7 +5,7 @@ import java.util.List;
 import com.hbm.items.ModItems;
 import com.hbm.lib.Library;
 
-import api.hbm.energy.IBatteryItem;
+import api.hbm.energymk2.IBatteryItem;
 import com.hbm.util.I18nUtil;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;

@@ -196,10 +196,10 @@ public class TileEntityMachineFrackingTower extends TileEntityOilDrillBase {
     }
 
     protected void updateConnections() {
-        this.trySubscribe(world, pos.add(1, 0, 0), Library.POS_X);
-        this.trySubscribe(world, pos.add(-1, 0, 0), Library.NEG_X);
-        this.trySubscribe(world, pos.add(0, 0, 1), Library.POS_Z);
-        this.trySubscribe(world, pos.add(0, 0, -1), Library.NEG_Z);
+        this.trySubscribe(world, pos.getX() + 1, pos.getY(), pos.getZ(), Library.POS_X);
+        this.trySubscribe(world, pos.getX() - 1, pos.getY(), pos.getZ(), Library.NEG_X);
+        this.trySubscribe(world, pos.getX(), pos.getY(), pos.getZ() + 1, Library.POS_Z);
+        this.trySubscribe(world, pos.getX(), pos.getY(), pos.getZ() - 1, Library.NEG_Z);
     }
 
     public void fillFluidInit(FluidTank tank) {

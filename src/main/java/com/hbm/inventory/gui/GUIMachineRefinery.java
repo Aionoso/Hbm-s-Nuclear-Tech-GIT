@@ -28,12 +28,12 @@ public class GUIMachineRefinery extends GuiInfoContainer {
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float f) {
 		super.drawScreen(mouseX, mouseY, f);
-		
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 26, guiTop + 70 - 52, 34, 52, refinery.tanks[0], refinery.tankTypes[0]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 80, guiTop + 70 - 52, 16, 52, refinery.tanks[1], refinery.tankTypes[1]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 98, guiTop + 70 - 52, 16, 52, refinery.tanks[2], refinery.tankTypes[2]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 116, guiTop + 70 - 52, 16, 52, refinery.tanks[3], refinery.tankTypes[3]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 134, guiTop + 70 - 52, 16, 52, refinery.tanks[4], refinery.tankTypes[4]);
+
+		refinery.tanks[0].renderTankInfo(this, mouseX, mouseY, guiLeft + 26, guiTop + 70 - 52, 34, 52);
+		refinery.tanks[1].renderTankInfo(this, mouseX, mouseY, guiLeft + 80, guiTop + 70 - 52, 16, 52);
+		refinery.tanks[2].renderTankInfo(this, mouseX, mouseY, guiLeft + 98, guiTop + 70 - 52, 16, 52);
+		refinery.tanks[3].renderTankInfo(this, mouseX, mouseY, guiLeft + 116, guiTop + 70 - 52, 16, 52);
+		refinery.tanks[4].renderTankInfo(this, mouseX, mouseY, guiLeft + 134, guiTop + 70 - 52, 16, 52);
 		
 		this.drawElectricityInfo(this, mouseX, mouseY, guiLeft + 8, guiTop + 70 - 52, 16, 52, refinery.power, TileEntityMachineRefinery.maxPower);
 		super.renderHoveredToolTip(mouseX, mouseY);
@@ -56,13 +56,12 @@ public class GUIMachineRefinery extends GuiInfoContainer {
 
 		int j = (int)refinery.getPowerScaled(52);
 		drawTexturedModalRect(guiLeft + 8, guiTop + 70 - j, 176, 52 - j, 16, j);
-		
-		FFUtils.drawLiquid(refinery.tanks[0], guiLeft, guiTop, zLevel, 34, 52, 26, 98);
-		
-		FFUtils.drawLiquid(refinery.tanks[1], guiLeft, guiTop, zLevel, 16, 52, 80, 98);
-		FFUtils.drawLiquid(refinery.tanks[2], guiLeft, guiTop, zLevel, 16, 52, 98, 98);
-		FFUtils.drawLiquid(refinery.tanks[3], guiLeft, guiTop, zLevel, 16, 52, 116, 98);
-		FFUtils.drawLiquid(refinery.tanks[4], guiLeft, guiTop, zLevel, 16, 52, 134, 98);
+
+		refinery.tanks[0].renderTank(guiLeft + 26, guiTop + 70, this.zLevel, 34, 52);
+		refinery.tanks[1].renderTank(guiLeft + 80, guiTop + 70, this.zLevel, 16, 52);
+		refinery.tanks[2].renderTank(guiLeft + 98, guiTop + 70, this.zLevel, 16, 52);
+		refinery.tanks[3].renderTank(guiLeft + 116, guiTop + 70, this.zLevel, 16, 52);
+		refinery.tanks[4].renderTank(guiLeft + 134, guiTop + 70, this.zLevel, 16, 52);
 		
 		//refinery.tanks[0].renderTank(this, guiLeft + 26, guiTop + 70, refinery.tanks[0].getTankType().textureX() * FluidTank.x, refinery.tanks[0].getTankType().textureY() * FluidTank.y, 16, 52);
 	//	refinery.tanks[0].renderTank(this, guiLeft + 26 + 16, guiTop + 70, refinery.tanks[0].getTankType().textureX() * FluidTank.x, refinery.tanks[0].getTankType().textureY() * FluidTank.y, 16, 52);

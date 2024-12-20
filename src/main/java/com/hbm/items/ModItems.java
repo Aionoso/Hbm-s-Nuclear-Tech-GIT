@@ -34,45 +34,10 @@ import com.hbm.handler.guncfg.GunGrenadeFactory;
 import com.hbm.handler.guncfg.GunOSIPRFactory;
 import com.hbm.handler.guncfg.GunRocketFactory;
 import com.hbm.interfaces.IItemHazard;
-import com.hbm.items.armor.ArmorAJR;
-import com.hbm.items.armor.ArmorAJRO;
-import com.hbm.items.armor.ArmorRPA;
-import com.hbm.items.armor.ArmorAshGlasses;
-import com.hbm.items.armor.ArmorBJ;
-import com.hbm.items.armor.ArmorBJJetpack;
-import com.hbm.items.armor.ArmorDNT;
-import com.hbm.items.armor.ArmorDigamma;
-import com.hbm.items.armor.ArmorHEV;
-import com.hbm.items.armor.ArmorHat;
-import com.hbm.items.armor.ArmorLiquidator;
-import com.hbm.items.armor.ItemModAuto;
-import com.hbm.items.armor.ItemModBandaid;
-import com.hbm.items.armor.ItemModBathwater;
-import com.hbm.items.armor.ItemModCladding;
-import com.hbm.items.armor.ItemModGasmask;
-import com.hbm.items.armor.ItemModHealth;
-import com.hbm.items.armor.ItemModInk;
-import com.hbm.items.armor.ItemModInsert;
-import com.hbm.items.armor.ItemModIron;
-import com.hbm.items.armor.ItemModKnife;
-import com.hbm.items.armor.ItemModLodestone;
-import com.hbm.items.armor.ItemModMedal;
-import com.hbm.items.armor.ItemModMilk;
-import com.hbm.items.armor.ItemModMorningGlory;
-import com.hbm.items.armor.ItemModObsidian;
-import com.hbm.items.armor.ItemModCharm;
-import com.hbm.items.armor.ItemModPads;
-import com.hbm.items.armor.ItemModPolish;
-import com.hbm.items.armor.ItemModQuartz;
-import com.hbm.items.armor.ItemModRadar;
-import com.hbm.items.armor.ItemModRevive;
-import com.hbm.items.armor.ItemModSerum;
-import com.hbm.items.armor.ItemModServos;
-import com.hbm.items.armor.ItemModShackles;
-import com.hbm.items.armor.ItemModTesla;
-import com.hbm.items.armor.ItemModV1;
-import com.hbm.items.armor.ItemModWD40;
-import com.hbm.items.armor.WingsMurk;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.material.MaterialShapes;
+import com.hbm.inventory.material.Mats;
+import com.hbm.items.armor.*;
 import com.hbm.items.bomb.ItemBoy;
 import com.hbm.items.bomb.ItemFleija;
 import com.hbm.items.bomb.ItemGadget;
@@ -113,167 +78,21 @@ import com.hbm.items.gear.ModHoe;
 import com.hbm.items.gear.ModSword;
 import com.hbm.items.gear.RedstoneSword;
 import com.hbm.items.gear.WeaponSpecial;
-import com.hbm.items.machine.ItemAssemblyTemplate;
-import com.hbm.items.machine.ItemBattery;
-import com.hbm.items.machine.ItemBlades;
-import com.hbm.items.machine.ItemCapacitor;
-import com.hbm.items.machine.ItemCassette;
-import com.hbm.items.machine.ItemCatalyst;
-import com.hbm.items.machine.ItemChemistryIcon;
-import com.hbm.items.machine.ItemChemistryTemplate;
-import com.hbm.items.machine.ItemFFFluidDuct;
-import com.hbm.items.machine.ItemFluidIcon;
-import com.hbm.items.machine.ItemFluidTank;
-import com.hbm.items.machine.ItemForgeFluidIdentifier;
-import com.hbm.items.machine.ItemFuelRod;
-import com.hbm.items.machine.ItemLens;
-import com.hbm.items.machine.ItemFWatzCore;
-import com.hbm.items.machine.ItemFELCrystal;
+import com.hbm.items.machine.*;
 import com.hbm.items.machine.ItemFELCrystal.EnumWavelengths;
-import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
-import com.hbm.items.machine.ItemPileRod;
-import com.hbm.items.machine.ItemRBMKLid;
-import com.hbm.items.machine.ItemRBMKPellet;
-import com.hbm.items.machine.ItemRBMKRod;
 import com.hbm.items.machine.ItemRBMKRod.EnumBurnFunc;
 import com.hbm.items.machine.ItemRBMKRod.EnumDepleteFunc;
-import com.hbm.items.machine.ItemReactorSensor;
-import com.hbm.items.machine.ItemRTGPellet;
-import com.hbm.items.machine.ItemDrillbit;
 import com.hbm.items.machine.ItemDrillbit.EnumDrillType;
-import com.hbm.items.machine.ItemSatChip;
-import com.hbm.items.machine.ItemStamp;
-import com.hbm.items.machine.ItemTemplateFolder;
-import com.hbm.items.machine.ItemTurretBiometry;
-import com.hbm.items.machine.ItemTurretChip;
-import com.hbm.items.special.ItemSimpleConsumable;
-import com.hbm.items.special.ItemAMSCore;
-import com.hbm.items.special.ItemBook;
-import com.hbm.items.special.ItemBedrockOre;
-import com.hbm.items.special.ItemCell;
-import com.hbm.items.special.ItemChopper;
-import com.hbm.items.special.ItemCustomLore;
-import com.hbm.items.special.ItemDemonCore;
-import com.hbm.items.special.ItemDigamma;
-import com.hbm.items.special.ItemDoorSkin;
-import com.hbm.items.special.ItemDrop;
-import com.hbm.items.special.ItemFuel;
-import com.hbm.items.special.ItemFuelHazard;
-import com.hbm.items.special.ItemFusionShield;
-import com.hbm.items.special.ItemGlitch;
-import com.hbm.items.special.ItemHazard;
-import com.hbm.items.special.ItemContaminating;
-import com.hbm.items.special.ItemRag;
-import com.hbm.items.special.ItemHot;
-import com.hbm.items.special.ItemHotDusted;
-import com.hbm.items.special.ItemLootCrate;
-import com.hbm.items.special.ItemModRecord;
-import com.hbm.items.special.ItemPolaroid;
-import com.hbm.items.special.ItemPotatos;
-import com.hbm.items.special.ItemSiegeCoin;
-import com.hbm.items.special.ItemSoyuz;
-import com.hbm.items.special.ItemStarterKit;
-import com.hbm.items.special.ItemSyringe;
-import com.hbm.items.special.ItemTeleLink;
-import com.hbm.items.special.ItemUnstable;
-import com.hbm.items.special.ItemWasteLong;
-import com.hbm.items.special.ItemWasteShort;
-import com.hbm.items.special.WatzFuel;
+import com.hbm.items.special.*;
 import com.hbm.items.special.weapon.GunB92;
-import com.hbm.items.tool.ItemAnalyzer;
-import com.hbm.items.tool.ItemAmatExtractor;
-import com.hbm.items.tool.ItemBalefireMatch;
-import com.hbm.items.tool.ItemBombCaller;
-import com.hbm.items.tool.ItemCatalog;
-import com.hbm.items.tool.ItemColtanCompass;
-import com.hbm.items.tool.ItemCounterfitKeys;
-import com.hbm.items.tool.ItemCrateCaller;
-import com.hbm.items.tool.ItemDesignator;
-import com.hbm.items.tool.ItemDesignatorManual;
-import com.hbm.items.tool.ItemDesignatorRange;
-import com.hbm.items.tool.ItemDetonator;
-import com.hbm.items.tool.ItemDiscord;
-import com.hbm.items.tool.ItemDyatlov;
-import com.hbm.items.tool.ItemFluidCanister;
-import com.hbm.items.tool.ItemFluidContainerInfinite;
-import com.hbm.items.tool.ItemFusionCore;
-import com.hbm.items.tool.ItemFilter;
-import com.hbm.items.tool.ItemGasCanister;
-import com.hbm.items.tool.ItemDosimeter;
-import com.hbm.items.tool.ItemGeigerCounter;
-import com.hbm.items.tool.ItemDigammaDiagnostic;
-import com.hbm.items.tool.ItemLungDiagnostic;
-import com.hbm.items.tool.ItemGuideBook;
-import com.hbm.items.tool.ItemKey;
-import com.hbm.items.tool.ItemLaserDetonator;
-import com.hbm.items.tool.ItemLeadBox;
-import com.hbm.items.tool.ItemLock;
-import com.hbm.items.tool.ItemMS;
-import com.hbm.items.tool.ItemMatch;
-import com.hbm.items.tool.ItemMeteorRemote;
-import com.hbm.items.tool.ItemMirrorTool;
-import com.hbm.items.tool.ItemModDoor;
-import com.hbm.items.tool.ItemMultiDetonator;
-import com.hbm.items.tool.ItemMultitoolPassive;
-import com.hbm.items.tool.ItemMultitoolTool;
-import com.hbm.items.tool.ItemOilDetector;
-import com.hbm.items.tool.ItemPeas;
-import com.hbm.items.tool.ItemRBMKTool;
-import com.hbm.items.tool.ItemSatInterface;
-import com.hbm.items.tool.ItemSurveyScanner;
-import com.hbm.items.tool.ItemSwordAbility;
-import com.hbm.items.tool.ItemSwordAbilityPower;
-import com.hbm.items.tool.ItemSwordMeteorite;
-import com.hbm.items.tool.ItemToolAbility;
+import com.hbm.items.tool.*;
 import com.hbm.items.tool.ItemToolAbility.EnumToolType;
-import com.hbm.items.tool.ItemToolAbilityPower;
-import com.hbm.items.tool.ItemTooling;
-import com.hbm.items.tool.ItemTurretControl;
-import com.hbm.items.tool.ItemWand;
-import com.hbm.items.tool.ItemWandD;
-import com.hbm.items.tool.ItemWandS;
-import com.hbm.items.tool.ItemWiring;
-import com.hbm.items.weapon.GunB92Cell;
-import com.hbm.items.weapon.GunB93;
-import com.hbm.items.weapon.GunBoltAction;
-import com.hbm.items.weapon.GunBrimstone;
-import com.hbm.items.weapon.GunCryolator;
-import com.hbm.items.weapon.GunDampfmaschine;
-import com.hbm.items.weapon.GunDefabricator;
-import com.hbm.items.weapon.GunEuthanasia;
-import com.hbm.items.weapon.GunFolly;
-import com.hbm.items.weapon.GunHP;
-import com.hbm.items.weapon.GunImmolator;
-import com.hbm.items.weapon.GunJack;
-import com.hbm.items.weapon.GunLeverActionS;
-import com.hbm.items.weapon.GunSpark;
-import com.hbm.items.weapon.GunStinger;
-import com.hbm.items.weapon.GunSuicide;
-import com.hbm.items.weapon.ItemAmmo;
-import com.hbm.items.weapon.ItemClip;
-import com.hbm.items.weapon.ItemCrucible;
-import com.hbm.items.weapon.ItemCustomMissile;
-import com.hbm.items.weapon.ItemGrenade;
-import com.hbm.items.weapon.ItemGunBase;
-import com.hbm.items.weapon.ItemGunCCPlasmaCannon;
-import com.hbm.items.weapon.ItemGunDart;
-import com.hbm.items.weapon.ItemGunEgon;
-import com.hbm.items.weapon.ItemGunGauss;
-import com.hbm.items.weapon.ItemGunJShotty;
-import com.hbm.items.weapon.ItemGunLacunae;
-import com.hbm.items.weapon.ItemGunOSIPR;
-import com.hbm.items.weapon.ItemGunShotty;
-import com.hbm.items.weapon.ItemGunVortex;
-import com.hbm.items.weapon.ItemMissile;
+import com.hbm.items.weapon.*;
 import com.hbm.items.weapon.ItemMissile.FuelType;
 import com.hbm.items.weapon.ItemMissile.PartSize;
 import com.hbm.items.weapon.ItemMissile.Rarity;
 import com.hbm.items.weapon.ItemMissile.WarheadType;
-import com.hbm.items.weapon.ItemMissileStandard;
-import com.hbm.items.weapon.ItemSwordCutter;
-import com.hbm.items.weapon.ItemTurretAmmo;
-import com.hbm.items.weapon.WeaponizedCell;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.RefStrings;
 import com.hbm.util.EnchantmentUtil;
@@ -312,6 +131,7 @@ public class ModItems {
 	public static final int guiID_item_sat_coord = 10104;
 	public static final int guiID_item_book = 10105;
 	public static final int guiID_item_guide = 10106;
+	public static final int guiID_item_fluid_identifier = 10107;
 	
 	public static final Item redstone_sword = new RedstoneSword(ToolMaterial.STONE, "redstone_sword").setCreativeTab(CreativeTabs.COMBAT);
 	public static final Item big_sword = new BigSword(ToolMaterial.DIAMOND, "big_sword").setCreativeTab(CreativeTabs.COMBAT);
@@ -337,7 +157,8 @@ public class ModItems {
 	public static final Item coltass = new ItemColtanCompass("coltass").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
 	public static final Item linker = new ItemTeleLink("linker").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
 	public static final Item reactor_sensor = new ItemReactorSensor("reactor_sensor").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
-	
+	public static final Item radar_linker = new ItemRadarLinker("radar_linker").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
+
 	//Syringe
 	public static final Item syringe_empty = new ItemBase("syringe_empty").setFull3D().setCreativeTab(MainRegistry.consumableTab);
 	public static final Item syringe_awesome = new ItemSyringe("syringe_awesome").setCreativeTab(MainRegistry.consumableTab);
@@ -474,6 +295,7 @@ public class ModItems {
 	public static final Item servo_set_desh = new ItemModServos("servo_set_desh").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
 	public static final Item pocket_ptsd = new ItemModRadar("pocket_ptsd", 1000).setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
 	public static final Item v1 = new ItemModV1("v1").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
+	public static final Item neutrino_lens = new ItemModLens("neutrino_lens").setMaxStackSize(1).setCreativeTab(MainRegistry.consumableTab);
 	public static final Item protection_charm = new ItemModCharm("protection_charm").setCreativeTab(MainRegistry.consumableTab);
 	public static final Item meteor_charm = new ItemModCharm("meteor_charm").setCreativeTab(MainRegistry.consumableTab);
 		
@@ -535,6 +357,7 @@ public class ModItems {
 	public static final Item overfuse = new ItemCustomLore("overfuse").setMaxStackSize(1).setFull3D();
 	public static final Item piston_selenium = new ItemBase("piston_selenium").setCreativeTab(MainRegistry.controlTab).setMaxStackSize(1);
 	public static final Item thermo_element = new ItemBase("thermo_element").setMaxStackSize(16).setCreativeTab(MainRegistry.controlTab);
+	public static final Item catalytic_converter = new ItemBase("catalytic_converter").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
 	public static final Item antiknock = new ItemBase("antiknock").setCreativeTab(MainRegistry.controlTab);
 	public static final Item part_lithium = new ItemHazard("part_lithium").addHydroReactivity().toItem().setCreativeTab(MainRegistry.controlTab);
 	public static final Item part_beryllium = new ItemBase("part_beryllium").setCreativeTab(MainRegistry.controlTab);
@@ -654,18 +477,24 @@ public class ModItems {
 	public static final Item upgrade_stack_3 = new ItemMachineUpgrade("upgrade_stack_3", UpgradeType.SPEED, 1).setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
 	
 	//Fluid handling items
+	public static final Item canister_empty = new ItemCustomLore("canister_empty").setCreativeTab(MainRegistry.controlTab);
 	public static final Item canister_generic = new ItemFluidCanister("canister_fuel", 1000).setCreativeTab(MainRegistry.controlTab);
 	public static final Item canister_napalm = new ItemCustomLore("canister_napalm").setCreativeTab(MainRegistry.controlTab);
-	
-	public static final Item gas_canister = new ItemGasCanister("gas_empty", 4000).setCreativeTab(MainRegistry.controlTab);
+
+	public static final Item gas_empty = new ItemBase("gas_empty").setCreativeTab(MainRegistry.controlTab);
+	public static final Item gas_full = new ItemGasCanister("gas_full").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.gas_empty);
 	public static final Item cell = new ItemCell("cell").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item fluid_tank_empty = new ItemBase("fluid_tank_empty").setCreativeTab(MainRegistry.controlTab);
 	public static final Item fluid_tank_full = new ItemFluidTank("fluid_tank_full", 1000).setCreativeTab(MainRegistry.controlTab);
+	public static final Item fluid_tank_lead_empty = new ItemBase("fluid_tank_lead_empty").setCreativeTab(MainRegistry.controlTab);
+	public static final Item fluid_tank_lead_full = new ItemFluidTank("fluid_tank_lead_full", 1000).setCreativeTab(MainRegistry.controlTab);
+	public static final Item fluid_barrel_empty = new ItemBase("fluid_barrel_empty").setCreativeTab(MainRegistry.controlTab);
 	public static final Item fluid_barrel_full = new ItemFluidTank("fluid_barrel_full", 16000).setCreativeTab(MainRegistry.controlTab);
-	public static final Item fluid_barrel_infinite = new ItemFluidContainerInfinite(50, "fluid_barrel_infinite").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
-	public static final Item inf_water = new ItemFluidContainerInfinite(50, "inf_water").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
-	public static final Item inf_water_mk2 = new ItemFluidContainerInfinite(500, "inf_water_mk2").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
-	public static final Item inf_water_mk3 = new ItemFluidContainerInfinite(5000, "inf_water_mk3").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
-	public static final Item inf_water_mk4 = new ItemFluidContainerInfinite(50000, "inf_water_mk4").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item fluid_barrel_infinite = new ItemFluidContainerInfinite(null, 1_000_000_000, "fluid_barrel_infinite").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item inf_water = new ItemFluidContainerInfinite(Fluids.WATER, 50, "inf_water").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item inf_water_mk2 = new ItemFluidContainerInfinite(Fluids.WATER, 500, "inf_water_mk2").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item inf_water_mk3 = new ItemFluidContainerInfinite(Fluids.WATER, 5000, "inf_water_mk3").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
+	public static final Item inf_water_mk4 = new ItemFluidContainerInfinite(Fluids.WATER, 50000, "inf_water_mk4").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab);
 	
 	
 	//Activators
@@ -717,6 +546,7 @@ public class ModItems {
 	public static final Item hazmat_paa_boots = new ArmorHazmat(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.FEET, "hazmat_paa_boots").setMaxStackSize(1);
 	
 	public static final Item paa_helmet = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/paa_1.png", "paa_helmet").setCap(4F).setMod(0.2F).setBlastProtection(0.5F).setProtectionLevel(200F).addEffect(new PotionEffect(MobEffects.HASTE, 30, 0)).addEffect(new PotionEffect(MobEffects.SPEED, 30, 0)).addEffect(new PotionEffect(MobEffects.WATER_BREATHING, 30, 0)).setFireproof(true).setMaxStackSize(1);
+
 	public static final Item paa_plate = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.CHEST, RefStrings.MODID + ":textures/armor/paa_1.png", "paa_plate").cloneStats((ArmorFSB) paa_helmet).setMaxStackSize(1);
 	public static final Item paa_legs = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/paa_2.png", "paa_legs").cloneStats((ArmorFSB) paa_helmet).setMaxStackSize(1);
 	public static final Item paa_boots = new ArmorFSB(MainRegistry.enumArmorMaterialPaa, -1, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/paa_1.png", "paa_boots").cloneStats((ArmorFSB) paa_helmet).setMaxStackSize(1);
@@ -802,19 +632,18 @@ public class ModItems {
 	public static final Item schrabidium_boots = new ArmorFSB(MainRegistry.enumArmorMaterialSchrabidium, -1, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/schrabidium_1.png", "schrabidium_boots").cloneStats((ArmorFSB) schrabidium_helmet).setCap(4F).setMod(0.1F).setMaxStackSize(1);
 
 	//Drillgon200: Don't want to move the material here because I'm worried it'll cause issues with static items and stuff.
-	public static final Item t45_helmet = new ArmorT45(MainRegistry.enumArmorMaterialT45, -1, EntityEquipmentSlot.HEAD, 1000000, 10000, 1000, 5, "t45_helmet").setCap(20F).setMod(0.5F)
+	public static final Item t45_helmet = new ArmorT45(MainRegistry.enumArmorMaterialT45, -1, EntityEquipmentSlot.HEAD, 1000000, 10000, 1000, 5, "t45_helmet").setCap(400F).setMod(0.45F).setThreshold(4F)
 			.setFireproof(true)
 			.enableVATS(true)
 			.addEffect(new PotionEffect(MobEffects.STRENGTH, 30, 0))
 			.addEffect(new PotionEffect(MobEffects.SPEED, 30, 0))
-			.setBlastProtection(0.5F)
-			.setProtectionLevel(100F)
+			.setBlastProtection(0.35F)
+			.setProtectionLevel(400F)
 			.addResistance("fall", 0).setCreativeTab(CreativeTabs.COMBAT);
 	public static final Item t45_plate = new ArmorT45(MainRegistry.enumArmorMaterialT45, -1, EntityEquipmentSlot.CHEST, 1000000, 10000, 1000, 5, "t45_plate").cloneStats((ArmorFSB) t45_helmet).setCreativeTab(CreativeTabs.COMBAT);
 	public static final Item t45_legs = new ArmorT45(MainRegistry.enumArmorMaterialT45, -1, EntityEquipmentSlot.LEGS, 1000000, 10000, 1000, 5, "t45_legs").cloneStats((ArmorFSB) t45_helmet).setCreativeTab(CreativeTabs.COMBAT);
 	public static final Item t45_boots = new ArmorT45(MainRegistry.enumArmorMaterialT45, -1, EntityEquipmentSlot.FEET, 1000000, 10000, 1000, 5, "t45_boots").cloneStats((ArmorFSB) t45_helmet).setCreativeTab(CreativeTabs.COMBAT);
-	
-	public static final Item ajr_helmet = new ArmorAJR(MainRegistry.aMatAJR, 7, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 2500000, 10000, 2000, 25, "ajr_helmet").setMod(0.25F).setCap(6.0F).setThreshold(4F)
+	public static final Item ajr_helmet = new ArmorAJR(MainRegistry.aMatAJR, 7, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 2500000, 10000, 2000, 25, "ajr_helmet").setMod(0.25F).setCap(6.0F).setThreshold(6F)
 			.setFireproof(true)
 			.enableVATS(true)
 			.enableFlashlight(new Vec3d(-0.18, 0.2, 0.9))
@@ -822,7 +651,7 @@ public class ModItems {
 			.addEffect(new PotionEffect(MobEffects.JUMP_BOOST, 30, 0))
 			.addEffect(new PotionEffect(MobEffects.STRENGTH, 30, 0))
 			.setBlastProtection(0.25F)
-			.setProtectionLevel(200F)
+			.setProtectionLevel(600F)
 			.setStep(HBMSoundHandler.iron)
 			.setJump(HBMSoundHandler.ironJump)
 			.setFall(HBMSoundHandler.ironLand)
@@ -831,8 +660,58 @@ public class ModItems {
 	public static final Item ajr_plate = new ArmorAJR(MainRegistry.aMatAJR, 7, EntityEquipmentSlot.CHEST, RefStrings.MODID + ":textures/armor/starmetal_1.png", 2500000, 10000, 2000, 25, "ajr_plate").cloneStats((ArmorFSB) ajr_helmet);
 	public static final Item ajr_legs = new ArmorAJR(MainRegistry.aMatAJR, 7, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/starmetal_2.png", 2500000, 10000, 2000, 25, "ajr_legs").cloneStats((ArmorFSB) ajr_helmet);
 	public static final Item ajr_boots = new ArmorAJR(MainRegistry.aMatAJR, 7, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/starmetal_1.png", 2500000, 10000, 2000, 25, "ajr_boots").cloneStats((ArmorFSB) ajr_helmet);
-	
-	public static final Item ajro_helmet = new ArmorAJRO(MainRegistry.aMatAJR, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 2500000, 10000, 2000, 25, "ajro_helmet").setMod(0.25F).setCap(6.0F).setThreshold(4F)
+
+	public static final Item trenchmaster_helmet = new ArmorTrenchmaster(MainRegistry.aMatTrenchmaster, 7, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png",  "trenchmaster_helmet").setMod(0.45F).setCap(4.0F).setThreshold(6F)
+			.setFireproof(true)
+			.enableVATS(true)
+			.enableFlashlight(new Vec3d(-0.18, 0.2, 0.9))
+			.setHasGeigerSound(true)
+			.addEffect(new PotionEffect(MobEffects.STRENGTH, 30, 0))
+			.setBlastProtection(0.4F)
+			.setProjectileProtection(0.65F)
+			.setProtectionLevel(320F)
+			.setStepSize(1)
+			.addResistance("monoxide", 0F)
+			.addResistance("fall", 0.5F);
+	public static final Item trenchmaster_plate = new ArmorTrenchmaster(MainRegistry.aMatTrenchmaster, 7, EntityEquipmentSlot.CHEST, RefStrings.MODID + ":textures/armor/starmetal_1.png",  "trenchmaster_plate").cloneStats((ArmorFSB) trenchmaster_helmet);
+	public static final Item trenchmaster_legs = new ArmorTrenchmaster(MainRegistry.aMatTrenchmaster, 7, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/starmetal_2.png",  "trenchmaster_legs").cloneStats((ArmorFSB) trenchmaster_helmet);
+	public static final Item trenchmaster_boots = new ArmorTrenchmaster(MainRegistry.aMatTrenchmaster, 7, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/starmetal_1.png",  "trenchmaster_boots").cloneStats((ArmorFSB) trenchmaster_helmet);
+
+	public static final Item envsuit_helmet = new ArmorEnvsuit(MainRegistry.aMatEnvsuit, 7, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 100000, 10000, 2000, 5, "envsuit_helmet").setMod(0.5F).setThreshold(2F)
+			.setFireproof(true)
+			.enableFlashlight(new Vec3d(-0.18, 0.2, 0.9))
+			.addEffect(new PotionEffect(MobEffects.SPEED, 30, 0))
+			.addEffect(new PotionEffect(MobEffects.JUMP_BOOST, 30, 0))
+			.setBlastProtection(0.4F)
+			.setProjectileProtection(0.65F)
+			.setProtectionLevel(320F)
+			.addResistance("monoxide", 0F)
+			.addResistance("fall", 0.25F);
+	public static final Item envsuit_plate = new ArmorTrenchmaster(MainRegistry.aMatEnvsuit, 7, EntityEquipmentSlot.CHEST, RefStrings.MODID + ":textures/armor/starmetal_1.png",  "envsuit_plate").cloneStats((ArmorFSB) envsuit_helmet);
+	public static final Item envsuit_legs = new ArmorTrenchmaster(MainRegistry.aMatEnvsuit, 7, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/starmetal_2.png",  "envsuit_legs").cloneStats((ArmorFSB) envsuit_helmet);
+	public static final Item envsuit_boots = new ArmorTrenchmaster(MainRegistry.aMatEnvsuit, 7, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/starmetal_1.png",  "envsuit_boots").cloneStats((ArmorFSB) envsuit_helmet);
+
+	public static final Item steamsuit_helmet = new ArmorDesh(MainRegistry.aMatSteamsuit, 7, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", Fluids.STEAM, 64_000, 500, 50, 1, "steamsuit_helmet").setMod(0.45F).setCap(4.0F).setThreshold(6F)
+			.setFireproof(true)
+			.enableVATS(true)
+			.enableFlashlight(new Vec3d(-0.18, 0.2, 0.9))
+			.setHasGeigerSound(true)
+			.addEffect(new PotionEffect(MobEffects.HASTE, 30, 0))
+			.addEffect(new PotionEffect(MobEffects.SLOWNESS, 30, 0))
+			.setBlastProtection(0.4F)
+			.setProjectileProtection(0.65F)
+			.setProtectionLevel(320F)
+			.setStep(HBMSoundHandler.poweredStep)
+			.setJump(HBMSoundHandler.poweredStep)
+			.setFall(HBMSoundHandler.poweredStep)
+			.addResistance("monoxide", 0F)
+			.addResistance("fall", 0.5F);
+	public static final Item steamsuit_plate = new ArmorDesh(MainRegistry.aMatSteamsuit, 7, EntityEquipmentSlot.CHEST, RefStrings.MODID + ":textures/armor/starmetal_1.png", Fluids.STEAM, 64_000, 500, 50, 1,  "steamsuit_plate").cloneStats((ArmorFSB) steamsuit_helmet);
+	public static final Item steamsuit_legs = new ArmorDesh(MainRegistry.aMatSteamsuit, 7, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/starmetal_2.png", Fluids.STEAM, 64_000, 500, 50, 1,  "steamsuit_legs").cloneStats((ArmorFSB) steamsuit_helmet);
+	public static final Item steamsuit_boots = new ArmorDesh(MainRegistry.aMatSteamsuit, 7, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/starmetal_1.png", Fluids.STEAM, 64_000, 500, 50, 1,  "steamsuit_boots").cloneStats((ArmorFSB) steamsuit_helmet);
+
+
+	public static final Item ajro_helmet = new ArmorAJRO(MainRegistry.aMatAJR, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 2500000, 10000, 2000, 25, "ajro_helmet").setMod(0.25F).setCap(6.0F).setThreshold(6F)
 			.setFireproof(true)
 			.enableVATS(true)
 			.enableFlashlight(new Vec3d(-0.18, 0.2, 0.9))
@@ -841,7 +720,7 @@ public class ModItems {
 			.addEffect(new PotionEffect(MobEffects.JUMP_BOOST, 30, 0))
 			.addEffect(new PotionEffect(MobEffects.STRENGTH, 30, 0))
 			.setBlastProtection(0.25F)
-			.setProtectionLevel(200F)
+			.setProtectionLevel(600F)
 			.setStep(HBMSoundHandler.iron)
 			.setJump(HBMSoundHandler.ironJump)
 			.setFall(HBMSoundHandler.ironLand)
@@ -851,9 +730,9 @@ public class ModItems {
 	public static final Item ajro_legs = new ArmorAJRO(MainRegistry.aMatAJR, -1, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/starmetal_2.png", 2500000, 10000, 2000, 25, "ajro_legs").cloneStats((ArmorFSB) ajro_helmet);
 	public static final Item ajro_boots = new ArmorAJRO(MainRegistry.aMatAJR, -1, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/starmetal_1.png", 2500000, 10000, 2000, 25, "ajro_boots").cloneStats((ArmorFSB) ajro_helmet);
 
-	public static final Item hev_helmet = new ArmorHEV(MainRegistry.aMatHEV, 7, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 5000000, 10000, 2500, 100, "hev_helmet").setCap(4.0F).setThreshold(2.0F)
+	public static final Item hev_helmet = new ArmorHEV(MainRegistry.aMatHEV, 7, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 5000000, 10000, 2500, 100, "hev_helmet").setCap(3.0F).setThreshold(2.0F)
 			.addEffect(new PotionEffect(MobEffects.JUMP_BOOST, 30, 0))
-			.addEffect(new PotionEffect(MobEffects.SPEED, 30, 1))
+			.addEffect(new PotionEffect(MobEffects.SPEED, 30, 0))
 			.addEffect(new PotionEffect(MobEffects.WATER_BREATHING, 30, 0))
 			.enableFlashlight(new Vec3d(0, -0.1, 0.8))
 			.setBlastProtection(0.25F)
@@ -887,7 +766,7 @@ public class ModItems {
 	public static final Item bj_legs = new ArmorBJ(MainRegistry.aMatBJ, 7, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/starmetal_2.png", 10000000, 10000, 1000, 100, "bj_legs").cloneStats((ArmorFSB) bj_helmet);
 	public static final Item bj_boots = new ArmorBJ(MainRegistry.aMatBJ, 7, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/starmetal_1.png", 10000000, 10000, 1000, 100, "bj_boots").cloneStats((ArmorFSB) bj_helmet);
 
-	public static final Item rpa_helmet = new ArmorRPA(MainRegistry.aMatRPA, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 50000000, 100000, 20000, 500, "RPA_helmet").setCap(6.0F)
+	public static final Item rpa_helmet = new ArmorRPA(MainRegistry.aMatRPA, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 50000000, 100000, 20000, 500, "RPA_helmet").setCap(8.0F)
 			.setFireproof(true)
 			.enableVATS(true)
 			.setHasGeigerSound(true)
@@ -895,11 +774,12 @@ public class ModItems {
 			.addEffect(new PotionEffect(HbmPotion.radx, 30, 0))
 			.addEffect(new PotionEffect(MobEffects.STRENGTH, 30, 3))
 			.addEffect(new PotionEffect(MobEffects.WATER_BREATHING, 30, 0))
+			.addEffect(new PotionEffect(MobEffects.SLOWNESS, 30, 0))
 			.setBlastProtection(0.25F)
 			.setProjectileProtection(0.25F)
 			.setProtectionLevel(1500)
 			.setMod(0.1F)
-			.setThreshold(20.0F)
+			.setThreshold(15.0F)
 			.setStep(HBMSoundHandler.poweredStep)
 			.setJump(HBMSoundHandler.poweredStep)
 			.setFall(HBMSoundHandler.poweredStep)
@@ -909,18 +789,21 @@ public class ModItems {
 	public static final Item rpa_legs = new ArmorRPA(MainRegistry.aMatRPA, -1, EntityEquipmentSlot.LEGS, RefStrings.MODID + ":textures/armor/starmetal_2.png", 50000000, 100000, 20000, 500, "RPA_legs").cloneStats((ArmorFSB) rpa_helmet);
 	public static final Item rpa_boots = new ArmorRPA(MainRegistry.aMatRPA, -1, EntityEquipmentSlot.FEET, RefStrings.MODID + ":textures/armor/starmetal_1.png", 50000000, 100000, 20000, 500, "RPA_boots").cloneStats((ArmorFSB) rpa_helmet);
 
-	public static final Item fau_helmet = new ArmorDigamma(MainRegistry.aMatFau, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 100000000, 100000, 25000, 1000, "fau_helmet").setCap(4.0F).setThreshold(5.0F)
+	public static final Item fau_helmet = new ArmorDigamma(MainRegistry.aMatFau, -1, EntityEquipmentSlot.HEAD, RefStrings.MODID + ":textures/armor/starmetal_1.png", 100000000, 100000, 25000, 1000, "fau_helmet").setCap(10.0F).setThreshold(25.0F)
 			.addEffect(new PotionEffect(MobEffects.JUMP_BOOST, 30, 1))
+			.addEffect(new PotionEffect(MobEffects.NIGHT_VISION, 30, 0))
 			.addEffect(new PotionEffect(MobEffects.WATER_BREATHING, 30, 0))
-			.setBlastProtection(0.05F)
-			.setProtectionLevel(1000F)
+			.addEffect(new PotionEffect(MobEffects.STRENGTH, 30, 4))
+			.setBlastProtection(0.2F)
+			.setProjectileProtection(0.25F)
+			.setProtectionLevel(2000F)
 			.setMod(0.05F)
 			.setHasGeigerSound(true)
 			.enableThermalSight(true)
 			.setHasHardLanding(true)
-			.setStep(HBMSoundHandler.iron)
-			.setJump(HBMSoundHandler.ironJump)
-			.setFall(HBMSoundHandler.ironLand)
+			.setStep(HBMSoundHandler.poweredStep)
+			.setJump(HBMSoundHandler.poweredStep)
+			.setFall(HBMSoundHandler.poweredStep)
 			.addResistance("fall", 0F)
 			.addResistance("monoxide", 0F)
 			.setFireproof(true);
@@ -933,6 +816,7 @@ public class ModItems {
 			.addEffect(new PotionEffect(MobEffects.HASTE, 30, 7))
 			.addEffect(new PotionEffect(MobEffects.JUMP_BOOST, 30, 2))
 			.addEffect(new PotionEffect(MobEffects.WATER_BREATHING, 30, 0))
+			.addEffect(new PotionEffect(MobEffects.NIGHT_VISION, 30, 0))
 			.setHasGeigerSound(true)
 			.enableVATS(true)
 			.enableThermalSight(true)
@@ -1117,7 +1001,9 @@ public class ModItems {
 	public static final Item ingot_polymer = new ItemCustomLore("ingot_polymer").setCreativeTab(MainRegistry.partsTab);
 	public static final Item ingot_bakelite = new ItemCustomLore("ingot_bakelite").setCreativeTab(MainRegistry.partsTab);
 	public static final Item ingot_rubber = new ItemCustomLore("ingot_rubber").setCreativeTab(MainRegistry.partsTab);
-	public static final Item ingot_biorubber = new ItemCustomLore("ingot_biorubber").setCreativeTab(MainRegistry.partsTab);	
+	public static final Item ingot_biorubber = new ItemCustomLore("ingot_biorubber").setCreativeTab(MainRegistry.partsTab);
+	public static final Item ingot_pc = new ItemCustomLore("ingot_pc").setCreativeTab(MainRegistry.partsTab);
+	public static final Item ingot_pvc = new ItemCustomLore("ingot_pvc").setCreativeTab(MainRegistry.partsTab);
 	public static final Item ingot_desh = new ItemCustomLore("ingot_desh").setCreativeTab(MainRegistry.partsTab);
 	public static final Item ingot_saturnite = new ItemCustomLore("ingot_saturnite").setCreativeTab(MainRegistry.partsTab);
 	public static final Item ingot_ferrouranium = new ItemHazard("ingot_ferrouranium").addRadiation(ItemHazard.u * 0.5F).toItem().setCreativeTab(MainRegistry.partsTab);
@@ -1426,6 +1312,7 @@ public class ModItems {
 	public static final Item powder_magic = new ItemCustomLore("powder_magic").setCreativeTab(MainRegistry.partsTab);
 	public static final Item powder_cloud = new ItemHazard("powder_cloud").addToxic(14).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item powder_balefire = new ItemContaminating(ItemHazard.bf * ItemHazard.powder, true, "powder_balefire").setCreativeTab(MainRegistry.partsTab);
+	public static final Item powder_sawdust = new ItemBase("powder_sawdust").setCreativeTab(MainRegistry.partsTab);
 	public static final Item powder_coltan_ore = new ItemHazard("powder_coltan_ore").addAsbestos(3).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item powder_coltan = new ItemBase("powder_coltan").setCreativeTab(MainRegistry.partsTab);
 	public static final Item powder_poison = new ItemHazard("powder_poison").addToxic(30).toItem().setCreativeTab(MainRegistry.partsTab);
@@ -1502,6 +1389,20 @@ public class ModItems {
 	public static final Item rod_empty = new ItemBase("rod_empty").setCreativeTab(MainRegistry.controlTab);
 	public static final Item rod_dual_empty = new ItemBase("rod_dual_empty").setCreativeTab(MainRegistry.controlTab);
 	public static final Item rod_quad_empty = new ItemBase("rod_quad_empty").setCreativeTab(MainRegistry.controlTab);
+
+	public static final Item rod_zirnox_empty = new ItemBase("rod_zirnox_empty").setMaxStackSize(64).setCreativeTab(MainRegistry.controlTab);
+	public static final Item rod_zirnox_tritium = new ItemBase("rod_zirnox_tritium").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox = (ItemEnumMulti) new ItemZirnoxRod().setUnlocalizedName("rod_zirnox").setCreativeTab(MainRegistry.controlTab);
+
+	public static final Item rod_zirnox_natural_uranium_fuel_depleted = new ItemBase("rod_zirnox_natural_uranium_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_uranium_fuel_depleted = new ItemBase("rod_zirnox_uranium_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_thorium_fuel_depleted = new ItemBase("rod_zirnox_thorium_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_mox_fuel_depleted = new ItemBase("rod_zirnox_mox_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_plutonium_fuel_depleted =  new ItemBase("rod_zirnox_plutonium_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_u233_fuel_depleted = new ItemBase("rod_zirnox_u233_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_u235_fuel_depleted = new ItemBase("rod_zirnox_u235_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_les_fuel_depleted = new ItemBase("rod_zirnox_les_fuel_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
+	public static final Item rod_zirnox_zfb_mox_depleted = new ItemBase("rod_zirnox_zfb_mox_depleted").setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_zirnox_empty);
 
 	
 	public static final Item rod_th232 = new ItemHazard(ItemHazard.th232 * ItemHazard.rod, "rod_th232").setMaxStackSize(1).setCreativeTab(MainRegistry.controlTab).setContainerItem(ModItems.rod_empty);
@@ -1706,6 +1607,7 @@ public class ModItems {
 	public static final Item ballistite = new ItemHazard("ballistite").addExplosive(1).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item ball_dynamite = new ItemHazard("ball_dynamite").addExplosive(2).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item ball_tnt = new ItemHazard("ball_tnt").addExplosive(3).toItem().setCreativeTab(MainRegistry.partsTab);
+	public static final Item ball_tatb = new ItemHazard("ball_tatb").addExplosive(3).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item ball_fireclay = new ItemBase("ball_fireclay").setCreativeTab(MainRegistry.partsTab);
 	public static final Item piston_pneumatic = new ItemBase("piston_pneumatic").setCreativeTab(MainRegistry.partsTab);
 	public static final Item piston_hydraulic = new ItemBase("piston_hydraulic").setCreativeTab(MainRegistry.partsTab);
@@ -1724,6 +1626,11 @@ public class ModItems {
 	public static final Item ore_bedrock_exquisite = new ItemBedrockOre("ore_bedrock_exquisite").setCreativeTab(MainRegistry.partsTab); //Centri
 	public static final Item ore_bedrock_perfect = new ItemBedrockOre("ore_bedrock_perfect").setCreativeTab(MainRegistry.partsTab); //Acid High Solvent
 	public static final Item ore_bedrock_enriched = new ItemBedrockOre("ore_bedrock_enriched").setCreativeTab(MainRegistry.partsTab); //Final Product
+
+	//Bedrock Ores (new, gottverdammt)
+	public static final Item bedrock_ore = new ItemBedrockOreNew("bedrock_ore_new").setCreativeTab(MainRegistry.partsTab);
+	public static final Item bedrock_ore_base = new ItemBedrockOreBase("bedrock_ore_base").setCreativeTab(MainRegistry.partsTab);
+	public static final Item bedrock_ore_fragment = new ItemAutogen(MaterialShapes.FRAGMENT, "bedrock_ore_fragment").aot(Mats.MAT_BISMUTH, "bedrock_ore_fragment_bismuth").setCreativeTab(MainRegistry.partsTab);
 
 	public static final Item neutron_reflector = new ItemBase("neutron_reflector").setCreativeTab(MainRegistry.partsTab);
 	public static final Item rtg_unit = new ItemBase("rtg_unit").setCreativeTab(MainRegistry.partsTab);
@@ -1747,6 +1654,8 @@ public class ModItems {
 	
 	public static final Item coal_infernal = new ItemFuelHazard("coal_infernal", 4800, true).addCoal(10).toItem().setCreativeTab(MainRegistry.partsTab);
 	public static final Item cinnebar = new ItemBase("cinnebar").setCreativeTab(MainRegistry.partsTab);
+	public static final Item powder_ash = new ItemBase("powder_ash").setCreativeTab(MainRegistry.partsTab);
+	public static final Item powder_cement = new ItemLemon(2, 0.5F, false, "powder_cement").setCreativeTab(MainRegistry.partsTab);
 	
 	//Misc/crafting items
 	public static final Item toothpicks = new ItemBase("toothpicks").setCreativeTab(MainRegistry.partsTab);
@@ -2250,6 +2159,7 @@ public class ModItems {
 	public static final Item chemistry_template = new ItemChemistryTemplate("chemistry_template").setMaxStackSize(1).setCreativeTab(MainRegistry.templateTab);
 	public static final Item chemistry_icon = new ItemChemistryIcon("chemistry_icon").setMaxStackSize(1).setCreativeTab(null);
 	public static final Item forge_fluid_identifier = new ItemForgeFluidIdentifier("forge_fluid_identifier").setMaxStackSize(1).setCreativeTab(MainRegistry.templateTab);
+	public static final Item fluid_identifier_multi = new ItemFluidIDMulti("fluid_identifier_multi").setMaxStackSize(1).setCreativeTab(MainRegistry.templateTab);
 	public static final Item ff_fluid_duct = new ItemFFFluidDuct("ff_fluid_duct").setCreativeTab(MainRegistry.templateTab);
 	
 	//Plates
@@ -2316,6 +2226,7 @@ public class ModItems {
 	//Circuits
 	public static final Item upgrade_template = new ItemCustomLore("upgrade_template").setMaxStackSize(1).setCreativeTab(MainRegistry.partsTab);
 	public static final Item deuterium_filter = new ItemBase("deuterium_filter").setCreativeTab(MainRegistry.partsTab);
+	public static final Item sawblade = new ItemBase("sawblade").setCreativeTab(MainRegistry.partsTab);
 	public static final Item circuit_raw = new ItemBase("circuit_raw").setCreativeTab(MainRegistry.partsTab);
 	public static final Item circuit_aluminium = new ItemBase("circuit_aluminium").setCreativeTab(MainRegistry.partsTab);
 	public static final Item circuit_copper = new ItemBase("circuit_copper").setCreativeTab(MainRegistry.partsTab);
@@ -2555,6 +2466,8 @@ public class ModItems {
 	public static final Item ammo_50ae_ap = new ItemAmmo("ammo_50ae_ap").setCreativeTab(MainRegistry.weaponTab);
 	public static final Item ammo_50ae_du = new ItemAmmo("ammo_50ae_du").setCreativeTab(MainRegistry.weaponTab);
 	public static final Item ammo_50ae_star = new ItemAmmo("ammo_50ae_star").setCreativeTab(MainRegistry.weaponTab);
+
+	public static final Item ammo_arty = new ItemAmmoArty("ammo_arty");
 	
 	public static final Item gun_b92_ammo = new GunB92Cell("gun_b92_ammo").setMaxStackSize(1).setCreativeTab(MainRegistry.weaponTab);
 	public static final Item gun_bf_ammo = new ItemBase("gun_bf_ammo").setCreativeTab(MainRegistry.weaponTab);
@@ -3230,6 +3143,7 @@ public class ModItems {
 	public static final Item sat_chip = new ItemSatChip("sat_chip").setMaxStackSize(1).setCreativeTab(MainRegistry.missileTab);
 	public static final Item sat_interface = new ItemSatInterface("sat_interface").setMaxStackSize(1).setCreativeTab(MainRegistry.missileTab);
 	public static final Item sat_coord = new ItemSatInterface("sat_coord").setMaxStackSize(1).setCreativeTab(MainRegistry.missileTab);
+	public static final Item sat_relay = new ItemSatChip("sat_relay").setMaxStackSize(1).setCreativeTab(MainRegistry.missileTab);
 	
 	
 	//Missiles
@@ -3672,8 +3586,8 @@ public class ModItems {
 	
 	public static final Item mysteryshovel = new ItemMS("mysteryshovel").setFull3D().setMaxStackSize(1).setCreativeTab(CreativeTabs.TOOLS);
 	public static final Item memory = new ItemBattery(Long.MAX_VALUE / 100L, 100000000000000L, 100000000000000L, "memory").setMaxStackSize(1).setCreativeTab(null);
-	
-	public static void preInit(){
+
+    public static void preInit(){
 		for(Item item : ALL_ITEMS){
 			ForgeRegistries.ITEMS.register(item);
 		}

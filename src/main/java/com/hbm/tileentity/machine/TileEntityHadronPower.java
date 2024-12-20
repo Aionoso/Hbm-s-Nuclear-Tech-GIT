@@ -1,12 +1,12 @@
 package com.hbm.tileentity.machine;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.TileEntityTickingBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 
-public class TileEntityHadronPower extends TileEntityTickingBase implements IEnergyUser {
+public class TileEntityHadronPower extends TileEntityTickingBase implements IEnergyReceiverMK2 {
 
 	public long power;
 	public static final long maxPower = 1000000000;
@@ -14,7 +14,7 @@ public class TileEntityHadronPower extends TileEntityTickingBase implements IEne
 	@Override
 	public void update() {
 		if(!world.isRemote) {
-			this.updateStandardConnections(world, pos);
+			for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) this.trySubscribe(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
 			NBTTagCompound data = new NBTTagCompound();
 			data.setLong("power", power);
 			this.networkPack(data, 15);

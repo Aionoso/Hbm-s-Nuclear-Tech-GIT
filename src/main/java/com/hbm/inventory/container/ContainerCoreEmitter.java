@@ -82,10 +82,6 @@ public class ContainerCoreEmitter extends Container {
 			PacketDispatcher.sendTo(new AuxLongPacket(nukeBoy.getPos(), nukeBoy.prev, 0), player);
 			prev = (int) nukeBoy.prev;
 		}
-		if(!FFUtils.areTanksEqual(tank, nukeBoy.tank)){
-			tank = FFUtils.copyTank(nukeBoy.tank);
-			PacketDispatcher.sendTo(new FluidTankPacket(nukeBoy.getPos(), new FluidTank[] { tank }), player);
-		}
 		super.detectAndSendChanges();
 	}
 	

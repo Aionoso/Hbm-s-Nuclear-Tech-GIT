@@ -2,9 +2,16 @@ package com.hbm.items.machine;
 
 import java.util.List;
 
+import com.hbm.inventory.fluid.FluidStack;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
 import com.hbm.items.ModItems;
 import com.hbm.forgefluid.FFUtils;
 
+import com.hbm.lib.RefStrings;
+import com.mojang.realmsclient.gui.ChatFormatting;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
@@ -12,13 +19,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ItemFluidIcon extends Item {
+
+	public static final ModelResourceLocation fluidIconModel = new ModelResourceLocation(RefStrings.MODID + ":forge_fluid_identifier", "inventory");
 
 	public ItemFluidIcon(String s) {
 		this.setUnlocalizedName(s);
@@ -32,72 +38,77 @@ public class ItemFluidIcon extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items) {
+		FluidType[] order = Fluids.getInNiceOrder();
 		if(tab == this.getCreativeTab()){
-			for(Fluid f : FluidRegistry.getRegisteredFluids().values()){
-				items.add(getStack(f));
+			for(int i = 1; i < order.length; ++i) {
+				items.add(new ItemStack(this, 1, order[i].getID()));
 			}
 		}
 	}
 	
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		if(stack.hasTagCompound())
-			if(stack.getTagCompound().getInteger("fill") > 0)
-				tooltip.add(stack.getTagCompound().getInteger("fill") + "mB");
-		Fluid f = getFluid(stack);
-        if(f != null) FFUtils.addFluidInfo(f, tooltip);
+		if(stack.hasTagCompound()) {
+			if(getQuantity(stack) > 0) tooltip.add(getQuantity(stack) + "mB");
+			if(getPressure(stack) > 0) tooltip.add(ChatFormatting.RED + "" + getPressure(stack) + "PU");
+		}
+
+		Fluids.fromID(stack.getItemDamage()).addInfo(tooltip);
 	}
-	
+
 	@Override
 	public String getItemStackDisplayName(ItemStack stack) {
-		String s;
-		Fluid f = getFluid(stack);
-        if(f != null)
-        	s = (f.getLocalizedName(new FluidStack(f, 1000)).trim());
-        else
-        	s = null;
+		FluidType fluidType = Fluids.fromID(stack.getMetadata());
+		if (fluidType != null) {
+			String unlocalizedName = fluidType.getUnlocalizedName();
+			String localizedName = I18n.format(unlocalizedName).trim();
 
-        if (s != null)
-        {
-            return s;
-        }
-
-        return "Unknown";
-	}
-	
-	public static ItemStack getStack(Fluid f){
-		ItemStack stack = new ItemStack(ModItems.fluid_icon, 1, 0);
-		stack.setTagCompound(new NBTTagCompound());
-		stack.getTagCompound().setString("type", f.getName());
-		return stack;
-	}
-	
-	public static ItemStack getStackWithQuantity(Fluid f, int amount){
-		ItemStack stack = new ItemStack(ModItems.fluid_icon, 1, 0);
-		stack.setTagCompound(new NBTTagCompound());
-		stack.getTagCompound().setString("type", f.getName());
-		stack.getTagCompound().setInteger("fill", amount);
-		return stack;
-	}
-
-	public static ItemStack getStackWithQuantity(FluidStack f){
-		ItemStack stack = new ItemStack(ModItems.fluid_icon, 1, 0);
-		stack.setTagCompound(new NBTTagCompound());
-		stack.getTagCompound().setString("type", f.getFluid().getName());
-		stack.getTagCompound().setInteger("fill", f.amount);
-		return stack;
-	}
-	
-	public static int getQuantity(ItemStack stack){
-		if(stack.hasTagCompound()){
-			return stack.getTagCompound().getInteger("fill");
+			if (!localizedName.isEmpty()) {
+				return localizedName;
+			}
 		}
-		return 0;
+
+		return "Unknown";
 	}
-	
-	public static Fluid getFluid(ItemStack stack){
-		if(stack == null || !stack.hasTagCompound())
+
+	public static ItemStack addQuantity(ItemStack stack, int i) {
+		if(!stack.hasTagCompound()) stack.setTagCompound(new NBTTagCompound());
+		stack.getTagCompound().setInteger("fill", i);
+		return stack;
+	}
+
+	public static ItemStack addPressure(ItemStack stack, int i) {
+		if(!stack.hasTagCompound()) stack.setTagCompound(new NBTTagCompound());
+		stack.getTagCompound().setInteger("pressure", i);
+		return stack;
+	}
+
+	public static ItemStack make(FluidStack stack) {
+		return make(stack.type, stack.fill, stack.pressure);
+	}
+
+	public static ItemStack make(FluidType fluid, int i) {
+		return make(fluid, i, 0);
+	}
+
+	public static ItemStack make(FluidType fluid, int i, int pressure) {
+		return addPressure(addQuantity(new ItemStack(ModItems.fluid_icon, 1, fluid.getID()), i), pressure);
+	}
+
+	public static int getQuantity(ItemStack stack) {
+		if(!stack.hasTagCompound()) return 0;
+		return stack.getTagCompound().getInteger("fill");
+	}
+
+	public static int getPressure(ItemStack stack) {
+		if(!stack.hasTagCompound()) return 0;
+		return stack.getTagCompound().getInteger("pressure");
+	}
+	public static FluidType getFluidType(ItemStack stack) {
+		if (stack.isEmpty() || !(stack.getItem() instanceof ItemFluidIcon)) {
 			return null;
-		return FluidRegistry.getFluid(stack.getTagCompound().getString("type"));
+		}
+		return Fluids.fromID(stack.getMetadata());
 	}
+
 }

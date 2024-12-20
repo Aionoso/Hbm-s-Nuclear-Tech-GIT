@@ -12,6 +12,7 @@ public class RadiationConfig {
 	public static int worldRad = 10;
 	public static int worldRadThreshold = 20;
 	public static boolean worldRadEffects = true;
+	public static boolean enableContamination = true;
 	public static int blocksFallCh = 100;
 	
 	//Drillgon200: Not sure why I put these here, but oh well.
@@ -26,10 +27,21 @@ public class RadiationConfig {
 	public static int geigerY = 2;
 	public static int digammaX = 16;
 	public static int digammaY = 18;
+
+	public static boolean enablePollution = true;
+	public static boolean enableLeadFromBlocks = true;
+	public static boolean enableLeadPoisoning = true;
+	public static boolean enableSootFog = true;
+	public static boolean enablePoison = true;
+	public static double buffMobThreshold = 15D;
+	public static double sootFogThreshold = 35D;
+	public static double sootFogDivisor = 120D;
+	public static double smokeStackSootMult = 0.8;
 	
 	public static void loadFromConfig(Configuration config) {
 		final String CATEGORY_NUKE = "06_explosions";
 		final String CATEGORY_RAD = "07_radiation";
+		final String CATEGORY_POL = "16_pollution";
 		// afterrain duration
 		Property radRain = config.get(CATEGORY_NUKE, "6.06_falloutRainDuration", 2000);
 		radRain.setComment("Duration of the thunderstorm after fallout in ticks (only large explosions)");
@@ -49,6 +61,7 @@ public class RadiationConfig {
 		worldRad = CommonConfig.createConfigInt(config, CATEGORY_NUKE, "6.10_worldRadCount", "How many block operations radiation can perform per tick", 10);
 		worldRadThreshold = CommonConfig.createConfigInt(config, CATEGORY_NUKE, "6.11_worldRadThreshold", "The least amount of RADs required for block modification to happen", 40);
 		worldRadEffects = CommonConfig.createConfigBool(config, CATEGORY_NUKE, "6.12_worldRadEffects", "Whether high radiation levels should perform changes in the world", true);
+		enableContamination = CommonConfig.createConfigBool(config, CATEGORY_NUKE, "6.12_enableContamination", "Toggles player contamination (and negative effects from radiation poisoning)", true);
 		blocksFallCh = CommonConfig.createConfigInt(config, CATEGORY_NUKE, "6.13_blocksFallingChance", "The chance (in percentage form) that a block with low blast resistance will fall down. -1 Disables falling", 100);
 		// railgun
 		Property railDamage = config.get(CATEGORY_NUKE, "6.11_railgunDamage", 1000);
@@ -73,6 +86,16 @@ public class RadiationConfig {
 		geigerY = CommonConfig.createConfigInt(config, CATEGORY_RAD, "7.03_geigerY", "Y Coordinate of the geiger counter gui (y=0 is on the bottom)", 2);
 		digammaX = CommonConfig.createConfigInt(config, CATEGORY_RAD, "7.04_digammaX", "X Coordinate of the digamma diagnostic gui (x=0 is on the right)", 16);
 		digammaY = CommonConfig.createConfigInt(config, CATEGORY_RAD, "7.05_digammaY", "Y Coordinate of the digamma diagnostic gui (y=0 is on the bottom)", 18);
+
+		enablePollution = CommonConfig.createConfigBool(config, CATEGORY_POL, "16.01_enablePollution", "If disabled, none of the polltuion related things will work", true);
+		enableLeadFromBlocks = CommonConfig.createConfigBool(config, CATEGORY_POL, "16.02_enableLeadFromBlocks", "Whether breaking blocks in heavy metal polluted areas will poison the player", true);
+		enableLeadPoisoning = CommonConfig.createConfigBool(config, CATEGORY_POL, "16.03_enableLeadPoisoning", "Whether being in a heavy metal polluted area will poison the player", true);
+		enableSootFog = CommonConfig.createConfigBool(config, CATEGORY_POL, "16.04_enableSootFog", "Whether smog should be visible", true);
+		enablePoison = CommonConfig.createConfigBool(config, CATEGORY_POL, "16.05_enablePoison", "Whether being in a poisoned area will affect the player", true);
+		buffMobThreshold = CommonConfig.createConfigDouble(config, CATEGORY_POL, "16.06_buffMobThreshold", "The amount of soot required to buff naturally spawning mobs", 15D);
+		sootFogThreshold = CommonConfig.createConfigDouble(config, CATEGORY_POL, "16.07_sootFogThreshold", "How much soot is required for smog to become visible", 35D);
+		sootFogDivisor = CommonConfig.createConfigDouble(config, CATEGORY_POL, "16.08_sootFogDivisor", "The divisor for smog, higher numbers will require more soot for the same smog density", 120D);
+		smokeStackSootMult = CommonConfig.createConfigDouble(config, CATEGORY_POL, "16.09_smokeStackSootMult", "How much does smokestack multiply soot by, with decimal values reducing the soot", 0.8);
 	}
 
 }

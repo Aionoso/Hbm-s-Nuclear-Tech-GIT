@@ -2,6 +2,9 @@ package com.hbm.inventory.material;
 
 import com.hbm.inventory.OreDictManager.DictFrame;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Encapsulates most materials that are currently listed as DictFrames, even vanilla ones.
  * @author hbm
@@ -13,8 +16,10 @@ public class NTMMaterial {
 	public String[] names;
 	public MaterialShapes[] shapes = new MaterialShapes[0];
 	public boolean omitItemGen = false;
+	public Set<MatTraits> traits = new HashSet();
 	public SmeltingBehavior smeltable = SmeltingBehavior.NOT_SMELTABLE;
-	public int solidColor = 0xFF4A00; //TODO
+	public int solidColorLight = 0xFF4A00;
+	public int solidColorDark = 0x802000;
 	public int moltenColor = 0xFF4A00;
 	
 	public NTMMaterial smeltsInto;
@@ -60,10 +65,25 @@ public class NTMMaterial {
 		this.omitItemGen = true;
 		return this;
 	}
+
+	/** Traits for recipe detection */
+	public NTMMaterial setTraits(MatTraits... traits) {
+		for(MatTraits trait : traits) this.traits.add(trait);
+		return this;
+	}
+
+	public NTMMaterial m() { this.traits.add(MatTraits.METAL); return this; }
+	public NTMMaterial n() { this.traits.add(MatTraits.NONMETAL); return this; }
 	
 	/** Defines smelting behavior */
 	public NTMMaterial smeltable(SmeltingBehavior behavior) {
 		this.smeltable = behavior;
+		return this;
+	}
+
+	public NTMMaterial setSolidColor(int colorLight, int colorDark) {
+		this.solidColorLight = colorLight;
+		this.solidColorDark = colorDark;
 		return this;
 	}
 	
@@ -78,5 +98,10 @@ public class NTMMaterial {
 		BREAKS,			//can't be smelted because the material doesn't survive the temperatures
 		SMELTABLE,		//mostly metal
 		ADDITIVE		//stuff like coal which isn't smeltable but can be put in a crucible anyway
+	}
+
+	public static enum MatTraits {
+		METAL,		//metal(like), smeltable by arc furnaces (when it's going to be ported?..)
+		NONMETAL;	//non-metal(like), for gems, non-alloy compounds and similar
 	}
 }

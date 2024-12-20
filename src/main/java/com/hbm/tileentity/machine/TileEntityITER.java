@@ -1,30 +1,37 @@
 package com.hbm.tileentity.machine;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.machine.MachineITER;
-import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
-import com.hbm.interfaces.ITankPacketAcceptor;
+import com.hbm.interfaces.IFFtoNTMF;
 import com.hbm.inventory.BreederRecipes;
 import com.hbm.inventory.BreederRecipes.BreederRecipe;
 import com.hbm.inventory.FusionRecipes;
+import com.hbm.inventory.container.ContainerITER;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
+import com.hbm.inventory.gui.GUIITER;
 import com.hbm.items.ModItems;
 import com.hbm.items.special.ItemFusionShield;
+import com.hbm.lib.DirPos;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.main.AdvancementManager;
-import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.FluidTypePacketTest;
-import com.hbm.packet.PacketDispatcher;
 import com.hbm.render.amlfrom1710.Vec3;
+import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.saveddata.RadiationSavedData;
 
-import api.hbm.energy.IEnergyUser;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -32,24 +39,22 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.capabilities.Capability;
+import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityITER extends TileEntityMachineBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor {
+public class TileEntityITER extends TileEntityMachineBase implements ITickable, IEnergyReceiverMK2, IFluidStandardTransceiver, IGUIProvider, IFFtoNTMF {
 
 	public long power;
 	public static final long maxPower = 1000000000;
 	public static final int powerReq = 500000;
 	public int age = 0;
+	public FluidTankNTM[] tanksNew;
+	public FluidTankNTM plasmaNew;
+
 	public FluidTank[] tanks;
 	public Fluid[] types;
 	public FluidTank plasma;
@@ -64,9 +69,15 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 	public float rotor;
 	public float lastRotor;
 	public boolean isOn;
+	private boolean converted;
 
 	public TileEntityITER() {
 		super(5);
+		tanksNew = new FluidTankNTM[2];
+		tanksNew[0] = new FluidTankNTM(Fluids.WATER, 1280000, 0);
+		tanksNew[1] = new FluidTankNTM(Fluids.ULTRAHOTSTEAM, 128000, 1);
+		plasmaNew = new FluidTankNTM(Fluids.PLASMA_DT, 16000, 2);
+
 		tanks = new FluidTank[2];
 		types = new Fluid[2];
 		tanks[0] = new FluidTank(12800000);
@@ -84,14 +95,15 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 	@Override
 	public void update() {
 		if(!world.isRemote) {
-
+			if (!converted){
+				convertAndSetFluids(types, tanks, tanksNew);
+				convertAndSetFluid(plasmaType, plasma, plasmaNew);
+				converted = true;
+			}
 			age++;
 			if(age >= 20) {
 				age = 0;
 			}
-
-			if(age == 9 || age == 19)
-				fillFluidInit(tanks[1]);
 
 			this.updateConnections();
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
@@ -99,11 +111,11 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 			/// START Processing part ///
 
 			if(!isOn) {
-				plasma.setFluid(null); //jettison plasma if the thing is turned off
+				plasmaNew.setFill(0);	//jettison plasma if the thing is turned off
 			}
 
 			//explode either if there's plasma that is too hot or if the reactor is turned on but the magnets have no power
-			if(plasma.getFluidAmount() > 0 && (this.plasmaType.getTemperature() >= this.getShield() || (this.isOn && this.power < powerReq))) {
+			if(plasmaNew.getFill() > 0 && (this.plasmaNew.getTankType().temperature >= this.getShield() || (this.isOn && this.power < this.powerReq))) {
 				this.disassemble();
 				Vec3 vec = Vec3.createVectorHelper(5.5, 0, 0);
 				vec.rotateAroundY(world.rand.nextFloat() * (float) Math.PI * 2F);
@@ -115,15 +127,15 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 			if(isOn && power >= powerReq) {
 				power -= powerReq;
 
-				if(plasma.getFluidAmount() > 0) {
+				if(plasmaNew.getFill() > 0) {
 
-					int chance = FusionRecipes.getByproductChance(plasmaType);
+					int chance = FusionRecipes.getByproductChance(plasmaNew.getTankType());
 
 					if(chance > 0 && world.rand.nextInt(chance) == 0)
 						produceByproduct();
 				}
 
-				if(plasma.getFluidAmount() > 0 && this.getShield() != 0) {
+				if(plasmaNew.getFill() > 0 && this.getShield() != 0) {
 
 					ItemFusionShield.setShieldDamage(inventory.getStackInSlot(3), ItemFusionShield.getShieldDamage(inventory.getStackInSlot(3)) + 1);
 
@@ -135,19 +147,21 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 					}
 				}
 
-				int prod = FusionRecipes.getSteamProduction(plasmaType);
-				
+				int prod = FusionRecipes.getSteamProduction(plasmaNew.getTankType());
+
 				for(int i = 0; i < 20; i++) {
 
-					if(plasma.getFluidAmount() > 0) {
+					if(plasmaNew.getFill() > 0) {
 
-						if(tanks[0].getFluidAmount() >= prod * 10) {
-							tanks[0].drain(prod * 10, true);
-							tanks[1].fill(new FluidStack(types[1], prod), true);
+						if(tanksNew[0].getFill() >= prod * 10) {
+							tanksNew[0].setFill(tanksNew[0].getFill() - prod * 10);
+							tanksNew[1].setFill(tanksNew[1].getFill() + prod);
 
+							if(tanksNew[1].getFill() > tanksNew[1].getMaxFill())
+								tanksNew[1].setFill(tanksNew[1].getMaxFill());
 						}
 
-						plasma.drain(1, true);
+						plasmaNew.setFill(plasmaNew.getFill() - 1);
 					}
 				}
 			}
@@ -155,15 +169,24 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 			/// END Processing part ///
 
 			/// START Notif packets ///
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tanks[0], tanks[1], plasma }), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 120));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTypePacketTest(pos.getX(), pos.getY(), pos.getZ(), new Fluid[]{plasmaType}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			/// END Notif packets ///
+			for(int i = 0; i < tanksNew.length; i++)
+				tanksNew[i].updateTank(pos.getX(), pos.getY(), pos.getZ(), world.provider.getDimension());
+			plasmaNew.updateTank(pos.getX(), pos.getY(), pos.getZ(), world.provider.getDimension());
+
+			for(DirPos pos : getConPos()) {
+				if(tanksNew[1].getFill() > 0) {
+					this.sendFluid(tanksNew[1], world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+				}
+			}
+
 			NBTTagCompound data = new NBTTagCompound();
 			data.setBoolean("isOn", isOn);
 			data.setLong("power", power);
 			data.setInteger("progress", progress);
 
-			if(inventory.getStackInSlot(3).getItem() == ModItems.fusion_shield_tungsten) {
+			if(inventory.getStackInSlot(3).isEmpty()) {
+				data.setInteger("blanket", 0);
+			} else if(inventory.getStackInSlot(3).getItem() == ModItems.fusion_shield_tungsten) {
 				data.setInteger("blanket", 1);
 			} else if(inventory.getStackInSlot(3).getItem() == ModItems.fusion_shield_desh) {
 				data.setInteger("blanket", 2);
@@ -171,8 +194,6 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 				data.setInteger("blanket", 3);
 			} else if(inventory.getStackInSlot(3).getItem() == ModItems.fusion_shield_vaporwave) {
 				data.setInteger("blanket", 4);
-			} else {
-				data.setInteger("blanket", 0);
 			}
 
 			this.networkPack(data, 250);
@@ -192,14 +213,39 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 		}
 	}
 
+	protected List<DirPos> connections;
+
 	private void updateConnections() {
-		this.trySubscribe(world, pos.add(0, 3, 0), ForgeDirection.UP);
-		this.trySubscribe(world, pos.add(0, -3, 0), ForgeDirection.DOWN);
+
+		for(DirPos pos : getConPos()) {
+			this.trySubscribe(world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+			this.trySubscribe(tanksNew[0].getTankType(), world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+		}
+	}
+
+	protected List<DirPos> getConPos() {
+		if(connections != null && !connections.isEmpty())
+			return connections;
+
+		connections = new ArrayList();
+
+		connections.add(new DirPos(pos.getX(), pos.getY() + 3, pos.getZ(), ForgeDirection.UP));
+		connections.add(new DirPos(pos.getX(), pos.getY() - 3, pos.getZ(), ForgeDirection.DOWN));
+
+		Vec3 vec = Vec3.createVectorHelper(5.75, 0, 0);
+
+		for(int i = 0; i < 16; i++) {
+			vec.rotateAroundY((float) (Math.PI / 8));
+			connections.add(new DirPos(pos.getX() + (int)vec.xCoord, pos.getY() + 3, pos.getZ() + (int)vec.zCoord, ForgeDirection.UP));
+			connections.add(new DirPos(pos.getX() + (int)vec.xCoord, pos.getY() - 3, pos.getZ() + (int)vec.zCoord, ForgeDirection.DOWN));
+		}
+
+		return connections;
 	}
 	
 	private void doBreederStuff() {
 
-		if(plasma.getFluidAmount() == 0) {
+		if(plasmaNew.getFill() == 0) {
 			this.progress = 0;
 			return;
 		}
@@ -222,7 +268,7 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 			return;
 		}
 
-		int level = FusionRecipes.getBreedingLevel(plasmaType);
+		int level = FusionRecipes.getBreedingLevel(plasmaNew.getTankType());
 
 		if(out.heat > level) {
 			this.progress = 0;
@@ -250,7 +296,7 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 
 	private void produceByproduct() {
 
-		ItemStack by = FusionRecipes.getByproduct(plasmaType);
+		ItemStack by = FusionRecipes.getByproduct(plasmaNew.getTankType());
 
 		if(by == null)
 			return;
@@ -298,35 +344,46 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound compound) {
-		tanks[0].readFromNBT(compound.getCompoundTag("water"));
-		tanks[1].readFromNBT(compound.getCompoundTag("steam"));
-		plasma.readFromNBT(compound.getCompoundTag("plasma"));
-		plasmaType = FluidRegistry.getFluid(compound.getString("plasma_type"));
-		this.power = compound.getLong("power");
-		this.isOn = compound.getBoolean("isOn");
-		super.readFromNBT(compound);
+	public void readFromNBT(NBTTagCompound nbt) {
+		super.readFromNBT(nbt);
+
+		this.power = nbt.getLong("power");
+		this.isOn = nbt.getBoolean("isOn");
+		if(!converted){
+			tanks[0].readFromNBT(nbt.getCompoundTag("water"));
+			tanks[1].readFromNBT(nbt.getCompoundTag("steam"));
+			plasma.readFromNBT(nbt.getCompoundTag("plasma"));
+			plasmaType = FluidRegistry.getFluid(nbt.getString("plasma_type"));
+		} else {
+			tanksNew[0].readFromNBT(nbt, "water");
+			tanksNew[1].readFromNBT(nbt, "steam");
+			if(nbt.hasKey("water")){
+				nbt.removeTag("water");
+				nbt.removeTag("steam");
+				nbt.removeTag("plasma");
+				nbt.removeTag("plasma_type");
+			}
+		}
+		plasmaNew.readFromNBT(nbt, "plasma");
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		compound.setTag("water", tanks[0].writeToNBT(new NBTTagCompound()));
-		compound.setTag("steam", tanks[1].writeToNBT(new NBTTagCompound()));
-		compound.setTag("plasma", plasma.writeToNBT(new NBTTagCompound()));
-		if(plasmaType != null)
-			compound.setString("plasma_type", plasmaType.getName());
-		compound.setLong("power", this.power);
-		compound.setBoolean("isOn", isOn);
-		return super.writeToNBT(compound);
-	}
+	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 
-	public void fillFluidInit(FluidTank type) {
-		fillFluid(pos.getX(), pos.getY() - 3, pos.getZ(), type);
-		fillFluid(pos.getX(), pos.getY() + 3, pos.getZ(), type);
-	}
-
-	public void fillFluid(int x, int y, int z, FluidTank type) {
-		FFUtils.fillFluid(this, type, world, new BlockPos(x, y, z), 1280000);
+		nbt.setLong("power", this.power);
+		nbt.setBoolean("isOn", isOn);
+		if(!converted){
+			nbt.setTag("water", tanks[0].writeToNBT(new NBTTagCompound()));
+			nbt.setTag("steam", tanks[1].writeToNBT(new NBTTagCompound()));
+			nbt.setTag("plasma", plasma.writeToNBT(new NBTTagCompound()));
+			if(plasmaType != null)
+				nbt.setString("plasma_type", plasmaType.getName());
+		} else {
+			tanksNew[0].writeToNBT(nbt, "water");
+			tanksNew[1].writeToNBT(nbt, "steam");
+			plasmaNew.writeToNBT(nbt, "plasma");
+		}
+		return super.writeToNBT(nbt);
 	}
 
 	public void disassemble() {
@@ -394,33 +451,18 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 	}
 
 	@Override
-	public IFluidTankProperties[] getTankProperties() {
-		return new IFluidTankProperties[] { tanks[0].getTankProperties()[0], tanks[1].getTankProperties()[0], plasma.getTankProperties()[0] };
+	public FluidTankNTM[] getSendingTanks() {
+		return new FluidTankNTM[] {tanksNew[1]};
 	}
 
 	@Override
-	public int fill(FluidStack resource, boolean doFill) {
-		if(resource != null) {
-			if(resource.getFluid() == types[0]) {
-				return tanks[0].fill(resource, doFill);
-			} else if(resource.getFluid() == types[1]) {
-				return tanks[1].fill(resource, doFill);
-			}
-		}
-		return 0;
+	public FluidTankNTM[] getReceivingTanks() {
+		return new FluidTankNTM[] {tanksNew[0]};
 	}
 
 	@Override
-	public FluidStack drain(FluidStack resource, boolean doDrain) {
-		if(resource != null && resource.getFluid() == ModForgeFluids.ultrahotsteam) {
-			return tanks[1].drain(resource, doDrain);
-		}
-		return null;
-	}
-
-	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain) {
-		return tanks[1].drain(maxDrain, doDrain);
+	public FluidTankNTM[] getAllTanks() {
+		return tanksNew;
 	}
 	
 	@Override
@@ -451,27 +493,23 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 	}
 
 	@Override
-	public void recievePacket(NBTTagCompound[] tags) {
-		if(tags.length == 3) {
-			tanks[0].readFromNBT(tags[0]);
-			tanks[1].readFromNBT(tags[1]);
-			plasma.readFromNBT(tags[2]);
-		}
+	public boolean canConnect(ForgeDirection dir) {
+		return dir == ForgeDirection.UP || dir == ForgeDirection.DOWN;
 	}
-	
+
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY){
-			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-		}
-		return super.getCapability(capability, facing);
+	public boolean canConnect(FluidType type, ForgeDirection dir) {
+		return dir == ForgeDirection.UP || dir == ForgeDirection.DOWN;
 	}
-	
+
 	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY){
-			return true;
-		}
-		return super.hasCapability(capability, facing);
+	public Container provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		return new ContainerITER(player.inventory, this);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public GuiScreen provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		return new GUIITER(player.inventory, this);
 	}
 }

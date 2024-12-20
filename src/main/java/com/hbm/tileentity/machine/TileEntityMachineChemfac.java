@@ -1,40 +1,34 @@
 package com.hbm.tileentity.machine;
 
 import com.hbm.blocks.BlockDummyable;
-import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.inventory.UpgradeManager;
 import com.hbm.inventory.container.ContainerChemfac;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
 import com.hbm.inventory.gui.GUIChemfac;
 import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
+import com.hbm.lib.DirPos;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
-import com.hbm.packet.LoopedSoundPacket;
-import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.IGUIProvider;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemStackHandler;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -46,16 +40,22 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	public float rot;
 	public float prevRot;
 
+	public FluidTankNTM waterNew;
+	public FluidTankNTM steamNew;
 	public TypedFluidTank water;
 	public TypedFluidTank steam;
 
+	private boolean converted;
 	private final UpgradeManager upgradeManager;
 
 	public TileEntityMachineChemfac() {
 		super(77);
 
+		waterNew = new FluidTankNTM(Fluids.WATER, 64_000, tanksNew.length);
+		steamNew = new FluidTankNTM(Fluids.SPENTSTEAM, 64_000, tanksNew.length + 1);
+
 		water = new TypedFluidTank(ModForgeFluids.coolant, new FluidTank(6400));
-		steam = new TypedFluidTank(ModForgeFluids.hotcoolant, new FluidTank(6400));
+		steam = new TypedFluidTank(ModForgeFluids.coolant_hot, new FluidTank(6400));
 
 		inventory = new ItemStackHandler(77) {
 			@Override
@@ -78,13 +78,29 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	@Override
 	public void update() {
 		super.update();
-
+		if(!converted){
+			convertAndSetFluid(steam.getType(), steam.getTank(), steamNew);
+			convertAndSetFluid(water.getType(), water.getTank(), waterNew);
+			converted = true;
+		}
 		if(!world.isRemote) {
 			if(world.getTotalWorldTime() % 60 == 0) {
-				this.updateConnections();
+				for(DirPos pos : getConPos()) {
+					this.trySubscribe(world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+
+					for(FluidTankNTM tank : inTanks()) {
+						if(tank.getTankType() != Fluids.NONE) {
+							this.trySubscribe(tank.getTankType(), world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+						}
+					}
+				}
 			}
 
-			this.sendFluids();
+			for(DirPos pos : getConPos()) for(FluidTankNTM tank : outTanks()) {
+				if(tank.getTankType() != Fluids.NONE && tank.getFill() > 0) {
+					this.sendFluid(tank, world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+				}
+			}
 
 			this.speed = 100;
 			this.consumption = 100;
@@ -105,23 +121,7 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 				this.speed = 1;
 			}
 
-			NBTTagCompound data = new NBTTagCompound();
-			data.setLong("power", this.power);
-			data.setIntArray("progress", this.progress);
-			data.setIntArray("maxProgress", this.maxProgress);
-			data.setBoolean("isProgressing", isProgressing);
-			data.setTag("tanks", serializeTanks());
-
-			NBTTagCompound tankWater = new NBTTagCompound();
-			water.writeToNBT(tankWater);
-			data.setTag("water", tankWater);
-
-			NBTTagCompound tankSteam = new NBTTagCompound();
-			steam.writeToNBT(tankSteam);
-			data.setTag("steam", tankSteam);
-
-			PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
-			this.networkPack(data, 150);
+			this.networkPackNT(150);
 		} else {
 			float maxSpeed = 30F;
 
@@ -163,69 +163,75 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	}
 
 	@Override
-	public void networkUnpack(NBTTagCompound nbt) {
-		this.power = nbt.getLong("power");
-		this.progress = nbt.getIntArray("progress");
-		this.maxProgress = nbt.getIntArray("maxProgress");
-		this.isProgressing = nbt.getBoolean("isProgressing");
-		this.deserializeTanks(nbt.getTagList("tanks", 10));
+	public void serialize(ByteBuf buf) {
+		super.serialize(buf);
+		buf.writeLong(power);
+		for(int i = 0; i < getRecipeCount(); i++) {
+			buf.writeInt(progress[i]);
+			buf.writeInt(maxProgress[i]);
+		}
 
-		water.readFromNBT(nbt.getCompoundTag("water"));
-		steam.readFromNBT(nbt.getCompoundTag("steam"));
+		buf.writeBoolean(isProgressing);
+
+		for(int i = 0; i < tanksNew.length; i++) tanksNew[i].serialize(buf);
+
+		waterNew.serialize(buf);
+		steamNew.serialize(buf);
+	}
+
+	@Override
+	public void deserialize(ByteBuf buf) {
+		super.deserialize(buf);
+		power = buf.readLong();
+		for(int i = 0; i < getRecipeCount(); i++) {
+			progress[i] = buf.readInt();
+			maxProgress[i] = buf.readInt();
+		}
+
+		isProgressing = buf.readBoolean();
+
+		for(int i = 0; i < tanksNew.length; i++) tanksNew[i].deserialize(buf);
+
+		waterNew.deserialize(buf);
+		steamNew.deserialize(buf);
 	}
 
 	private int getWaterRequired() {
-		return 100 / this.speed;
+		return 1000 / this.speed;
 	}
 
 
 	@Override
 	protected boolean canProcess(int index) {
-		return super.canProcess(index) && this.water.tank.getFluidAmount() >= getWaterRequired() && this.steam.tank.getFluidAmount() + getWaterRequired() <= this.steam.tank.getCapacity();
+		return super.canProcess(index) && this.waterNew.getFill() >= getWaterRequired() && this.steamNew.getFill() + getWaterRequired() <= this.steamNew.getMaxFill();
 	}
 
 	@Override
 	protected void process(int index) {
 		super.process(index);
-		this.water.tank.drain(getWaterRequired(), true);
-		this.steam.tank.fill(new FluidStack(ModForgeFluids.hotcoolant, getWaterRequired()), true);
+		this.waterNew.setFill(this.waterNew.getFill() - getWaterRequired());
+		this.steamNew.setFill(this.steamNew.getFill() + getWaterRequired());
 	}
 
+	protected List<DirPos> conPos;
 
-	private void updateConnections() {
-		for (Pair<BlockPos, ForgeDirection> pos : getConPos()) {
-			this.trySubscribe(world, pos.getLeft(), pos.getRight());
-		}
-	}
+	protected List<DirPos> getConPos() {
 
-	private void sendFluids() {
-		for (Pair<BlockPos, ForgeDirection> pos : getConPos()) {
-			for (TypedFluidTank tank : outTanks()) {
-				if(tank.type != null && tank.tank.getFluidAmount() > 0) {
-					FFUtils.fillFluid(this, tank.tank, world, pos.getLeft(), tank.tank.getFluidAmount());
-				}
-			}
-		}
-	}
-
-	List<Pair<BlockPos, ForgeDirection>> conPos;
-
-	protected List<Pair<BlockPos, ForgeDirection>> getConPos() {
 		if(conPos != null && !conPos.isEmpty())
 			return conPos;
 
-		conPos = new ArrayList<>();
+		conPos = new ArrayList();
 
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset).getOpposite();
 		ForgeDirection rot = dir.getRotation(ForgeDirection.DOWN);
 
-		for (int i = 0; i < 6; i++) {
-			conPos.add(Pair.of(pos.add(dir.offsetX * (3 - i) + rot.offsetX * 3, 4, dir.offsetZ * (3 - i) + rot.offsetZ * 3), Library.POS_Y));
-			conPos.add(Pair.of(pos.add(dir.offsetX * (3 - i) - rot.offsetX * 2, 4, dir.offsetZ * (3 - i) - rot.offsetZ * 2), Library.POS_Y));
+		for(int i = 0; i < 6; i++) {
+			conPos.add(new DirPos(pos.getX() + dir.offsetX * (3 - i) + rot.offsetX * 3, pos.getY() + 4, pos.getZ() + dir.offsetZ * (3 - i) + rot.offsetZ * 3, Library.POS_Y));
+			conPos.add(new DirPos(pos.getX() + dir.offsetX * (3 - i) - rot.offsetX * 2, pos.getY() + 4, pos.getZ() + dir.offsetZ * (3 - i) - rot.offsetZ * 2, Library.POS_Y));
 
-			for (int j = 0; j < 2; j++) {
-				conPos.add(Pair.of(pos.add(dir.offsetX * (3 - i) + rot.offsetX * 5, 1 + j, dir.offsetZ * (3 - i) + rot.offsetZ * 5), rot));
-				conPos.add(Pair.of(pos.add(dir.offsetX * (3 - i) - rot.offsetX * 4, 1 + j, dir.offsetZ * (3 - i) - rot.offsetZ * 4), rot.getOpposite()));
+			for(int j = 0; j < 2; j++) {
+				conPos.add(new DirPos(pos.getX() + dir.offsetX * (3 - i) + rot.offsetX * 5, pos.getY() + 1 + j, pos.getZ() + dir.offsetZ * (3 - i) + rot.offsetZ * 5, rot));
+				conPos.add(new DirPos(pos.getX() + dir.offsetX * (3 - i) - rot.offsetX * 4, pos.getY() + 1 + j, pos.getZ() + dir.offsetZ * (3 - i) - rot.offsetZ * 4, rot.getOpposite()));
 			}
 		}
 
@@ -262,96 +268,93 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 		return new int[]{5 + index * 9, 8 + index * 9, 9 + index * 9, 12 + index * 9};
 	}
 
-	BlockPos[] inPos;
-	BlockPos[] outPos;
+	DirPos[] inpos;
+	DirPos[] outpos;
 
 	@Override
-	public BlockPos[] getInputPositions() {
-		if(inPos != null) {
-			return inPos;
-		}
+	public DirPos[] getInputPositions() {
+
+		if(inpos != null)
+			return inpos;
 
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
 		ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
 
-		inPos = new BlockPos[]{
-				pos.add(dir.offsetX * 4 - rot.offsetX * 1, 0, dir.offsetZ * 4 - rot.offsetZ * 1),
-				pos.add(-dir.offsetX * 5 + rot.offsetX * 2, 0, -dir.offsetZ * 5 + rot.offsetZ * 2),
-				pos.add(-dir.offsetX * 2 - rot.offsetX * 4, 0, -dir.offsetZ * 2 - rot.offsetZ * 4),
-				pos.add(dir.offsetX * 1 + rot.offsetX * 5, 0, dir.offsetZ * 1 + rot.offsetZ * 5)
+		inpos = new DirPos[] {
+				new DirPos(pos.getX() + dir.offsetX * 4 - rot.offsetX * 1, pos.getY(), pos.getZ() + dir.offsetZ * 4 - rot.offsetZ * 1, dir),
+				new DirPos(pos.getX() - dir.offsetX * 5 + rot.offsetX * 2, pos.getY(), pos.getZ() - dir.offsetZ * 5 + rot.offsetZ * 2, dir.getOpposite()),
+				new DirPos(pos.getX() - dir.offsetX * 2 - rot.offsetX * 4, pos.getY(), pos.getZ() - dir.offsetZ * 2 - rot.offsetZ * 4, rot.getOpposite()),
+				new DirPos(pos.getX() + dir.offsetX * 1 + rot.offsetX * 5, pos.getY(), pos.getZ() + dir.offsetZ * 1 + rot.offsetZ * 5, rot)
 		};
 
-		return inPos;
+		return inpos;
 	}
 
 	@Override
-	public BlockPos[] getOutputPositions() {
-		if(outPos != null)
-			return outPos;
+	public DirPos[] getOutputPositions() {
+
+		if(outpos != null)
+			return outpos;
 
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
 		ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
 
-		outPos = new BlockPos[]{
-				pos.add(dir.offsetX * 4 + rot.offsetX * 2, 0, dir.offsetZ * 4 + rot.offsetZ * 2),
-				pos.add(-dir.offsetX * 5 - rot.offsetX * 1, 0, -dir.offsetZ * 5 - rot.offsetZ * 1),
-				pos.add(dir.offsetX * 1 - rot.offsetX * 4, 0, dir.offsetZ * 1 - rot.offsetZ * 4),
-				pos.add(-dir.offsetX * 2 + rot.offsetX * 5, 0, -dir.offsetZ * 2 + rot.offsetZ * 5)
+		outpos = new DirPos[] {
+				new DirPos(pos.getX() + dir.offsetX * 4 + rot.offsetX * 2, pos.getY(), pos.getZ() + dir.offsetZ * 4 + rot.offsetZ * 2, dir),
+				new DirPos(pos.getX() - dir.offsetX * 5 - rot.offsetX * 1, pos.getY(), pos.getZ() - dir.offsetZ * 5 - rot.offsetZ * 1, dir.getOpposite()),
+				new DirPos(pos.getX() + dir.offsetX * 1 - rot.offsetX * 4, pos.getY(), pos.getZ() + dir.offsetZ * 1 - rot.offsetZ * 4, rot.getOpposite()),
+				new DirPos(pos.getX() - dir.offsetX * 2 + rot.offsetX * 5, pos.getY(), pos.getZ() - dir.offsetZ * 2 + rot.offsetZ * 5, rot)
 		};
 
-		return outPos;
-	}
-
-	IFluidTankProperties[] properties;
-
-	@Override
-	public IFluidTankProperties[] getTankProperties() {
-		if(properties == null) {
-			properties = new IFluidTankProperties[tanks.length + 2];
-			for (int i = 0; i < tanks.length; i++) {
-				properties[i] = tanks[i].tank.getTankProperties()[0];
-			}
-
-			properties[tanks.length] = water.tank.getTankProperties()[0];
-			properties[tanks.length + 1] = steam.tank.getTankProperties()[0];
-		}
-
-		return properties;
-	}
-
-	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		NBTTagCompound tankWater = new NBTTagCompound();
-		water.tank.writeToNBT(tankWater);
-		nbt.setTag("water", tankWater);
-
-		NBTTagCompound tankSteam = new NBTTagCompound();
-		steam.tank.writeToNBT(tankSteam);
-		nbt.setTag("steam", tankSteam);
-
-		return super.writeToNBT(nbt);
+		return outpos;
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-
-		water.tank.readFromNBT(nbt.getCompoundTag("water"));
-		steam.tank.readFromNBT(nbt.getCompoundTag("steam"));
+		if(!converted){
+			water.tank.readFromNBT(nbt.getCompoundTag("water"));
+			steam.tank.readFromNBT(nbt.getCompoundTag("steam"));
+		} else {
+			waterNew.readFromNBT(nbt, "w");
+			steamNew.readFromNBT(nbt, "s");
+			if(nbt.hasKey("water")) nbt.removeTag("water");
+			if(nbt.hasKey("steam")) nbt.removeTag("steam");
+		}
 	}
 
 	@Override
-	protected List<TypedFluidTank> inTanks() {
-		List<TypedFluidTank> inTanks = super.inTanks();
-		inTanks.add(water);
+	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+		super.writeToNBT(nbt);
+		if(!converted) {
+			NBTTagCompound tankWater = new NBTTagCompound();
+			water.tank.writeToNBT(tankWater);
+			nbt.setTag("water", tankWater);
+
+			NBTTagCompound tankSteam = new NBTTagCompound();
+			steam.tank.writeToNBT(tankSteam);
+			nbt.setTag("steam", tankSteam);
+		} else {
+			waterNew.writeToNBT(nbt, "w");
+			steamNew.writeToNBT(nbt, "s");
+		}
+		return nbt;
+	}
+
+	@Override
+	protected List<FluidTankNTM> inTanks() {
+
+		List<FluidTankNTM> inTanks = super.inTanks();
+		inTanks.add(waterNew);
 
 		return inTanks;
 	}
 
 	@Override
-	public List<TypedFluidTank> outTanks() {
-		List<TypedFluidTank> outTanks = super.outTanks();
-		outTanks.add(steam);
+	protected List<FluidTankNTM> outTanks() {
+
+		List<FluidTankNTM> outTanks = super.outTanks();
+		outTanks.add(steamNew);
 
 		return outTanks;
 	}
@@ -383,23 +386,5 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	@SideOnly(Side.CLIENT)
 	public GuiScreen provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		return new GUIChemfac(player.inventory, this);
-	}
-
-	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-		}
-
-		return super.getCapability(capability, facing);
-	}
-
-	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-			return true;
-		}
-
-		return super.hasCapability(capability, facing);
 	}
 }

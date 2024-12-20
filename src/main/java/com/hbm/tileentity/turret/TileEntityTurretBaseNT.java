@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.entity.logic.EntityBomber;
 import com.hbm.entity.missile.EntityMissileBaseAdvanced;
@@ -11,18 +12,22 @@ import com.hbm.entity.missile.EntityMissileCustom;
 import com.hbm.entity.projectile.EntityBulletBase;
 import com.hbm.handler.BulletConfigSyncingUtil;
 import com.hbm.handler.BulletConfiguration;
+import com.hbm.handler.CasingEjector;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.control_panel.ControlEvent;
 import com.hbm.inventory.control_panel.ControlEventSystem;
 import com.hbm.inventory.control_panel.IControllable;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemTurretBiometry;
+import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
 import com.hbm.lib.ForgeDirection;
+import com.hbm.packet.AuxParticlePacketNT;
+import com.hbm.packet.PacketDispatcher;
+import com.hbm.particle.SpentCasing;
 import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.INpc;
@@ -39,15 +44,17 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase implements IEnergyUser, IControllable, IControlReceiver, ITickable {
+public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase implements IEnergyReceiverMK2, IControllable, IControlReceiver, ITickable {
 
 	@Override
 	public boolean hasPermission(EntityPlayer player){
@@ -71,6 +78,10 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 	//only used by clients for interpolation
 	public double lastRotationYaw;
 	public double lastRotationPitch;
+	//only used by client for approach
+	public double syncRotationYaw;
+	public double syncRotationPitch;
+	protected int turnProgress;
 	//is the turret on?
 	public boolean isOn = false;
 	//is the turret aimed at the target?
@@ -92,6 +103,8 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 
 	//tally marks!
 	public int stattrak;
+	public int casingDelay;
+	protected SpentCasing cachedCasingConfig = null;
 
 	/**
 	 * X
@@ -136,6 +149,8 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		if(world.isRemote) {
 			this.lastRotationPitch = this.rotationPitch;
 			this.lastRotationYaw = this.rotationYaw;
+			this.rotationPitch = this.syncRotationPitch;
+			this.rotationYaw = this.syncRotationYaw;
 		}
 
 		this.aligned = false;
@@ -204,7 +219,16 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 			
 			this.power = Library.chargeTEFromItems(inventory, 10, this.power, this.getMaxPower());
 			manualOverride = false;
-			networkPack();
+			NBTTagCompound data = this.writePacket();
+			this.networkPack(data, 250);
+
+			if(usesCasings() && this.casingDelay() > 0) {
+				if(casingDelay > 0) {
+					casingDelay--;
+				} else {
+					spawnCasing();
+				}
+			}
 			
 		} else {
 			
@@ -223,13 +247,16 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		}
 	}
 
-	public void networkPack(){
+	protected NBTTagCompound writePacket() {
+
 		NBTTagCompound data = new NBTTagCompound();
 		if(this.tPos != null) {
 			data.setDouble("tX", this.tPos.x);
 			data.setDouble("tY", this.tPos.y);
 			data.setDouble("tZ", this.tPos.z);
 		}
+		data.setDouble("pitch", this.rotationPitch);
+		data.setDouble("yaw", this.rotationYaw);
 		data.setLong("power", this.power);
 		data.setBoolean("isOn", this.isOn);
 		data.setBoolean("targetPlayers", this.targetPlayers);
@@ -237,11 +264,17 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		data.setBoolean("targetMobs", this.targetMobs);
 		data.setBoolean("targetMachines", this.targetMachines);
 		data.setInteger("stattrak", this.stattrak);
-		this.networkPack(data, 250);
+
+		return data;
 	}
 	
 	@Override
 	public void networkUnpack(NBTTagCompound nbt){
+		super.networkUnpack(nbt);
+
+		this.turnProgress = 2;
+		this.syncRotationPitch = nbt.getDouble("pitch");
+		this.syncRotationYaw = nbt.getDouble("yaw");
 		this.power = nbt.getLong("power");
 		this.isOn = nbt.getBoolean("isOn");
 		this.targetPlayers = nbt.getBoolean("targetPlayers");
@@ -273,23 +306,23 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
 
 		//how did i even make this? what???
-		this.trySubscribe(world, pos.add(dir.offsetX * -1, 0, dir.offsetZ * -1), dir.getOpposite());
-		this.trySubscribe(world, pos.add(dir.offsetX * -1 + rot.offsetX * -1, 0, dir.offsetZ * -1 + rot.offsetZ * -1), dir.getOpposite());
+		this.trySubscribe(world, pos.getX() + dir.offsetX * -1, pos.getY(), pos.getZ() + dir.offsetZ * -1, dir.getOpposite());
+		this.trySubscribe(world, pos.getX() + dir.offsetX * -1 + rot.offsetX * -1, pos.getY(), pos.getZ() + dir.offsetZ * -1 + rot.offsetZ * -1, dir.getOpposite());
 
-		this.trySubscribe(world, pos.add(rot.offsetX * -2, 0, rot.offsetZ * -2), rot.getOpposite());
-		this.trySubscribe(world, pos.add(dir.offsetX * 1 + rot.offsetX * -2, 0, dir.offsetZ * 1 + rot.offsetZ * -2), rot.getOpposite());
+		this.trySubscribe(world, pos.getX() + rot.offsetX * -2, pos.getY(), pos.getZ() + rot.offsetZ * -2, rot.getOpposite());
+		this.trySubscribe(world, pos.getX() + dir.offsetX * 1 + rot.offsetX * -2, pos.getY(), pos.getZ() + dir.offsetZ * 1 + rot.offsetZ * -2, rot.getOpposite());
 
-		this.trySubscribe(world, pos.add(rot.offsetX * 1, 0, rot.offsetZ * 1), rot);
-		this.trySubscribe(world, pos.add(dir.offsetX * 1 + rot.offsetX * 1, 0, dir.offsetZ * 1 + rot.offsetZ * 1), rot);
+		this.trySubscribe(world, pos.getX() + rot.offsetX * 1, pos.getY(), pos.getZ() + rot.offsetZ * 1, rot);
+		this.trySubscribe(world, pos.getX() + dir.offsetX * 1 + rot.offsetX * 1, pos.getY(), pos.getZ() + dir.offsetZ * 1 + rot.offsetZ * 1, rot);
 
-		this.trySubscribe(world, pos.add(dir.offsetX * 2, 0, dir.offsetZ * 2), dir);
-		this.trySubscribe(world, pos.add(dir.offsetX * 2 + rot.offsetX * -1, 0, dir.offsetZ * 2 + rot.offsetZ * -1), dir);
+		this.trySubscribe(world, pos.getX() + dir.offsetX * 2, pos.getY(), pos.getZ() + dir.offsetZ * 2, dir);
+		this.trySubscribe(world, pos.getX() + dir.offsetX * 2 + rot.offsetX * -1, pos.getY(), pos.getZ() + dir.offsetZ * 2 + rot.offsetZ * -1, dir);
 
 		//Down
-		this.trySubscribe(world, pos.add(0, -1, 0), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(0, -1, dir.offsetZ-rot.offsetZ), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(dir.offsetX-rot.offsetX, -1, 0), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(dir.offsetX-rot.offsetX, -1, dir.offsetZ-rot.offsetZ), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX() + 0, pos.getY() - 1, pos.getZ(), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX() + 0, pos.getY() - 1, pos.getZ() + dir.offsetZ-rot.offsetZ, ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX() + dir.offsetX-rot.offsetX, pos.getY() - 1, pos.getZ(), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX() + dir.offsetX-rot.offsetX, pos.getY() - 1, pos.getZ() + dir.offsetZ-rot.offsetZ, ForgeDirection.DOWN);
 	}
 	
 	public abstract void updateFiringTick();
@@ -338,6 +371,14 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		
 		proj.shoot(vec.xCoord, vec.yCoord, vec.zCoord, bullet.velocity, bullet.spread);
 		world.spawnEntity(proj);
+
+		if(usesCasings()) {
+			if(this.casingDelay() == 0) {
+				spawnCasing();
+			} else {
+				casingDelay = this.casingDelay();
+			}
+		}
 	}
 	
 	public void conusmeAmmo(Item ammo) {
@@ -465,30 +506,35 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 	 * Turns the turret towards the specified position
 	 */
 	public void turnTowards(Vec3d ent) {
-		
+
+		Vec3d pos = this.getTurretPos();
+		Vec3d delta = new Vec3d(ent.x - pos.x, ent.y - pos.y, ent.z - pos.z);
+
+		double targetPitch = Math.asin(delta.y / delta.lengthVector());
+		double targetYaw = -Math.atan2(delta.x, delta.z);
+
+		this.turnTowardsAngle(targetPitch, targetYaw);
+	}
+
+	public void turnTowardsAngle(double targetPitch, double targetYaw) {
+
 		double turnYaw = Math.toRadians(this.getTurretYawSpeed());
 		double turnPitch = Math.toRadians(this.getTurretPitchSpeed());
 		double pi2 = Math.PI * 2;
 
-		Vec3d pos = this.getTurretPos();
-		Vec3d delta = new Vec3d(ent.x - pos.x, ent.y - pos.y, ent.z - pos.z);
-		
-		double targetPitch = Math.asin(delta.y / delta.lengthVector());
-		double targetYaw = -Math.atan2(delta.x, delta.z);
-		
 		//if we are about to overshoot the target by turning, just snap to the correct rotation
 		if(Math.abs(this.rotationPitch - targetPitch) < turnPitch || Math.abs(this.rotationPitch - targetPitch) > pi2 - turnPitch) {
 			this.rotationPitch = targetPitch;
 		} else {
-			
+
 			if(targetPitch > this.rotationPitch)
 				this.rotationPitch += turnPitch;
 			else
 				this.rotationPitch -= turnPitch;
 		}
-		
+
 		double deltaYaw = (targetYaw - this.rotationYaw) % pi2;
-		
+
 		//determines what direction the turret should turn
 		//used to prevent situations where the turret would do almost a full turn when
 		//the target is only a couple degrees off while being on the other side of the 360° line
@@ -502,21 +548,21 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 			dir = -1;
 		else if(deltaYaw > 0)
 			dir = 1;
-		
+
 		if(Math.abs(this.rotationYaw - targetYaw) < turnYaw || Math.abs(this.rotationYaw - targetYaw) > pi2 - turnYaw) {
 			this.rotationYaw = targetYaw;
 		} else {
 			this.rotationYaw += turnYaw * dir;
 		}
-		
+
 		double deltaPitch = targetPitch - this.rotationPitch;
 		deltaYaw = targetYaw - this.rotationYaw;
-		
+
 		double deltaAngle = Math.sqrt(deltaYaw * deltaYaw + deltaPitch * deltaPitch);
 
 		this.rotationYaw = this.rotationYaw % pi2;
 		this.rotationPitch = this.rotationPitch % pi2;
-		
+
 		if(deltaAngle <= Math.toRadians(this.getAcceptableInaccuracy())) {
 			this.aligned = true;
 		}
@@ -815,6 +861,46 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 	@Override
 	public World getControlWorld(){
 		return getWorld();
+	}
+
+
+	public static void openInventory(EntityPlayer player) {
+		player.world.playSound(player.posX + 0.5, player.posY + 0.5, player.posZ + 0.5, HBMSoundHandler.openC, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+	}
+
+
+	public static void closeInventory(EntityPlayer player) {
+		player.world.playSound(player.posX + 0.5, player.posY + 0.5, player.posZ + 0.5, HBMSoundHandler.closeC, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+	}
+
+	public boolean usesCasings() { return false; }
+
+	public int casingDelay() { return 0; }
+
+	protected Vec3d getCasingSpawnPos() {
+		return this.getTurretPos();
+	}
+
+	protected CasingEjector getEjector() {
+		return null;
+	}
+
+	protected void spawnCasing() {
+
+		if(cachedCasingConfig == null) return;
+		CasingEjector ej = getEjector();
+
+		Vec3d spawn = this.getCasingSpawnPos();
+		NBTTagCompound data = new NBTTagCompound();
+		data.setString("type", "casing");
+		data.setFloat("pitch", (float) -rotationPitch);
+		data.setFloat("yaw", (float) rotationYaw);
+		data.setBoolean("crouched", false);
+		data.setString("name", cachedCasingConfig.getName());
+		if(ej != null) data.setInteger("ej", ej.getId());
+		PacketDispatcher.wrapper.sendToAllAround(new AuxParticlePacketNT(data, spawn.x, spawn.y, spawn.z), new TargetPoint(world.provider.getDimension(), getPos().getX(), getPos().getY(), getPos().getZ(), 50));
+
+		cachedCasingConfig = null;
 	}
 	
 	@Override

@@ -53,10 +53,6 @@ public class ContainerCoreReceiver extends Container {
 			joules = (int) te.syncJoules;
 			PacketDispatcher.sendTo(new AuxLongPacket(te.getPos(), te.syncJoules, 0), player);
 		}
-		if(!FFUtils.areTanksEqual(tank, te.tank)){
-			tank = FFUtils.copyTank(te.tank);
-			PacketDispatcher.sendTo(new FluidTankPacket(te.getPos(), new FluidTank[] { tank }), player);
-		}
 		super.detectAndSendChanges();
 	}
 

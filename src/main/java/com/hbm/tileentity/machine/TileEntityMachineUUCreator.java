@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -9,7 +10,6 @@ import com.hbm.packet.FluidTankPacket;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.EnumFacing;
@@ -24,7 +24,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityMachineUUCreator extends TileEntityMachineBase implements IEnergyUser, IFluidHandler, ITickable, ITankPacketAcceptor {
+public class TileEntityMachineUUCreator extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidHandler, ITickable, ITankPacketAcceptor {
 	
 	public int[] log = new int[20];
 	public static final long rfPerMbOfUU = 1_000_000L;
@@ -112,17 +112,17 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 	}
 	
 	private void updateConnections() {
-		this.trySubscribe(world, pos.add(0, 3, 0), ForgeDirection.UP);
-		this.trySubscribe(world, pos.add(2, 3, 0), ForgeDirection.UP);
-		this.trySubscribe(world, pos.add(-2, 3, 0), ForgeDirection.UP);
-		this.trySubscribe(world, pos.add(0, 3, 2), ForgeDirection.UP);
-		this.trySubscribe(world, pos.add(0, 3, -2), ForgeDirection.UP);
+		this.trySubscribe(world, pos.getX(), pos.getY() + 3, pos.getZ(), ForgeDirection.UP);
+		this.trySubscribe(world, pos.getX() + 2, pos.getY() + 3, pos.getZ(), ForgeDirection.UP);
+		this.trySubscribe(world, pos.getX() + -2, pos.getY() + 3, pos.getZ(), ForgeDirection.UP);
+		this.trySubscribe(world, pos.getX(), pos.getY() + 3, pos.getZ() + 2, ForgeDirection.UP);
+		this.trySubscribe(world, pos.getX(), pos.getY() + 3, pos.getZ() - 2, ForgeDirection.UP);
 
-		this.trySubscribe(world, pos.add(0, -1, 0), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(2, -1, 0), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(-2, -1, 0), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(0, -1, 2), ForgeDirection.DOWN);
-		this.trySubscribe(world, pos.add(0, -1, -2), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX(), pos.getY() - 1, pos.getZ(), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX() + 2, pos.getY() - 1, pos.getZ(), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX() + -2, pos.getY() - 1, pos.getZ(), ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX(), pos.getY() - 1, pos.getZ() + 2, ForgeDirection.DOWN);
+		this.trySubscribe(world, pos.getX(), pos.getY() - 1, pos.getZ() - 2, ForgeDirection.DOWN);
 	}
 
 	private void fillFluidInit(FluidTank tank) {

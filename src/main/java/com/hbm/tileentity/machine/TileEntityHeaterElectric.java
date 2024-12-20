@@ -1,12 +1,11 @@
 package com.hbm.tileentity.machine;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.blocks.BlockDummyable;
-import com.hbm.main.MainRegistry;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyUser;
 import api.hbm.tile.IHeatSource;
 import net.minecraft.util.ITickable;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,9 +15,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-public class TileEntityHeaterElectric extends TileEntityLoadedBase implements IHeatSource, IEnergyUser, ITickable, INBTPacketReceiver {
+public class TileEntityHeaterElectric extends TileEntityLoadedBase implements IHeatSource, IEnergyReceiverMK2, ITickable, INBTPacketReceiver {
 	
 	public long power;
 	public int heatEnergy;
@@ -32,7 +30,7 @@ public class TileEntityHeaterElectric extends TileEntityLoadedBase implements IH
 			
 			if(world.getTotalWorldTime() % 20 == 0) { //doesn't have to happen constantly
 				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
-				this.trySubscribe(world, pos.add(dir.offsetX * 3, 0, dir.offsetZ * 3), dir);
+				this.trySubscribe(world, pos.getX() + dir.offsetX * 3, pos.getY(), pos.getZ() + dir.offsetZ * 3, dir);
 			}
 			
 			this.heatEnergy *= 0.999;

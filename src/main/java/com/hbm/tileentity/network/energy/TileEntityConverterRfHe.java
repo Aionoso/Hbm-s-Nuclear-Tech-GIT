@@ -1,19 +1,19 @@
 package com.hbm.tileentity.network.energy;
 
+import api.hbm.energymk2.IEnergyProviderMK2;
 import com.hbm.config.GeneralConfig;
+import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyGenerator;
 import cofh.redstoneflux.api.IEnergyReceiver;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.Optional;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "cofh.redstoneflux.api.IEnergyReceiver", modid = "redstoneflux")})
-public class TileEntityConverterRfHe extends TileEntityLoadedBase implements IEnergyGenerator, IEnergyReceiver, IEnergyStorage {
+public class TileEntityConverterRfHe extends TileEntityLoadedBase implements IEnergyProviderMK2, IEnergyReceiver, IEnergyStorage {
 
 	private long subBuffer;
 	private boolean recursionBrake = false;
@@ -52,22 +52,24 @@ public class TileEntityConverterRfHe extends TileEntityLoadedBase implements IEn
 
 	@Override
 	public int receiveEnergy(EnumFacing from, int maxReceive, boolean simulate) {
-		if(recursionBrake)
-			return 0;
-		
+		if(this.tileEntityInvalid) return 0;
+		if(recursionBrake) return 0;
+
 		if(simulate)
-			return 0;
-		
+			return maxReceive;
+
 		recursionBrake = true;
-		
-		long capacity = (long)(maxReceive / GeneralConfig.conversionRateHeToRF);
+
+		long capacity = maxReceive / 4L;
 		subBuffer = capacity;
-		
-		this.sendPower(world, pos);
-		
+
+		for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+			this.tryProvide(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
+		}
+
 		recursionBrake = false;
-		
-		return (int) ((capacity - subBuffer) * GeneralConfig.conversionRateHeToRF);
+
+		return (int) ((capacity - subBuffer) * 4L);
 	}
 
 	//FE
@@ -100,19 +102,21 @@ public class TileEntityConverterRfHe extends TileEntityLoadedBase implements IEn
 	public int receiveEnergy(int maxReceive, boolean simulate){
 		if(recursionBrake)
 			return 0;
-		
+
 		if(simulate)
 			return maxReceive;
-		
+
 		recursionBrake = true;
-		
+
 		long capacity = (long)(maxReceive / GeneralConfig.conversionRateHeToRF);
 		subBuffer = capacity;
-		
-		this.sendPower(world, pos);
-		
+
+		for(ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+			this.tryProvide(world, pos.getX() + dir.offsetX, pos.getY() + dir.offsetY, pos.getZ() + dir.offsetZ, dir);
+		}
+
 		recursionBrake = false;
-		
+
 		return (int) ((capacity - subBuffer) * GeneralConfig.conversionRateHeToRF);
 	}
 

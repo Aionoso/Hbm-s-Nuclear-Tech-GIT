@@ -21,7 +21,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Pre;
@@ -74,22 +73,22 @@ public class MachineChungus extends BlockDummyable implements ILookOverlay {
 						if(entity.types[0] == ModForgeFluids.steam){
 							entity.types[0] = ModForgeFluids.hotsteam;
 							entity.types[1] = ModForgeFluids.steam;
-							newFill = entity.tanks[0].getFluidAmount() / 10;
+							newFill = entity.tanksOld[0].getFluidAmount() / 10;
 						} else if(entity.types[0] == ModForgeFluids.hotsteam){
 							entity.types[0] = ModForgeFluids.superhotsteam;
 							entity.types[1] = ModForgeFluids.hotsteam;
-							newFill = entity.tanks[0].getFluidAmount() / 10;
+							newFill = entity.tanksOld[0].getFluidAmount() / 10;
 						} else if(entity.types[0] == ModForgeFluids.superhotsteam){
 							entity.types[0] = ModForgeFluids.ultrahotsteam;
 							entity.types[1] = ModForgeFluids.superhotsteam;
-							newFill = entity.tanks[0].getFluidAmount() / 10;
+							newFill = entity.tanksOld[0].getFluidAmount() / 10;
 						} else if(entity.types[0] == ModForgeFluids.ultrahotsteam){
 							entity.types[0] = ModForgeFluids.steam;
 							entity.types[1] = ModForgeFluids.spentsteam;
-							newFill = Math.min(entity.tanks[0].getFluidAmount() * 1000, entity.tanks[0].getCapacity());
+							newFill = Math.min(entity.tanksOld[0].getFluidAmount() * 1000, entity.tanksOld[0].getCapacity());
 						}
-						entity.tanks[0].setFluid(new FluidStack(entity.types[0], newFill));
-						entity.tanks[1].setFluid(null);
+						entity.tanksOld[0].setFluid(new FluidStack(entity.types[0], newFill));
+						entity.tanksOld[1].setFluid(null);
 						
 						entity.markDirty();
 					}
@@ -154,11 +153,10 @@ public class MachineChungus extends BlockDummyable implements ILookOverlay {
 		
 		List<String> text = new ArrayList();
 		text.add(Library.getShortNumber(chungus.power) + "/" + Library.getShortNumber(chungus.maxPower) + " HE");
-		text.add("§a-> §r" + Library.getShortNumber(20 * chungus.powerProduction) + "HE/s");
 		if(chungus.types[0] != null)
-			text.add("§a-> §r" + chungus.types[0].getLocalizedName(new FluidStack(chungus.types[0], 1)) + ": " + chungus.tanks[0].getFluidAmount() + "/" + chungus.tanks[0].getCapacity() + "mB");
+			text.add("§a-> §r" + chungus.types[0].getLocalizedName(new FluidStack(chungus.types[0], 1)) + ": " + chungus.tanksOld[0].getFluidAmount() + "/" + chungus.tanksOld[0].getCapacity() + "mB");
 		if(chungus.types[1] != null)
-			text.add("§c<- §r" + chungus.types[1].getLocalizedName(new FluidStack(chungus.types[1], 1)) + ": " + chungus.tanks[1].getFluidAmount() + "/" + chungus.tanks[1].getCapacity() + "mB");
+			text.add("§c<- §r" + chungus.types[1].getLocalizedName(new FluidStack(chungus.types[1], 1)) + ": " + chungus.tanksOld[1].getFluidAmount() + "/" + chungus.tanksOld[1].getCapacity() + "mB");
 		ILookOverlay.printGeneric(event, getLocalizedName(), 0xffff00, 0x404000, text);
 	}
 }

@@ -10,12 +10,7 @@ import com.hbm.lib.InventoryHelper;
 import com.hbm.lib.Library;
 import com.hbm.main.MainRegistry;
 import com.hbm.config.MachineConfig;
-import com.hbm.tileentity.machine.TileEntityLockableBase;
-import com.hbm.tileentity.machine.TileEntityCrateIron;
-import com.hbm.tileentity.machine.TileEntityCrateSteel;
-import com.hbm.tileentity.machine.TileEntityCrateTungsten;
-import com.hbm.tileentity.machine.TileEntityCrateDesh;
-import com.hbm.tileentity.machine.TileEntitySafe;
+import com.hbm.tileentity.machine.*;
 
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -71,6 +66,8 @@ public class BlockStorageCrate extends BlockContainer {
 			return new TileEntityCrateTungsten();
 		if(this == ModBlocks.crate_desh)
 			return new TileEntityCrateDesh();
+		if(this == ModBlocks.crate_template)
+			return new TileEntityCrateTemplate();
 		if(this == ModBlocks.safe)
 			return new TileEntitySafe();
 		return null;
@@ -85,6 +82,8 @@ public class BlockStorageCrate extends BlockContainer {
 			return 27;
 		if(this == ModBlocks.crate_desh)
 			return 104;
+		if(this == ModBlocks.crate_template)
+			return 27;
 		if(this == ModBlocks.safe)
 			return 15;
 		return 0;
@@ -192,6 +191,9 @@ public class BlockStorageCrate extends BlockContainer {
 			}
 			if(entity instanceof TileEntityCrateTungsten && ((TileEntityCrateTungsten)entity).canAccess(player)) {
 				player.openGui(MainRegistry.instance, ModBlocks.guiID_crate_tungsten, world, x, y, z);
+			}
+			if(entity instanceof TileEntityCrateTemplate && ((TileEntityCrateTemplate)entity).canAccess(player)) {
+				player.openGui(MainRegistry.instance, ModBlocks.guiID_crate_template, world, x, y, z);
 			}
 			if(entity instanceof TileEntityCrateDesh && ((TileEntityCrateDesh)entity).canAccess(player)) {
 				player.openGui(MainRegistry.instance, ModBlocks.guiID_crate_desh, world, x, y, z);

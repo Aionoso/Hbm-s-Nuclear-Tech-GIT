@@ -3,6 +3,8 @@ package com.hbm.entity.effect;
 import java.util.ArrayList;
 
 import com.hbm.interfaces.IConstantRenderer;
+import com.hbm.lib.HBMSoundHandler;
+import com.hbm.main.MainRegistry;
 import com.hbm.render.amlfrom1710.Vec3;
 
 import net.minecraft.entity.Entity;
@@ -10,6 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
@@ -54,6 +57,9 @@ public class EntityNukeTorex extends Entity implements IConstantRenderer {
 	public ArrayList<Cloudlet> cloudlets = new ArrayList();
 	public int maxAge = 1000;
 	public float humidity = -1;
+
+	public boolean didPlaySound = false;
+	public boolean didShake = false;
 
 	public EntityNukeTorex(World p_i1582_1_) {
 		super(p_i1582_1_);
@@ -142,6 +148,13 @@ public class EntityNukeTorex extends Entity implements IConstantRenderer {
 					vec.rotateAroundY(rot);
 					this.cloudlets.add(new Cloudlet(vec.xCoord + posX, world.getHeight((int) (vec.xCoord + posX) + 1, (int) (vec.zCoord + posZ)), vec.zCoord + posZ, rot, 0, shockLife, TorexType.SHOCK)
 							.setScale((float)s * 5F, (float)s * 2F).setMotion(MathHelper.clamp(0.25 * this.ticksExisted - 5, 0, 1)));
+				}
+
+				if(!didPlaySound) {
+					if(MainRegistry.proxy.me() != null && MainRegistry.proxy.me().getDistance(this) < (ticksExisted * 1.5 + 1) * 1.5) {
+						MainRegistry.proxy.playSoundClient(posX, posY, posZ, HBMSoundHandler.nuclearExplosion, SoundCategory.HOSTILE, 10_000F, 1F);
+						didPlaySound = true;
+					}
 				}
 			}
 			

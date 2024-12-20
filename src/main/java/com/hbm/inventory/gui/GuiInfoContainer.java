@@ -218,4 +218,8 @@ public abstract class GuiInfoContainer extends GuiContainer {
 			GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 		}
 	}
+
+	protected boolean checkClick(int x, int y, int left, int top, int sizeX, int sizeY) {
+		return guiLeft + left <= x && guiLeft + left + sizeX > x && guiTop + top < y && guiTop + top + sizeY >= y;
+	}
 }

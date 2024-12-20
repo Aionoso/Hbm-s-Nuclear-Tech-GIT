@@ -27,7 +27,7 @@ public class TileEntityDeuteriumTower extends TileEntityDeuteriumExtractor {
 	protected void updateConnections() {
 
 		for(DirPos pos : getConPos()) {
-			this.trySubscribe(world, pos.getPos(), pos.getDir());
+			this.trySubscribe(world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
 		}
 	}
 	

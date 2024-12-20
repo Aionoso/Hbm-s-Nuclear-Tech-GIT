@@ -12,6 +12,9 @@ import com.google.common.collect.Sets;
 import com.hbm.handler.ToolAbility;
 import com.hbm.handler.ToolAbility.SilkAbility;
 import com.hbm.handler.WeaponAbility;
+import com.hbm.packet.PacketDispatcher;
+import com.hbm.packet.PlayerInformPacket;
+import com.hbm.packet.PlayerInformPacketLegacy;
 import com.hbm.util.I18nUtil;
 import com.hbm.items.ModItems;
 import com.hbm.blocks.ModBlocks;
@@ -371,18 +374,9 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     	}
     	
     	if(getCurrentAbility(stack) != null) {
-    		player.sendMessage(
-				new TextComponentString("[")
-				.appendSibling(new TextComponentTranslation("chat.abilenabled"))
-				.appendSibling(new TextComponentString(" "))
-				.appendSibling(new TextComponentTranslation(getCurrentAbility(stack).getName()))
-				.appendSibling(new TextComponentString(getCurrentAbility(stack).getExtension() + "]"))
-				.setStyle(new Style().setColor(TextFormatting.YELLOW)));
+			PacketDispatcher.wrapper.sendTo(new PlayerInformPacketLegacy(new TextComponentString("[").appendSibling(new TextComponentTranslation("chat.abilenabled")).appendSibling(new TextComponentString(" ")).appendSibling(new TextComponentTranslation(getCurrentAbility(stack).getName())).appendSibling(new TextComponentString("]")).setStyle(new Style().setColor(TextFormatting.YELLOW)), 9), (EntityPlayerMP) player);
     	} else {
-    		player.sendMessage(new TextComponentString("[")
-    			.appendSibling(new TextComponentTranslation("chat.abildisabled"))
-    			.appendSibling(new TextComponentString("]"))
-    			.setStyle(new Style().setColor(TextFormatting.GOLD)));
+			PacketDispatcher.wrapper.sendTo(new PlayerInformPacketLegacy(new TextComponentString("[").appendSibling(new TextComponentTranslation("chat.abildisabled")).appendSibling(new TextComponentString("]")).setStyle(new Style().setColor(TextFormatting.GOLD)), 9), (EntityPlayerMP) player);
     	}
 
     	//Drillgon200: I hope "random.orb" referred to the experience orb sound

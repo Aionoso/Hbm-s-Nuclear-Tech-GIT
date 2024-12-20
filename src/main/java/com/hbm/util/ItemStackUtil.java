@@ -110,7 +110,7 @@ public class ItemStackUtil {
 	 * @param stack
 	 * @param lines
 	 */
-	public static void addTooltipToStack(ItemStack stack, String... lines) {
+	public static ItemStack addTooltipToStack(ItemStack stack, String... lines) {
 		
 		if(!stack.hasTagCompound())
 			stack.setTagCompound(new NBTTagCompound());
@@ -124,6 +124,8 @@ public class ItemStackUtil {
 		
 		display.setTag("Lore", lore);
 		stack.getTagCompound().setTag("display", display);
+
+		return stack;
 	}
 	
 	public static void addStacksToNBT(ItemStack stack, ItemStack... stacks) {

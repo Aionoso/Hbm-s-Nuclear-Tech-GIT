@@ -26,11 +26,6 @@ public class CraneGrabber extends BlockCraneBase {
 
     @Override
     public void breakBlock(World world, BlockPos pos, IBlockState state) {
-        TileEntity tileentity = world.getTileEntity(pos);
-
-        if(tileentity instanceof TileEntityCraneGrabber) {
-            InventoryHelper.dropInventoryItems(world, pos, (TileEntityCraneGrabber) tileentity);
-        }
         super.breakBlock(world, pos, state);
     }
 }

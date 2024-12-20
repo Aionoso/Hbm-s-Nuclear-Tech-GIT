@@ -1,7 +1,5 @@
 package com.hbm.forgefluid;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +9,9 @@ import com.hbm.interfaces.IFluidPipeMk2;
 import com.hbm.interfaces.IFluidVisualConnectable;
 import com.hbm.interfaces.IItemFluidHandler;
 import com.hbm.inventory.FluidCombustionRecipes;
-import com.hbm.inventory.HeatRecipes;
 import com.hbm.inventory.EngineRecipes;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
 import com.hbm.inventory.gui.GuiInfoContainer;
 import com.hbm.items.ModItems;
 import com.hbm.items.armor.JetpackBase;
@@ -25,7 +24,6 @@ import com.hbm.lib.Library;
 import com.hbm.render.RenderHelper;
 import com.hbm.tileentity.machine.TileEntityDummy;
 
-import com.hbm.util.BobMathUtil;
 import com.hbm.util.I18nUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -37,11 +35,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
@@ -135,7 +131,7 @@ public class FFUtils {
 	/**
 	 * Internal method to actually render the fluid
 	 * 
-	 * @param tank
+	 * @param f
 	 * @param guiLeft
 	 * @param guiTop
 	 * @param zLevel
@@ -253,24 +249,6 @@ public class FFUtils {
 			hasInfo = true;
 		}
 
-		if (HeatRecipes.hasCoolRecipe(fluid)) {
-			if(isKeyPressed){
-				String heat = Library.getShortNumber(HeatRecipes.getResultingHeat(fluid) * 1000 / HeatRecipes.getInputAmountCold(fluid));
-				texts.add("§4["+I18n.format("trait.coolable")+"]");
-				texts.add(" "+I18n.format("trait.coolable.desc", heat));
-			}
-			hasInfo = true;
-		}
-
-		if (HeatRecipes.hasBoilRecipe(fluid)) {
-			if(isKeyPressed){
-				String heat = Library.getShortNumber(HeatRecipes.getRequiredHeat(fluid) * 1000 / HeatRecipes.getInputAmountHot(fluid));
-				texts.add("§3["+I18n.format("trait.boilable")+"]");
-				texts.add(" "+I18n.format("trait.boilable.desc", heat));
-			}
-			hasInfo = true;
-		}
-
 		float dfcEff = FluidTypeHandler.getDFCEfficiency(fluid);
 
 		if(dfcEff >= 1){
@@ -320,12 +298,8 @@ public class FFUtils {
 	 *            - the fluid tank to fill from
 	 * @param world
 	 *            - the world the filling is taking place in
-	 * @param i
-	 *            - x coord of place to fill
-	 * @param j
-	 *            - y coord of place to fill
-	 * @param k
-	 *            - z coord of place to fill
+	 * @param toFill
+	 *            - pos of place to fill
 	 * @param maxDrain
 	 *            - the maximum amount that can be drained from the tank at a
 	 *            time
@@ -443,30 +417,6 @@ public class FFUtils {
 			in.shrink(1);
 			if(out.isEmpty()) {
 				slots.setStackInSlot(slot2, new ItemStack(ModItems.fluid_barrel_full));
-			} else {
-				out.grow(1);
-			}
-			return true;
-		}
-
-		// Canister override
-		if(in.getItem() == ModItems.canister_generic && tank.fill(FluidUtil.getFluidContained(in), false) == 1000 && ((ItemFluidCanister.isEmptyCanister(out) && out.getCount() < 64) || out.isEmpty())) {
-			tank.fill(FluidUtil.getFluidContained(in), true);
-			in.shrink(1);
-			if(out.isEmpty()) {
-				slots.setStackInSlot(slot2, new ItemStack(ModItems.canister_generic));
-			} else {
-				out.grow(1);
-			}
-			return true;
-		}
-
-		// Gas canister override
-		if(in.getItem() == ModItems.gas_canister && tank.fill(FluidUtil.getFluidContained(in), false) == 4000 && ((ItemGasCanister.isEmptyCanister(out) && out.getCount() < 64) || out.isEmpty())) {
-			tank.fill(FluidUtil.getFluidContained(in), true);
-			in.shrink(1);
-			if(out.isEmpty()) {
-				slots.setStackInSlot(slot2, new ItemStack(ModItems.gas_canister));
 			} else {
 				out.grow(1);
 			}
@@ -636,82 +586,6 @@ public class FFUtils {
 
 		ItemStack in1 = in.copy();
 		in1.setCount(1);
-
-		// Fluid Tank override
-		if(tank.getFluid() != null && in.getItem() == ModItems.fluid_tank_full && tank.drain(1000, false) != null && tank.drain(1000, false).amount == 1000 && ItemFluidTank.isEmptyTank(in1) && ((ItemFluidTank.isFullTank(out, tank.getFluid().getFluid()) && out.getCount() < 64) || out.isEmpty())) {
-			FluidStack f = tank.drain(1000, true);
-			if(f == null)
-				return false;
-			in.shrink(1);
-
-			if(out.isEmpty()) {
-				slots.setStackInSlot(slot2, ItemFluidTank.getFullTank(f.getFluid()));
-			} else {
-				out.grow(1);
-			}
-			return true;
-		}
-
-		// Fluid barrel override
-		if(tank.getFluid() != null && in.getItem() == ModItems.fluid_barrel_full && tank.drain(16000, false) != null && tank.drain(16000, false).amount == 16000 && ItemFluidTank.isEmptyBarrel(in1) && ((ItemFluidTank.isFullBarrel(out, tank.getFluid().getFluid()) && out.getCount() < 64) || out.isEmpty())) {
-			FluidStack f = tank.drain(16000, true);
-			if(f == null)
-				return false;
-			in.shrink(1);
-
-			if(out.isEmpty()) {
-				slots.setStackInSlot(slot2, ItemFluidTank.getFullBarrel(f.getFluid()));
-			} else {
-				out.grow(1);
-			}
-			return true;
-		}
-
-		// Canister override
-		if(tank.getFluid() != null && in.getItem() == ModItems.canister_generic && SpecialContainerFillLists.EnumCanister.contains(tank.getFluid().getFluid()) && tank.drain(1000, false) != null && tank.drain(1000, false).amount == 1000 && ItemFluidCanister.isEmptyCanister(in1) && ((ItemFluidCanister.isFullCanister(out, tank.getFluid().getFluid()) && out.getCount() < 64) || out.isEmpty())) {
-			FluidStack f = tank.drain(1000, true);
-			if(f == null)
-				return false;
-			in.shrink(1);
-
-			if(out.isEmpty()) {
-				slots.setStackInSlot(slot2, ItemFluidCanister.getFullCanister(f.getFluid()));
-			} else {
-				out.grow(1);
-			}
-			return true;
-		}
-
-		// Gas canister override
-		if(tank.getFluid() != null && in.getItem() == ModItems.gas_canister && SpecialContainerFillLists.EnumGasCanister.contains(tank.getFluid().getFluid()) && tank.drain(4000, false) != null && tank.drain(4000, false).amount == 4000 && ItemGasCanister.isEmptyCanister(in1) && ((ItemGasCanister.isFullCanister(out, tank.getFluid().getFluid()) && out.getCount() < 64) || out.isEmpty())) {
-			FluidStack f = tank.drain(4000, true);
-			if(f == null)
-				return false;
-			in.shrink(1);
-
-			if(out.isEmpty()) {
-				slots.setStackInSlot(slot2, ItemGasCanister.getFullCanister(f.getFluid()));
-			} else {
-				out.grow(1);
-			}
-			return true;
-		}
-
-		
-		// Cell override
-		if(tank.getFluid() != null && in.getItem() == ModItems.cell && SpecialContainerFillLists.EnumCell.contains(tank.getFluid().getFluid()) && tank.drain(1000, false) != null && tank.drain(1000, false).amount == 1000 && ItemCell.isEmptyCell(in1) && ((ItemCell.isFullCell(out, tank.getFluid().getFluid()) && out.getCount() < 64) || out.isEmpty())) {
-			FluidStack f = tank.drain(1000, true);
-			if(f == null)
-				return false;
-			in.shrink(1);
-
-			if(out.isEmpty()) {
-				slots.setStackInSlot(slot2, ItemCell.getFullCell(f.getFluid()));
-			} else {
-				out.grow(1);
-			}
-			return true;
-		}
 
 		// Rod override (extra messy because I don't feel like restarting
 		// minecraft to make a helper method)
@@ -959,29 +833,29 @@ public class FFUtils {
 		}
 	}
 
-	public static boolean areTanksEqual(FluidTank tank1, FluidTank tank2){
+	public static boolean areTanksEqual(FluidTankNTM tank1, FluidTankNTM tank2){
 		if(tank1 == null && tank2 == null) {
 			return true;
 		}
 		if(tank1 == null ^ tank2 == null) {
 			return false;
 		}
-		if(tank1.getFluid() == null && tank2.getFluid() == null) {
+		if(tank1.getTankType() == Fluids.NONE && tank2.getTankType() == Fluids.NONE) {
 			return true;
 		}
-		if(tank1.getFluid() == null ^ tank2.getFluid() == null) {
+		if(tank1.getTankType() == Fluids.NONE ^ tank2.getTankType() == Fluids.NONE) {
 			return false;
 		}
-		if(tank1.getFluid().amount == tank2.getFluid().amount && tank1.getFluid().getFluid() == tank2.getFluid().getFluid() && tank1.getCapacity() == tank2.getCapacity()) {
+		if(tank1.getFill() == tank2.getFill() && tank1.getTankType() == tank2.getTankType() && tank1.getMaxFill() == tank2.getMaxFill()) {
 			return true;
 		}
 		return false;
 	}
 
-	public static FluidTank copyTank(FluidTank tank){
+	public static FluidTankNTM copyTank(FluidTankNTM tank){
 		if(tank == null)
 			return null;
-		return new FluidTank(tank.getFluid() != null ? tank.getFluid().copy() : null, tank.getCapacity());
+		return new FluidTankNTM(tank.getTankType() != Fluids.NONE ? tank.getTankType() : null, tank.getMaxFill());
 	}
 
 	public static boolean checkFluidConnectables(World world, BlockPos pos, FFPipeNetwork net, @Nullable EnumFacing facing){

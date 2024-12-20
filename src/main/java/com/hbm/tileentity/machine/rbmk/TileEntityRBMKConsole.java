@@ -675,8 +675,8 @@ public class TileEntityRBMKConsole extends TileEntityMachineBase implements ICon
 
 			if(te instanceof TileEntityRBMKHeater){
 				TileEntityRBMKHeater heaterChannel = (TileEntityRBMKHeater)te;
-				data_table.put("coolant", heaterChannel.tanks[0].getFluidAmount());
-				data_table.put("hotcoolant", heaterChannel.tanks[1].getFluidAmount());
+				data_table.put("coolant", heaterChannel.feed.getFill());
+				data_table.put("hotcoolant", heaterChannel.steam.getFill());
 			}
 
 			return new Object[] {data_table};

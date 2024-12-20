@@ -138,9 +138,7 @@ public abstract class EntityMissileBaseAdvanced extends Entity implements IChunk
 	@Override
 	public void loadNeighboringChunks(int newChunkX, int newChunkZ) {
 		if (!world.isRemote && loaderTicket != null) {
-			for (ChunkPos chunk : loadedChunks) {
-				ForgeChunkManager.unforceChunk(loaderTicket, chunk);
-			}
+			clearLoadedChunks();
 
 			loadedChunks.clear();
 			loadedChunks.add(new ChunkPos(newChunkX, newChunkZ));

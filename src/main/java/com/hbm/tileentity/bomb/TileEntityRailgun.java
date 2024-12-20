@@ -1,8 +1,10 @@
 package com.hbm.tileentity.bomb;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.config.RadiationConfig;
 import com.hbm.entity.projectile.EntityRailgunBlast;
 import com.hbm.items.ModItems;
+import com.hbm.lib.DirPos;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
 import com.hbm.lib.ForgeDirection;
@@ -13,7 +15,6 @@ import com.hbm.packet.RailgunRotationPacket;
 import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -31,7 +32,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
-public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable, IEnergyUser {
+public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable, IEnergyReceiverMK2 {
 
 	public ItemStackHandler inventory;
 	public ICapabilityProvider specialProvider;
@@ -144,12 +145,28 @@ public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable
 				if(fireDelay == 0)
 					tryFire();
 			}
-			this.updateConnectionsExcept(world, pos, ForgeDirection.UP);
+			updateConnections();
 			power = Library.chargeTEFromItems(inventory, 0, power, RadiationConfig.railgunBuffer);
 			
 			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
 			PacketDispatcher.wrapper.sendToAllAround(new RailgunRotationPacket(pos.getX(), pos.getY(), pos.getZ(), pitch, yaw), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
 		}
+	}
+
+	private void updateConnections() {
+		for(DirPos pos : getConPos()) {
+			this.trySubscribe(world, pos.getPos().getX(), pos.getPos().getY(), pos.getPos().getZ(), pos.getDir());
+		}
+	}
+
+	private DirPos[] getConPos() {
+		return new DirPos[] {
+				new DirPos(pos.getX(), pos.getY() - 1, pos.getZ(), Library.NEG_Y),
+				new DirPos(pos.getX() + 1, pos.getY(), pos.getZ(), Library.POS_X),
+				new DirPos(pos.getX() - 1, pos.getY(), pos.getZ(), Library.NEG_X),
+				new DirPos(pos.getX(), pos.getY(), pos.getZ() + 1, Library.POS_Z),
+				new DirPos(pos.getX(), pos.getY(), pos.getZ() - 1, Library.NEG_Z)
+		};
 	}
 	
 	public boolean setAngles(boolean miss) {

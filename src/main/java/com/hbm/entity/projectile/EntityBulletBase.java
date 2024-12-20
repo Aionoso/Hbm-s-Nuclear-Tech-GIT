@@ -593,7 +593,7 @@ public class EntityBulletBase extends Entity implements IProjectile {
 		}
 
 		if (config.nuke > 0 && !world.isRemote) {
-			world.spawnEntity(EntityNukeExplosionMK5.statFac(world, config.nuke, posX, posY, posZ).mute());
+			world.spawnEntity(EntityNukeExplosionMK5.statFac(world, config.nuke, posX, posY, posZ));
 			
 			if(BombConfig.enableNukeClouds) {
 				if(MainRegistry.polaroidID == 11 || rand.nextInt(100) == 0){

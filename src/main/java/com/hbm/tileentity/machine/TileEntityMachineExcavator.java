@@ -3,17 +3,22 @@ package com.hbm.tileentity.machine;
 import java.util.HashSet;
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.fluid.IFluidStandardReceiver;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.gas.BlockGasBase;
 import com.hbm.blocks.generic.BlockBedrockOreTE.TileEntityBedrockOre;
+import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.IControlReceiver;
+import com.hbm.interfaces.IFFtoNTMF;
 import com.hbm.inventory.UpgradeManager;
 import com.hbm.inventory.container.ContainerMachineExcavator;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
 import com.hbm.inventory.gui.GUIMachineExcavator;
 import com.hbm.inventory.ShredderRecipes;
 import com.hbm.inventory.BedrockOreRegistry;
-import com.hbm.items.machine.ItemForgeFluidIdentifier;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemDrillbit;
 import com.hbm.items.machine.ItemDrillbit.EnumDrillType;
@@ -22,17 +27,14 @@ import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
 import com.hbm.lib.Library;
 import com.hbm.lib.DirPos;
 import com.hbm.lib.ForgeDirection;
-import com.hbm.forgefluid.FFUtils;
-import com.hbm.forgefluid.ModForgeFluids;
-import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.InventoryUtil;
 import com.hbm.util.ItemStackUtil;
 
-import api.hbm.energy.IEnergyUser;
 import api.hbm.block.IDrillInteraction;
 import api.hbm.block.IMiningDrill;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.gui.GuiScreen;
@@ -43,7 +45,6 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.nbt.NBTTagCompound;
@@ -51,22 +52,16 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-public class TileEntityMachineExcavator extends TileEntityMachineBase implements IEnergyUser, IFluidHandler, ITickable, ITankPacketAcceptor, IControlReceiver, IGUIProvider, IMiningDrill {
+public class TileEntityMachineExcavator extends TileEntityMachineBase implements IEnergyReceiverMK2, IFluidStandardReceiver, ITickable, IControlReceiver, IGUIProvider, IMiningDrill, IFFtoNTMF {
 
 	public static final long maxPower = 10_000_000;
 	public long power;
@@ -95,16 +90,19 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 	public final long baseConsumption = 10_000L;
 	public long consumption = baseConsumption;
 	protected int drillRating = 0;
-	
 	public FluidTank tank;
 	public Fluid fluidType;
+	public FluidTankNTM tankNew;
+	private static boolean converted = false;
+	private Fluid oldFluid = ModForgeFluids.none;
 
 	private final UpgradeManager upgradeManager = new UpgradeManager();
 
 	public TileEntityMachineExcavator() {
 		super(14);
 		this.fluidType = null;
-        this.tank = new FluidTank(16_000);
+		this.tank = new FluidTank(16_000);
+		this.tankNew = new FluidTankNTM(Fluids.SULFURIC_ACID, 16_000);
 	}
 
 	@Override
@@ -120,7 +118,10 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 
 	@Override
 	public void update() {
-		
+		if(!converted){
+			convertAndSetFluid(oldFluid, tank, tankNew);
+			converted = true;
+		}
 		//needs to happen on client too for GUI rendering
 		upgradeManager.eval(inventory, 2, 3);
 		int speedLevel = Math.min(upgradeManager.getLevel(UpgradeType.SPEED), 10);
@@ -131,14 +132,15 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 		consumption /= (1 + powerLevel);
 		
 		if(!world.isRemote) {
-			
-			updateTankType();
+
+			this.tankNew.setType(1, inventory);
 			
 			if(world.getTotalWorldTime() % 20 == 0) {
 				tryEjectBuffer();
 				
 				for(DirPos posDir : getConPos()) {
-					this.trySubscribe(world, posDir.getPos(), posDir.getDir());
+					this.trySubscribe(world, posDir.getPos().getX(), posDir.getPos().getY(), posDir.getPos().getZ(), posDir.getDir());
+					this.trySubscribe(tankNew.getTankType(), world, posDir.getPos().getX(), posDir.getPos().getY(), posDir.getPos().getZ(), posDir.getDir());
 				}
 			}
 			
@@ -153,10 +155,7 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 				
 				this.drillRating = (int)(type.speed * 80);
 				operational = true;
-				if(bedrockDrilling)
-					this.power -= this.getPowerConsumption() * 10;
-				else
-					this.power -= this.getPowerConsumption();
+				this.power -= this.getPowerConsumption();
 				
 				this.speed = type.speed;
 				this.speed *= (1 + speedLevel / 2D);
@@ -174,21 +173,8 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 				this.targetDepth = 0;
 				this.drillRating = 0;
 			}
-			
-			NBTTagCompound data = new NBTTagCompound();
-			tank.writeToNBT(data);
-			if(fluidType != null)
-				data.setString("f", fluidType.getName());
-            data.setBoolean("d", enableDrill);
-			data.setBoolean("c", enableCrusher);
-			data.setBoolean("w", enableWalling);
-			data.setBoolean("v", enableVeinMiner);
-			data.setBoolean("s", enableSilkTouch);
-			data.setBoolean("o", operational);
-			data.setInteger("t", targetDepth);
-			data.setInteger("g", chuteTimer);
-			data.setLong("p", power);
-			this.networkPack(data, 150);
+
+			this.networkPackNT(150);
 			
 		} else {
 			
@@ -228,20 +214,6 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 			}
 		}
 	}
-
-	private void updateTankType() {
-        ItemStack slotStack = inventory.getStackInSlot(1);
-        if(slotStack.getItem() == ModItems.forge_fluid_identifier) {
-            Fluid fluid = ItemForgeFluidIdentifier.getType(slotStack);
-
-            if(fluidType != fluid) {
-                fluidType = fluid;
-                tank.setFluid(null);
-
-                this.markDirty();
-            }
-        }
-    }
 	
 	protected DirPos[] getConPos() {
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
@@ -254,21 +226,35 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 				new DirPos(pos.getX() - rot.offsetX * 4, pos.getY() + 1, pos.getZ() - rot.offsetZ * 4, rot.getOpposite())
 		};
 	}
-	
-	public void networkUnpack(NBTTagCompound nbt) {
-		this.tank.readFromNBT(nbt);
-		if(nbt.hasKey("f")) {
-            this.fluidType = FluidRegistry.getFluid(nbt.getString("f"));
-        }
-		this.enableDrill = nbt.getBoolean("d");
-		this.enableCrusher = nbt.getBoolean("c");
-		this.enableWalling = nbt.getBoolean("w");
-		this.enableVeinMiner = nbt.getBoolean("v");
-		this.enableSilkTouch = nbt.getBoolean("s");
-		this.operational = nbt.getBoolean("o");
-		this.targetDepth = nbt.getInteger("t");
-		this.chuteTimer = nbt.getInteger("g");
-		this.power = nbt.getLong("p");
+
+	@Override
+	public void serialize(ByteBuf buf) {
+		super.serialize(buf);
+		buf.writeBoolean(enableDrill);
+		buf.writeBoolean(enableCrusher);
+		buf.writeBoolean(enableWalling);
+		buf.writeBoolean(enableVeinMiner);
+		buf.writeBoolean(enableSilkTouch);
+		buf.writeBoolean(operational);
+		buf.writeInt(targetDepth);
+		buf.writeInt(chuteTimer);
+		buf.writeLong(power);
+		tankNew.serialize(buf);
+	}
+
+	@Override
+	public void deserialize(ByteBuf buf) {
+		super.deserialize(buf);
+		enableDrill = buf.readBoolean();
+		enableCrusher = buf.readBoolean();
+		enableWalling = buf.readBoolean();
+		enableVeinMiner = buf.readBoolean();
+		enableSilkTouch = buf.readBoolean();
+		operational = buf.readBoolean();
+		targetDepth = buf.readInt();
+		chuteTimer = buf.readInt();
+		power = buf.readLong();
+		tankNew.deserialize(buf);
 	}
 	
 	protected int getY() {
@@ -690,7 +676,7 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 	}
 
 	protected void collectBedrock(BlockPos pos) {
-		if(tank.getFluid() == null) return;
+		if(tankNew.getTankType() == null) return;
 		TileEntity oreTile = world.getTileEntity(pos);
 		if(oreTile instanceof TileEntityBedrockOre) {
 			TileEntityBedrockOre ore = (TileEntityBedrockOre) oreTile;
@@ -701,9 +687,9 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 				return;
 			if(ore.acidRequirement != null) {
 				
-				if(ore.acidRequirement.getFluid() != tank.getFluid().getFluid() || ore.acidRequirement.amount > tank.getFluidAmount()) return;
-				
-				tank.drain(ore.acidRequirement.amount, true);
+				if(ore.acidRequirement.type != tankNew.getTankType() || ore.acidRequirement.fill > tankNew.getFill()) return;
+
+				tankNew.setFill(tankNew.getFill() - ore.acidRequirement.fill);
 			}
 			ItemStack bedrockOreStack = new ItemStack(ModItems.ore_bedrock, 1, BedrockOreRegistry.getOreIndex(ore.oreName));
 			InventoryUtil.tryAddItemToInventory(inventory, 5, 13, bedrockOreStack);
@@ -777,10 +763,16 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		this.tank.readFromNBT(nbt);
-		if(nbt.hasKey("f")) {
-            this.fluidType = FluidRegistry.getFluid(nbt.getString("f"));
-        }
+		if(!converted){
+			this.tank.readFromNBT(nbt);
+			if(nbt.hasKey("f")) {
+				this.fluidType = FluidRegistry.getFluid(nbt.getString("f"));
+				oldFluid = fluidType;
+			}
+		} else{
+			this.tankNew.readFromNBT(nbt, "tank");
+			if(nbt.hasKey("f")) nbt.removeTag("f");
+		}
 		this.enableDrill = nbt.getBoolean("d");
 		this.enableCrusher = nbt.getBoolean("c");
 		this.enableWalling = nbt.getBoolean("w");
@@ -792,10 +784,6 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 	
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-		tank.writeToNBT(nbt);
-		if(fluidType != null) {
-            nbt.setString("f", fluidType.getName());
-        }
 		nbt.setBoolean("d", enableDrill);
 		nbt.setBoolean("c", enableCrusher);
 		nbt.setBoolean("w", enableWalling);
@@ -803,6 +791,7 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 		nbt.setBoolean("s", enableSilkTouch);
 		nbt.setInteger("t", targetDepth);
 		nbt.setLong("p", power);
+		tankNew.writeToNBT(nbt, "tank");
 		return super.writeToNBT(nbt);
 	}
 
@@ -849,53 +838,13 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 		return maxPower;
 	}
 
-	    @Override
-    public IFluidTankProperties[] getTankProperties() {
-        return new IFluidTankProperties[]{tank.getTankProperties()[0]};
-    }
+	@Override
+	public FluidTankNTM[] getAllTanks() {
+		return new FluidTankNTM[] {tankNew};
+	}
 
-    @Override
-    public int fill(FluidStack resource, boolean doFill) {
-        if(resource != null && (fluidType == null || resource.getFluid() == fluidType) && resource.amount > 0) {
-        	fluidType = resource.getFluid();
-            return tank.fill(resource, doFill);
-        } else {
-            return 0;
-        }
-    }
-
-    @Override
-    public FluidStack drain(FluidStack resource, boolean doDrain) {
-        return null;
-    }
-
-    @Override
-    public FluidStack drain(int maxDrain, boolean doDrain) {
-        return null;
-    }
-
-    @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-        } else {
-            return super.getCapability(capability, facing);
-        }
-    }
-
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return true;
-        } else {
-            return super.hasCapability(capability, facing);
-        }
-    }
-
-    @Override
-	public void recievePacket(NBTTagCompound[] tags) {
-		if(tags.length == 1) {
-			tank.readFromNBT(tags[0]);
-		}
+	@Override
+	public FluidTankNTM[] getReceivingTanks() {
+		return new FluidTankNTM[] {tankNew};
 	}
 }

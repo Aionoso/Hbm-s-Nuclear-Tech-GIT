@@ -1,9 +1,8 @@
 package com.hbm.tileentity.machine;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
+import api.hbm.energymk2.IEnergyProviderMK2;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.BombConfig;
 import com.hbm.entity.logic.EntityNukeExplosionMK3;
@@ -21,7 +20,6 @@ import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
-import api.hbm.energy.IEnergyGenerator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
@@ -43,7 +41,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.items.ItemStackHandler;
 
-public class TileEntityWatzCore extends TileEntityLoadedBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor {
+public class TileEntityWatzCore extends TileEntityLoadedBase implements ITickable, IEnergyProviderMK2, IFluidHandler, ITankPacketAcceptor {
 
 	public long power;
 	public final static long maxPower = 1000000000;
@@ -296,8 +294,8 @@ public class TileEntityWatzCore extends TileEntityLoadedBase implements ITickabl
 	}
 
 	public void sendWatzPower() {
-		this.sendPower(world, pos.up(7), ForgeDirection.UP);
-		this.sendPower(world, pos.down(7), ForgeDirection.DOWN);
+		this.tryProvide(world, pos.getX(), pos.getY() + 7, pos.getZ(), ForgeDirection.UP);
+		this.tryProvide(world, pos.getX(), pos.getY() - 7, pos.getZ(), ForgeDirection.DOWN);
 	}
 
 	public void fillFluidInit(FluidTank tank) {

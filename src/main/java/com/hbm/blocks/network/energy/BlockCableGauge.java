@@ -3,6 +3,7 @@ package com.hbm.blocks.network.energy;
 import java.util.ArrayList;
 import java.util.List;
 
+import api.hbm.energymk2.PowerNetMK2;
 import com.hbm.main.MainRegistry;
 import com.hbm.lib.Library;
 import com.hbm.blocks.ModBlocks;
@@ -128,7 +129,7 @@ public class BlockCableGauge extends BlockContainer implements ILookOverlay, ITo
 	@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
 	public static class TileEntityCableGauge extends TileEntityCableBaseNT implements INBTPacketReceiver, SimpleComponent {
 
-		private long lastMeasurement = 10;
+		private long deltaTick = 10;
 		private long deltaSecond = 0;
 		public long deltaLastSecond = 0;
 		
@@ -137,29 +138,29 @@ public class BlockCableGauge extends BlockContainer implements ILookOverlay, ITo
 			super.update();
 
 			if(!world.isRemote) {
-				
-				if(network != null) {
-					long total = network.getTotalTransfer();
-					long deltaTick = total - this.lastMeasurement;
-					this.lastMeasurement = total;
-					
-					try {
-						if(world.getTotalWorldTime() % 20 == 0) {
-							this.deltaLastSecond = this.deltaSecond;
-							this.deltaSecond = 0;
-							NBTTagCompound data = new NBTTagCompound();
-							data.setLong("deltaS", deltaLastSecond);
-							INBTPacketReceiver.networkPack(this, data, 25);
-						}
-						this.deltaSecond += deltaTick;
-						
-					} catch(Exception ex) { }
+
+				if(this.node != null && this.node.net != null) {
+
+					PowerNetMK2 net = this.node.net;
+
+					this.deltaTick = net.energyTracker;
+					if(world.getTotalWorldTime() % 20 == 0) {
+						this.deltaLastSecond = this.deltaSecond;
+						this.deltaSecond = 0;
+					}
+					this.deltaSecond += deltaTick;
 				}
+
+				NBTTagCompound data = new NBTTagCompound();
+				data.setLong("deltaT", deltaTick);
+				data.setLong("deltaS", deltaLastSecond);
+				INBTPacketReceiver.networkPack(this, data, 25);
 			}
 		}
 
 		@Override
 		public void networkUnpack(NBTTagCompound nbt) {
+			this.deltaTick = Math.max(nbt.getLong("deltaT"), 0);
 			this.deltaLastSecond = Math.max(nbt.getLong("deltaS"), 0);
 		}
 	

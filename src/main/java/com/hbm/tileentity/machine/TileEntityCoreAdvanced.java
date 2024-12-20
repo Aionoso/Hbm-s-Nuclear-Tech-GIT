@@ -1,20 +1,17 @@
 package com.hbm.tileentity.machine;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.Library;
 import com.hbm.items.ModItems;
-import com.hbm.items.machine.ItemBattery;
 import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyUser;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
@@ -22,7 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
 
-public class TileEntityCoreAdvanced extends TileEntityMachineBase implements ITickable, IEnergyUser, INBTPacketReceiver {
+public class TileEntityCoreAdvanced extends TileEntityMachineBase implements ITickable, IEnergyReceiverMK2, INBTPacketReceiver {
 
 	public int progress = 0;
 	public int progressStep = 1;
@@ -168,8 +165,8 @@ public class TileEntityCoreAdvanced extends TileEntityMachineBase implements ITi
 	@Override
 	public void update() {
 		if(!world.isRemote && isStructureValid(world)) {
-			this.trySubscribe(world, pos.add(0, 2, 0), ForgeDirection.UP);
-			this.trySubscribe(world, pos.add(0, -2, 0), ForgeDirection.DOWN);
+			this.trySubscribe(world, pos.getX(), pos.getY() + 2, pos.getZ(), ForgeDirection.UP);
+			this.trySubscribe(world, pos.getX(), pos.getY() - 2, pos.getZ(), ForgeDirection.DOWN);
 			hasCluster = inventory.getStackInSlot(22).getItem() == ModItems.factory_core_advanced;
 			
 			moveToSlotIfProcessable(9);

@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import com.hbm.items.ISatChip;
 import com.hbm.items.machine.ItemSatChip;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -74,9 +75,17 @@ public class TileEntityMachineSatLinker extends TileEntity implements ITickable 
 			if(inventory.getStackInSlot(0).getItem() instanceof ItemSatChip && inventory.getStackInSlot(1).getItem() instanceof ItemSatChip) {
 				ItemSatChip.setFreq(inventory.getStackInSlot(1), ItemSatChip.getFreq(inventory.getStackInSlot(0)));
 			}
-			
+			if(inventory.getStackInSlot(0).getItem() instanceof ItemSatChip && inventory.getStackInSlot(1).getItem() instanceof ISatChip){
+				ISatChip.setFreqS(inventory.getStackInSlot(1), ItemSatChip.getFreq(inventory.getStackInSlot(0)));
+			}
+			if(inventory.getStackInSlot(0).getItem() instanceof ISatChip && inventory.getStackInSlot(1).getItem() instanceof ItemSatChip){
+				ItemSatChip.setFreq(inventory.getStackInSlot(1), ItemSatChip.getFreq(inventory.getStackInSlot(0)));
+			}
 			if(inventory.getStackInSlot(2).getItem() instanceof ItemSatChip) {
 				ItemSatChip.setFreq(inventory.getStackInSlot(2), world.rand.nextInt(100000));
+			}
+			if(inventory.getStackInSlot(2).getItem() instanceof ISatChip){
+				ISatChip.setFreqS(inventory.getStackInSlot(2), world.rand.nextInt(100000));
 			}
 		}
 	}

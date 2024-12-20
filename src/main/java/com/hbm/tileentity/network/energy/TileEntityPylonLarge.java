@@ -27,15 +27,15 @@ public class TileEntityPylonLarge extends TileEntityPylonBase {
 		}
 		
 		return new Vec3[] {
-				new Vec3(0.5D + vec.xCoord, 11.5D + topOff, 0.5D + vec.zCoord),
-				new Vec3(0.5D + vec.xCoord, 11.5D - topOff, 0.5D + vec.zCoord),
-				new Vec3(0.5D - vec.xCoord, 11.5D + topOff, 0.5D - vec.zCoord),
-				new Vec3(0.5D - vec.xCoord, 11.5D - topOff, 0.5D - vec.zCoord),
+				Vec3.createVectorHelper(0.5D + vec.xCoord, 11.5D + topOff, 0.5D + vec.zCoord),
+				Vec3.createVectorHelper(0.5D + vec.xCoord, 11.5D - topOff, 0.5D + vec.zCoord),
+				Vec3.createVectorHelper(0.5D - vec.xCoord, 11.5D + topOff, 0.5D - vec.zCoord),
+				Vec3.createVectorHelper(0.5D - vec.xCoord, 11.5D - topOff, 0.5D - vec.zCoord),
 		};
 	}
 
 	@Override
-	public int getMaxWireLength() {
+	public double getMaxWireLength() {
 		return 100;
 	}
 }

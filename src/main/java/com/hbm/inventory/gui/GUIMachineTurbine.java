@@ -1,9 +1,8 @@
 package com.hbm.inventory.gui;
 
+import com.hbm.inventory.fluid.Fluids;
 import org.lwjgl.opengl.GL11;
 
-import com.hbm.forgefluid.FFUtils;
-import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.inventory.container.ContainerMachineTurbine;
 import com.hbm.lib.RefStrings;
 import com.hbm.tileentity.machine.TileEntityMachineTurbine;
@@ -30,8 +29,8 @@ public class GUIMachineTurbine extends GuiInfoContainer {
 	public void drawScreen(int mouseX, int mouseY, float f) {
 		super.drawScreen(mouseX, mouseY, f);
 
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 62, guiTop + 69 - 52, 16, 52, diFurnace.tanks[0], diFurnace.tankTypes[0]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 134, guiTop + 69 - 52, 16, 52, diFurnace.tanks[1], diFurnace.tankTypes[1]);
+		diFurnace.tanksNew[0].renderTankInfo(this, mouseX, mouseY, guiLeft + 62, guiTop + 69 - 52, 16, 52);
+		diFurnace.tanksNew[1].renderTankInfo(this, mouseX, mouseY, guiLeft + 134, guiTop + 69 - 52, 16, 52);
 		
 	//	if(diFurnace.tanks[1].getTankType().name().equals(FluidType.NONE.name())) {
 	//		
@@ -58,28 +57,20 @@ public class GUIMachineTurbine extends GuiInfoContainer {
 		Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 
-		if(diFurnace.tankTypes[0] == ModForgeFluids.steam) {
-			drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 0, 14, 14);
-		}
-		if(diFurnace.tankTypes[0] == ModForgeFluids.hotsteam) {
-			drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 14, 14, 14);
-		}
-		if(diFurnace.tankTypes[0] == ModForgeFluids.superhotsteam) {
-			drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 28, 14, 14);
-		}
-		if(diFurnace.tankTypes[0] == ModForgeFluids.ultrahotsteam) {
-			drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 42, 14, 14);
-		}
+		if(diFurnace.tanksNew[0].getTankType() == Fluids.STEAM) drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 0, 14, 14);
+		if(diFurnace.tanksNew[0].getTankType() == Fluids.HOTSTEAM) drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 14, 14, 14);
+		if(diFurnace.tanksNew[0].getTankType() == Fluids.SUPERHOTSTEAM) drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 28, 14, 14);
+		if(diFurnace.tanksNew[0].getTankType() == Fluids.ULTRAHOTSTEAM) drawTexturedModalRect(guiLeft + 99, guiTop + 18, 183, 42, 14, 14);
 
 		int i = (int)diFurnace.getPowerScaled(34);
 		drawTexturedModalRect(guiLeft + 123, guiTop + 69 - i, 176, 34 - i, 7, i);
 		
-	//	if(diFurnace.tanks[1].getTankType().name().equals(FluidType.NONE.name())) {
-	//		this.drawInfoPanel(guiLeft - 16, guiTop + 36 + 32, 16, 16, 6);
-	//	}
-		
-		
-		FFUtils.drawLiquid(diFurnace.tanks[0], guiLeft, guiTop, zLevel, 16, 52, 62, 97);
-		FFUtils.drawLiquid(diFurnace.tanks[1], guiLeft, guiTop, zLevel, 16, 52, 134, 97);
+		if(diFurnace.tanksNew[1].getTankType() == Fluids.NONE) {
+			this.drawInfoPanel(guiLeft - 16, guiTop + 36 + 32, 16, 16, 6);
+		}
+
+
+		diFurnace.tanksNew[0].renderTank(guiLeft + 62, guiTop + 69, this.zLevel, 16, 52);
+		diFurnace.tanksNew[1].renderTank(guiLeft + 134, guiTop + 69, this.zLevel, 16, 52);
 	}
 }

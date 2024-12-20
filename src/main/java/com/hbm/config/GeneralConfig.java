@@ -20,6 +20,7 @@ public class GeneralConfig {
 	public static boolean enableDebugMode = false;
 	public static boolean enableSkybox = true;
 	public static boolean enableWelcomeMessage = true;
+	public static boolean enableFluidContainerCompat = true;
 	public static boolean enableMycelium = false;
 	public static boolean enablePlutoniumOre = false;
 	public static boolean enableDungeons = true;
@@ -67,6 +68,8 @@ public class GeneralConfig {
 	public static boolean bulletHoleNormalMapping = true;
 	public static int flowingDecalAmountMax = 20;
 	public static boolean bloodFX = true;
+	public static int hintPos = 0;
+	public static int decoToIngotRate = 25;
 	public static int crucibleMaxCharges = 16;
 	public static boolean enableReEval = true;
 	
@@ -98,7 +101,7 @@ public class GeneralConfig {
 		enableSpecialMeteors = config.get(CATEGORY_GENERAL, "1.13_enableSpecialMeteors", false).getBoolean(false);
 		enableBomberShortMode = config.get(CATEGORY_GENERAL, "1.14_enableBomberShortMode", false).getBoolean(false);
 		enableVaults = config.get(CATEGORY_GENERAL, "1.15_enableVaultSpawn", true).getBoolean(true);
-		enableRads = config.get(CATEGORY_GENERAL, "1.16_enableNewRadiation", true).getBoolean(true);
+		enableRads = CommonConfig.createConfigBool(config, CATEGORY_GENERAL, "1.16_enableNewRadiation", "Toggles the world radiation system (primarly chunk radiation system)", true);
 		enableCataclysm = config.get(CATEGORY_GENERAL, "1.17_enableCataclysm", false).getBoolean(false);
 		enableExtendedLogging = config.get(CATEGORY_GENERAL, "1.18_enableExtendedLogging", false).getBoolean(false);
 		enableHardcoreTaint = config.get(CATEGORY_GENERAL, "1.19_enableHardcoreTaint", false).getBoolean(false);
@@ -186,6 +189,10 @@ public class GeneralConfig {
 		enableWelcomeMessage = CommonConfig.createConfigBool(config, CATEGORY_GENERAL, "1.34_enableWelcomeMessage", "Enables the welcome message which appears in the chat when you load into the game", true);
 
 		conversionRateHeToRF = CommonConfig.createConfigDouble(config, CATEGORY_GENERAL, "1.35_conversionRateHeToRF", "One HE is (insert number) RF - <number> (double)", 1.0D);
+
+		hintPos = CommonConfig.createConfigInt(config, CATEGORY_GENERAL, "1.36_infoOverlayPosition", "Positions where the info overlay will appear (from 0 to 3). 0: Top left\n1: Top right\n2: Center right\n3: Center Left", 0);
+		enableFluidContainerCompat = config.get(CATEGORY_GENERAL, "1.37_enableFluidContainerCompat", true, "If enabled, fluid containers will be oredicted and interchangable in recipes with other mods' containers. Should probably work with things like IE's/GC oil properly.").getBoolean(true);
+		decoToIngotRate = CommonConfig.createConfigInt(config, CATEGORY_GENERAL, "1.38_decoToIngotConversionRate", "Chance of successful turning a deco block into an ingot. Default is 25%", 25);
 
 		final String CATEGORY_528 = "528";
 

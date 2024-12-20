@@ -115,6 +115,9 @@ public class HazmatRegistry {
 		double cmb = 1.3D; // 95%
 		double schrab = 3D; // 99.9%
 		double euph = 10D; // 99.99999999%
+		double trench = 1d;
+		double steam = 0.9d;
+		double env = 1.3d;
 
 		HazmatRegistry.registerHazmat(ModItems.hazmat_helmet, fixRounding(hazYellow * helmet));
 		HazmatRegistry.registerHazmat(ModItems.hazmat_plate, fixRounding(hazYellow * chest));
@@ -247,5 +250,20 @@ public class HazmatRegistry {
 		HazmatRegistry.registerHazmat(ModItems.euphemium_plate, fixRounding(euph * chest));
 		HazmatRegistry.registerHazmat(ModItems.euphemium_legs, fixRounding(euph * legs));
 		HazmatRegistry.registerHazmat(ModItems.euphemium_boots, fixRounding(euph * boots));
+
+		HazmatRegistry.registerHazmat(ModItems.trenchmaster_helmet, fixRounding(trench * helmet));
+		HazmatRegistry.registerHazmat(ModItems.trenchmaster_plate, fixRounding(trench * chest));
+		HazmatRegistry.registerHazmat(ModItems.trenchmaster_legs, fixRounding(trench * legs));
+		HazmatRegistry.registerHazmat(ModItems.trenchmaster_boots, fixRounding(trench * boots));
+
+		HazmatRegistry.registerHazmat(ModItems.steamsuit_helmet, fixRounding(steam * helmet));
+		HazmatRegistry.registerHazmat(ModItems.steamsuit_plate, fixRounding(steam * chest));
+		HazmatRegistry.registerHazmat(ModItems.steamsuit_legs, fixRounding(steam * legs));
+		HazmatRegistry.registerHazmat(ModItems.steamsuit_boots, fixRounding(steam * boots));
+
+		HazmatRegistry.registerHazmat(ModItems.envsuit_helmet, fixRounding(env * helmet));
+		HazmatRegistry.registerHazmat(ModItems.envsuit_plate, fixRounding(env * chest));
+		HazmatRegistry.registerHazmat(ModItems.envsuit_legs, fixRounding(env * legs));
+		HazmatRegistry.registerHazmat(ModItems.envsuit_boots, fixRounding(env * boots));
 	}
 }

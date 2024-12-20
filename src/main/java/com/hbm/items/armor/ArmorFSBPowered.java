@@ -5,7 +5,7 @@ import java.util.List;
 import com.hbm.items.gear.ArmorFSB;
 import com.hbm.lib.Library;
 import com.hbm.blocks.machine.ItemSelfcharger;
-import api.hbm.energy.IBatteryItem;
+import api.hbm.energymk2.IBatteryItem;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.client.util.ITooltipFlag;

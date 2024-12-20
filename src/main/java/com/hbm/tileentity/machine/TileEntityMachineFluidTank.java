@@ -1,14 +1,26 @@
 package com.hbm.tileentity.machine;
 
-import com.hbm.forgefluid.FFUtils;
+import api.hbm.fluid.IFluidStandardTransceiver;
+import com.hbm.capability.HbmCapability;
 import com.hbm.forgefluid.ModForgeFluids;
-import com.hbm.interfaces.ITankPacketAcceptor;
+import com.hbm.interfaces.IFFtoNTMF;
+import com.hbm.interfaces.IFluidAcceptor;
+import com.hbm.interfaces.IFluidContainer;
+import com.hbm.interfaces.IFluidSource;
 import com.hbm.inventory.control_panel.*;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTankNTM;
+import com.hbm.inventory.fluid.trait.FT_Corrosive;
+import com.hbm.lib.DirPos;
+import com.hbm.lib.ForgeDirection;
+import com.hbm.lib.Library;
 import com.hbm.main.MainRegistry;
-import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.PacketDispatcher;
+import com.hbm.tileentity.IBufPacketReceiver;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+import io.netty.buffer.ByteBuf;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -16,33 +28,32 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.CapabilityItemHandler;
-import scala.actors.threadpool.Arrays;
 
 import java.util.*;
 
-public class TileEntityMachineFluidTank extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor, IControllable {
+public class TileEntityMachineFluidTank extends TileEntityMachineBase implements ITickable, IFluidContainer, IFluidSource, IFluidAcceptor, IFluidStandardTransceiver, IBufPacketReceiver, IControllable, IFFtoNTMF {
 
+	public FluidTankNTM tankNew;
 	public FluidTank tank;
+	public Fluid oldFluid;
 
 	public short mode = 0;
 	public static final short modes = 4;
+	protected boolean sendingBrake = false;
 	public int age = 0;
+	public List<IFluidAcceptor> list = new ArrayList();
 	public static int[] slots = { 2 };
+
+	private static boolean converted = false;
 	
 	public TileEntityMachineFluidTank() {
 		super(6);
 		tank = new FluidTank(256000);
+		tankNew = new FluidTankNTM(Fluids.NONE, 256000);
 	}
 	
 	public String getName() {
@@ -51,14 +62,17 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 	
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
-		tank.readFromNBT(compound);
+		if(!converted) {
+			tank.readFromNBT(compound);
+			oldFluid = tank.getFluid() != null ? tank.getFluid().getFluid() : ModForgeFluids.none;
+		} else tankNew.readFromNBT(compound, "tank");
 		mode = compound.getShort("mode");
 		super.readFromNBT(compound);
 	}
 	
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		tank.writeToNBT(compound);
+		if(!converted) tank.writeToNBT(compound); else tankNew.writeToNBT(compound, "tank");
 		compound.setShort("mode", mode);
 		return super.writeToNBT(compound);
 	}
@@ -71,34 +85,75 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 	@Override
 	public void update() {
 		if (!world.isRemote) {
+			if(!converted){
+				convertAndSetFluid(oldFluid, tank, tankNew);
+				converted = true;
+			}
 			age++;
 			if (age >= 20) {
 				age = 0;
+				markDirty();
 			}
 
+			this.sendingBrake = true;
+			tankNew.setFill(TileEntityBarrel.transmitFluidFairly(world, tankNew, this, tankNew.getFill(), this.mode == 0 || this.mode == 1, this.mode == 1 || this.mode == 2, getConPos()));
+			this.sendingBrake = false;
+
 			if ((mode == 1 || mode == 2) && (age == 9 || age == 19))
-				fillFluidInit();
+				fillFluidInit(tankNew.getTankType());
 			
-			FFUtils.fillFromFluidContainer(inventory, tank, 2, 3);
-			FFUtils.fillFluidContainer(inventory, tank, 4, 5);
-			
-			if(tank.getFluid() != null && (tank.getFluid().getFluid() == ModForgeFluids.amat || tank.getFluid().getFluid() == ModForgeFluids.aschrab)) {
+			if(tankNew.getTankType() != Fluids.NONE && (tankNew.getTankType().isAntimatter() || tankNew.getTankType().hasTrait(FT_Corrosive.class) && tankNew.getTankType().getTrait(FT_Corrosive.class).isHighlyCorrosive())) {
 				world.destroyBlock(pos, false);
 				world.newExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 5, true, true);
 			}
-			
-			PacketDispatcher.wrapper.sendToAllTracking(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-			NBTTagCompound data = new NBTTagCompound();
-			data.setShort("mode", mode);
-			this.networkPack(data, 50);
-			
-			detectAndSendChanges();
+
+			tankNew.unloadTank(4, 5, inventory);
+
+			this.networkPackNT(150);
 		}
+
+		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - 10);
+		ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
+		List<EntityPlayer> players = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(pos, pos.add(1, 2.875, 1)).offset(dir.offsetX * 0.5 - rot.offsetX * 2.25, 0, dir.offsetZ * 0.5 - rot.offsetZ * 2.25));
+
+		for(EntityPlayer player : players) {
+			HbmCapability.IHBMData props = HbmCapability.getData(player);
+			if(player == MainRegistry.proxy.me() && !props.getOnLadder()) {
+				props.setOnLadder(true);
+			}
+		}
+	}
+
+	@Override
+	public void serialize(ByteBuf buf) {
+		super.serialize(buf);
+		buf.writeShort(mode);
+		tankNew.serialize(buf);
+	}
+
+	@Override
+	public void deserialize(ByteBuf buf) {
+		super.deserialize(buf);
+		mode = buf.readShort();
+		tankNew.deserialize(buf);
 	}
 	
 	@Override
 	public void networkUnpack(NBTTagCompound nbt) {
 		mode = nbt.getShort("mode");
+	}
+
+	protected DirPos[] getConPos() {
+		return new DirPos[] {
+				new DirPos(pos.getX() + 2, pos.getY(), pos.getZ() - 1, Library.POS_X),
+				new DirPos(pos.getX() + 2, pos.getY(), pos.getZ() + 1, Library.POS_X),
+				new DirPos(pos.getX() - 2, pos.getY(), pos.getZ() - 1, Library.NEG_X),
+				new DirPos(pos.getX() - 2, pos.getY(), pos.getZ() + 1, Library.NEG_X),
+				new DirPos(pos.getX() - 1, pos.getY(), pos.getZ() + 2, Library.POS_Z),
+				new DirPos(pos.getX() + 1, pos.getY(), pos.getZ() + 2, Library.POS_Z),
+				new DirPos(pos.getX() - 1, pos.getY(), pos.getZ() - 2, Library.NEG_Z),
+				new DirPos(pos.getX() + 1, pos.getY(), pos.getZ() - 2, Library.NEG_Z)
+		};
 	}
 	
 	@Override
@@ -108,19 +163,6 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 			broadcastControlEvt();
 		}
 		markDirty();
-	}
-
-	private void fillFluidInit() {
-		if (tank.getFluid() != null) {
-			FFUtils.fillFluid(this, tank, world, pos.add(2, 0, -1), 64000);
-			FFUtils.fillFluid(this, tank, world, pos.add(2, 0, 1), 64000);
-			FFUtils.fillFluid(this, tank, world, pos.add(-2, 0, -1), 64000);
-			FFUtils.fillFluid(this, tank, world, pos.add(-2, 0, 1), 64000);
-			FFUtils.fillFluid(this, tank, world, pos.add(-1, 0, 2), 64000);
-			FFUtils.fillFluid(this, tank, world, pos.add(1, 0, 2), 64000);
-			FFUtils.fillFluid(this, tank, world, pos.add(-1, 0, -2), 64000);
-			FFUtils.fillFluid(this, tank, world, pos.add(1, 0, -2), 64000);
-		}
 	}
 
 	@Override
@@ -133,93 +175,105 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 	public double getMaxRenderDistanceSquared() {
 		return 65536.0D;
 	}
-	
-	private FluidTank detectTank;
-	
-	private void detectAndSendChanges() {
-		boolean mark = false;
-		if(!FFUtils.areTanksEqual(tank, detectTank)){
-			mark = true;
-			detectTank = FFUtils.copyTank(tank);
-		}
-		if(mark)
-			markDirty();
+
+	@Override
+	public void setFillForSync(int fill, int index) {
+		tankNew.setFill(fill);
 	}
 
 	@Override
-	public IFluidTankProperties[] getTankProperties() {
-		return new IFluidTankProperties[]{tank.getTankProperties()[0]};
+	public void setTypeForSync(FluidType type, int index) {
+		tankNew.setTankType(type);
 	}
 
 	@Override
-	public int fill(FluidStack resource, boolean doFill) {
-		if (this.canFill(resource.getFluid())) {		
-			return tank.fill(resource, doFill);
-		}
-		return 0;
+	public int getMaxFluidFill(FluidType type) {
+
+		if(mode == 2 || mode == 3 || this.sendingBrake)
+			return 0;
+
+		return type.getName().equals(this.tankNew.getTankType().getName()) ? tankNew.getMaxFill() : 0;
 	}
 
 	@Override
-	public FluidStack drain(FluidStack resource, boolean doDrain) {
-		if (resource == null || !resource.isFluidEqual(tank.getFluid())) {
-			return null;
-		}
-		if (this.canDrain(resource.getFluid())) {
-			return tank.drain(resource.amount, doDrain);
-		}
-		return null;
+	public void fillFluidInit(FluidType type) {
+		fillFluid(this.pos.getX() + 2, this.pos.getY(), this.pos.getZ() - 1, getTact(), type);
+		fillFluid(this.pos.getX() + 2, this.pos.getY(), this.pos.getZ() + 1, getTact(), type);
+		fillFluid(this.pos.getX() - 2, this.pos.getY(), this.pos.getZ() - 1, getTact(), type);
+		fillFluid(this.pos.getX() - 2, this.pos.getY(), this.pos.getZ() + 1, getTact(), type);
+		fillFluid(this.pos.getX() - 1, this.pos.getY(), this.pos.getZ() + 2, getTact(), type);
+		fillFluid(this.pos.getX() + 1, this.pos.getY(), this.pos.getZ() + 2, getTact(), type);
+		fillFluid(this.pos.getX() - 1, this.pos.getY(), this.pos.getZ() - 2, getTact(), type);
+		fillFluid(this.pos.getX() + 1, this.pos.getY(), this.pos.getZ() - 2, getTact(), type);
 	}
 
 	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain) {
-		if (this.canDrain(null)) {
-			return tank.drain(maxDrain, doDrain);
-		}
-		return null;
-	}
-	
-	public boolean canFill(Fluid fluid) {
-		if (!this.world.isRemote) {
-			if(mode == 2 || mode == 3 || (tank.getFluid() != null && tank.getFluid().getFluid() != fluid))
-				return false;
-			else
-				return true;
-		}
-		return false;
-	}
-
-	public boolean canDrain(Fluid fluid) {
-		if (!this.world.isRemote) {
-			return tank.getFluid() != null;
-		}
-		return false;
+	public void fillFluid(int x, int y, int z, boolean newTact, FluidType type) {
+		Library.transmitFluid(x, y, z, newTact, this, world, type);
 	}
 
 	@Override
-	public void recievePacket(NBTTagCompound[] tags) {
-		if(tags.length != 1) {
-			return;
-		} else {
-			tank.readFromNBT(tags[0]);
-		}
-	}
-	
-	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY){
-			return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
-		} else {
-			return super.getCapability(capability, facing);
-		}
-	}
-	
-	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-		if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY){
+	public boolean getTact() {
+		if (age >= 0 && age < 10) {
 			return true;
-		} else {
-			return super.hasCapability(capability, facing);
 		}
+
+		return false;
+	}
+
+	@Override
+	public int getFluidFill(FluidType type) {
+		return type.getName().equals(this.tankNew.getTankType().getName()) ? tankNew.getFill() : 0;
+	}
+
+	@Override
+	public void setFluidFill(int i, FluidType type) {
+		if(type.getName().equals(tankNew.getTankType().getName()))
+			tankNew.setFill(i);
+	}
+
+	@Override
+	public List<IFluidAcceptor> getFluidList(FluidType type) {
+		return this.list;
+	}
+
+	@Override
+	public void clearFluidList(FluidType type) {
+		this.list.clear();
+	}
+
+	@Override
+	public long transferFluid(FluidType type, int pressure, long fluid) {
+		long toTransfer = Math.min(getDemand(type, pressure), fluid);
+		tankNew.setFill(tankNew.getFill() + (int) toTransfer);
+		return fluid - toTransfer;
+	}
+
+	@Override
+	public long getDemand(FluidType type, int pressure) {
+
+		if(this.mode == 2 || this.mode == 3 || this.sendingBrake)
+			return 0;
+
+		if(tankNew.getPressure() != pressure) return 0;
+
+		return type == tankNew.getTankType() ? tankNew.getMaxFill() - tankNew.getFill() : 0;
+	}
+
+	@Override
+	public FluidTankNTM[] getAllTanks() {
+		return new FluidTankNTM[] {tankNew};
+	}
+
+	@Override
+	public FluidTankNTM[] getSendingTanks() {
+		return (mode == 1 || mode == 2) ? new FluidTankNTM[] {tankNew} : new FluidTankNTM[0];
+	}
+
+	@Override
+	public FluidTankNTM[] getReceivingTanks() {
+		if(this.sendingBrake) return new FluidTankNTM[0];
+		return (mode == 0 || mode == 1) ? new FluidTankNTM[] {tankNew} : new FluidTankNTM[0];
 	}
 
 	// control panel
@@ -228,10 +282,10 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 	public Map<String, DataValue> getQueryData() {
 		Map<String, DataValue> data = new HashMap<>();
 
-		if (tank.getFluid() != null) {
-			data.put("t0_fluidType", new DataValueString(tank.getFluid().getLocalizedName()));
+		if (tankNew.getTankType() != Fluids.NONE) {
+			data.put("t0_fluidType", new DataValueString(tankNew.getTankType().getLocalizedName()));
 		}
-		data.put("t0_fluidAmount", new DataValueFloat(tank.getFluidAmount()));
+		data.put("t0_fluidAmount", new DataValueFloat(tankNew.getFill()));
 		data.put("mode", new DataValueFloat(mode));
 
 		return data;

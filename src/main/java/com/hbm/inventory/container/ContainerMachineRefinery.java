@@ -42,6 +42,8 @@ private TileEntityMachineRefinery testNuke;
 		this.addSlotToContainer(new SlotMachineOutput(tedf.inventory, 10, 134, 108));
 		//Sulfur Output
 		this.addSlotToContainer(new SlotMachineOutput(tedf.inventory, 11, 152, 36));
+		//Fluid ID
+		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 12, 186, 106));
 		
 		for(int i = 0; i < 3; i++)
 		{

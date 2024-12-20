@@ -183,32 +183,19 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
     }
 
     private void setupTanks() {
-        Fluid fluid = HeatRecipes.getBoilFluid(types[0]);
-        if (fluid != null) {
-            setTankType(0, types[0]);
-            setTankType(1, fluid);
-        } else {
-            setTankType(0, null);
-            setTankType(1, null);
-        }
+        setTankType(0, types[0]);
+        setTankType(1, types[1]);
     }
 
     private void tryConvert() {
-        if(HeatRecipes.hasBoilRecipe(types[0])) {
-            Fluid hotFluid = HeatRecipes.getBoilFluid(types[0]);
-            int heatReq = HeatRecipes.getRequiredHeat(types[0]);
-            int inputAmount = HeatRecipes.getInputAmountHot(types[0]);
-            int outputAmount = HeatRecipes.getOutputAmountHot(types[0]);
+
+        int process = heat / 50;
+        process = Math.min(process, tanks[0].getFluidAmount());
+        process = Math.min(process, (tanks[1].getCapacity() - tanks[1].getFluidAmount()) / 100);
             
-            int inputOps = tanks[0].getFluidAmount() / inputAmount;
-            int outputOps = (tanks[1].getCapacity() - tanks[1].getFluidAmount()) / outputAmount;
-            int tempOps = (int) Math.floor(this.heat / heatReq);
-            int ops = Math.min(inputOps, Math.min(outputOps, tempOps));
-            
-            tanks[0].drain(inputAmount * ops, true);
-            tanks[1].fill(new FluidStack(types[1], outputAmount * ops), true);
-            this.heat -= heatReq * ops;
-        }
+        tanks[0].drain(process, true);
+        tanks[1].fill(new FluidStack(types[1], process * 100), true);
+        heat = 0;
     }
 
     AxisAlignedBB bb = null;

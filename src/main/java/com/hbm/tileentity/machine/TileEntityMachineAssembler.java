@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.handler.MultiblockHandler;
 import com.hbm.inventory.AssemblerRecipes;
 import com.hbm.inventory.RecipesCommon.AStack;
-import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemAssemblyTemplate;
 import com.hbm.lib.HBMSoundHandler;
@@ -18,7 +18,6 @@ import com.hbm.main.MainRegistry;
 import com.hbm.sound.AudioWrapper;
 import com.hbm.tileentity.TileEntityMachineBase;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -29,7 +28,6 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -39,7 +37,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class TileEntityMachineAssembler extends TileEntityMachineBase implements ITickable, IEnergyUser {
+public class TileEntityMachineAssembler extends TileEntityMachineBase implements ITickable, IEnergyReceiverMK2 {
 
 	public long power;
 	public static final long maxPower = 2000000;
@@ -190,6 +188,7 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 			int meta = this.getBlockMetadata();
 			TileEntity te = null;
 			TileEntity te2 = null;
+			boolean canFill;
 			if(meta == 2) {
 				te2 = world.getTileEntity(pos.add(-2, 0, 0));
 				te = world.getTileEntity(pos.add(3, 0, -1));
@@ -206,6 +205,7 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 				te2 = world.getTileEntity(pos.add(0, 0, -2));
 				te = world.getTileEntity(pos.add(1, 0, 3));
 			}
+			canFill = !(te2 instanceof TileEntityDummyPort);
 
 			if(!isProgressing){
 				tryExchangeTemplates(te, te2);
@@ -231,10 +231,12 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 						tryFillAssemblerCap(cap, slots, (TileEntityMachineBase)te2);
 					}
 					else if(cap != null){
-						slots = new int[cap.getSlots()];
-						for(int i = 0; i< slots.length; i++)
-							slots[i] = i;
-						tryFillAssemblerCap(cap, slots, null);
+						if(canFill) {
+							slots = new int[cap.getSlots()];
+							for (int i = 0; i < slots.length; i++)
+								slots[i] = i;
+							tryFillAssemblerCap(cap, slots, null);
+						}
 					}
 					
 				}
@@ -273,28 +275,28 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 		int meta = this.getBlockMetadata();
 		
 		if(meta == 5) {
-			this.trySubscribe(world, pos.add(-2, 0, 0), Library.NEG_X);
-			this.trySubscribe(world, pos.add(-2, 0, 1), Library.NEG_X);
-			this.trySubscribe(world, pos.add(3, 0, 0), Library.POS_X);
-			this.trySubscribe(world, pos.add(3, 0, 1), Library.POS_X);
+			this.trySubscribe(world, pos.getX() - 2, pos.getY(), pos.getZ(), Library.NEG_X);
+			this.trySubscribe(world, pos.getX() - 2, pos.getY(), pos.getZ() + 1, Library.NEG_X);
+			this.trySubscribe(world, pos.getX() + 3, pos.getY(), pos.getZ(), Library.POS_X);
+			this.trySubscribe(world, pos.getX() + 3, pos.getY(), pos.getZ() + 1, Library.POS_X);
 			
 		} else if(meta == 3) {
-			this.trySubscribe(world, pos.add(0, 0, -2), Library.NEG_Z);
-			this.trySubscribe(world, pos.add(-1, 0, -2), Library.NEG_Z);
-			this.trySubscribe(world, pos.add(0, 0, 3), Library.POS_Z);
-			this.trySubscribe(world, pos.add(-1, 0, 3), Library.POS_Z);
+			this.trySubscribe(world, pos.getX(), pos.getY(), pos.getZ() - 2, Library.NEG_Z);
+			this.trySubscribe(world, pos.getX() - 1, pos.getY(), pos.getZ() - 2, Library.NEG_Z);
+			this.trySubscribe(world, pos.getX(), pos.getY(), pos.getZ() + 3, Library.POS_Z);
+			this.trySubscribe(world, pos.getX() - 1, pos.getY(), pos.getZ() + 3, Library.POS_Z);
 			
 		} else if(meta == 4) {
-			this.trySubscribe(world, pos.add(2, 0, 0), Library.POS_X);
-			this.trySubscribe(world, pos.add(2, 0, -1), Library.POS_X);
-			this.trySubscribe(world, pos.add(-3, 0, 0), Library.NEG_X);
-			this.trySubscribe(world, pos.add(-3, 0, -1), Library.NEG_X);
+			this.trySubscribe(world, pos.getX() + 2, pos.getY(), pos.getZ(), Library.POS_X);
+			this.trySubscribe(world, pos.getX() + 2, pos.getY(), pos.getZ() - 1, Library.POS_X);
+			this.trySubscribe(world, pos.getX() - 3, pos.getY(), pos.getZ(), Library.NEG_X);
+			this.trySubscribe(world, pos.getX() - 3, pos.getY(), pos.getZ() - 1, Library.NEG_X);
 			
 		} else if(meta == 2) {
-			this.trySubscribe(world, pos.add(0, 0, 2), Library.POS_Z);
-			this.trySubscribe(world, pos.add(1, 0, 2), Library.POS_Z);
-			this.trySubscribe(world, pos.add(0, 0, -3), Library.NEG_Z);
-			this.trySubscribe(world, pos.add(1, 0, -3), Library.NEG_Z);
+			this.trySubscribe(world, pos.getX(), pos.getY(),  pos.getZ() + 2, Library.POS_Z);
+			this.trySubscribe(world, pos.getX() + 1, pos.getY(), pos.getZ() + 2, Library.POS_Z);
+			this.trySubscribe(world, pos.getX(), pos.getY(), pos.getZ() - 3, Library.NEG_Z);
+			this.trySubscribe(world, pos.getX() + 1, pos.getY(), pos.getZ() - 3, Library.NEG_Z);
 		}
 	}
 

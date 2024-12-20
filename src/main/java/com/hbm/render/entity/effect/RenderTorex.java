@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Random;
 
+import com.hbm.main.ModEventHandlerClient;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.entity.effect.EntityNukeTorex;
@@ -50,8 +51,6 @@ public class RenderTorex extends Render<EntityNukeTorex> {
 		float scale = (float)cloud.getScale();
 		float flashDuration = scale * flashBaseDuration;
 		float flareDuration = scale * flareBaseDuration;
-
-		doScreenShake(cloud, x, y, z, scale * 100);
 		
 		GL11.glPushMatrix();
 		GL11.glTranslated(x, y, z);
@@ -62,38 +61,23 @@ public class RenderTorex extends Render<EntityNukeTorex> {
 
 		cloudletWrapper(cloud, partialTicks);
 
-		if(cloud.ticksExisted < flareDuration+1)
-			flareWrapper(cloud, partialTicks, flareDuration);
-		
-		if(cloud.ticksExisted < flashDuration+1)
-			flashWrapper(cloud, partialTicks, flashDuration);
+		if(cloud.ticksExisted < flareDuration+1) flareWrapper(cloud, partialTicks, flareDuration);
+		if(cloud.ticksExisted < flashDuration+1) flashWrapper(cloud, partialTicks, flashDuration);
+		if(cloud.ticksExisted < (flashDuration / 10) && System.currentTimeMillis() - ModEventHandlerClient.flashTimestamp > 1_000) ModEventHandlerClient.flashTimestamp = System.currentTimeMillis();
+		if(cloud.didPlaySound && !cloud.didShake && System.currentTimeMillis() - ModEventHandlerClient.shakeTimestamp > 1_000) {
+			ModEventHandlerClient.shakeTimestamp = System.currentTimeMillis();
+			cloud.didShake = true;
+			EntityPlayer player = MainRegistry.proxy.me();
+			float dist = player.getDistance(cloud);
+			player.hurtTime = (100 - (int) dist) > 0 ? (int) ((float) (100 - (int) dist) * 1.5F) : 0;
+			player.maxHurtTime = (100 - (int) dist) > 0 ? (100 - (int) dist) : 0;
+			player.attackedAtYaw = 0F;
+		}
 
 		if(fog)
 			GL11.glEnable(GL11.GL_FOG);
 
 		GL11.glPopMatrix();
-	}
-
-	private void doScreenShake(EntityNukeTorex cloud, double x, double y, double z, float amplitude){
-		if(cloud.ticksExisted > 300) return;
-		EntityPlayer player = MainRegistry.proxy.me();
-
-		double dist = player.getDistance(cloud);
-		double shockwaveDistance = dist - cloud.ticksExisted * 1.5;
-		if(shockwaveDistance > 10 || shockwaveDistance < 0) return;
-		amplitude = Math.min(amplitude, 125);
-		int duration = ((int)(amplitude * Math.min(1, (amplitude * amplitude)/(dist * dist))));
-		int swingTimer = duration<<1;
-		cloud.world.playSound(player, cloud.posX, cloud.posY, cloud.posZ, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.AMBIENT, amplitude * 10F, 0.8F + cloud.world.rand.nextFloat() * 0.2F);
-		
-		if(player.getDisplayName().equals("Vic4Games")) {
-			player.hurtTime = swingTimer<<1;
-			player.maxHurtTime = duration<<1;
-		} else {
-			player.hurtTime = swingTimer;
-			player.maxHurtTime = duration;
-		}
-		player.attackedAtYaw = 0F;
 	}
 	
 	private Comparator cloudSorter = new Comparator() {

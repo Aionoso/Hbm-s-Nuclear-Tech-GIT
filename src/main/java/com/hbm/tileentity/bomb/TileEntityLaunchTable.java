@@ -2,6 +2,7 @@ package com.hbm.tileentity.bomb;
 
 import java.util.List;
 
+import api.hbm.energymk2.IEnergyReceiverMK2;
 import com.hbm.entity.missile.EntityMissileCustom;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -25,7 +26,6 @@ import com.hbm.packet.TEMissileMultipartPacket;
 import com.hbm.tileentity.TileEntityLoadedBase;
 import net.minecraftforge.fml.common.Optional;
 
-import api.hbm.energy.IEnergyUser;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -57,7 +57,7 @@ import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.SimpleComponent;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor, SimpleComponent {
+public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITickable, IEnergyReceiverMK2, IFluidHandler, ITankPacketAcceptor, SimpleComponent {
 
 	public ItemStackHandler inventory;
 
@@ -199,10 +199,10 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 	private void updateConnections() {
 
 		for(int i = -4; i <= 4; i++) {
-			this.trySubscribe(world, pos.add(5, 0, i), ForgeDirection.EAST);
-			this.trySubscribe(world, pos.add(-5, 0, i), ForgeDirection.WEST);
-			this.trySubscribe(world, pos.add(i, 0, 5), ForgeDirection.SOUTH);
-			this.trySubscribe(world, pos.add(i, 0, -5), ForgeDirection.NORTH);
+			this.trySubscribe(world, pos.getX() + 5, pos.getY(), pos.getZ() + i, ForgeDirection.EAST);
+			this.trySubscribe(world, pos.getX() - 5, pos.getY(), pos.getZ() + i, ForgeDirection.WEST);
+			this.trySubscribe(world, pos.getX() + i, pos.getY(), pos.getZ() + 5, ForgeDirection.SOUTH);
+			this.trySubscribe(world, pos.getX() + i, pos.getY(), pos.getZ() - 5, ForgeDirection.NORTH);
 		}
 	}
 	

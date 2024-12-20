@@ -29,8 +29,8 @@ public class GUIRBMKHeater extends GuiInfoContainer {
 	public void drawScreen(int mouseX, int mouseY, float f) {
 		super.drawScreen(mouseX, mouseY, f);
 
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 68, guiTop + 23, 16, 58, rod.tanks[0]);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 126, guiTop + 23, 16, 58, rod.tanks[1]);
+		rod.feed.renderTankInfo(this, mouseX, mouseY, guiLeft + 68, guiTop + 24, 16, 58);
+		rod.steam.renderTankInfo(this, mouseX, mouseY, guiLeft + 126, guiTop + 24, 16, 58);
 		super.renderHoveredToolTip(mouseX, mouseY);
 	}
 	
@@ -49,7 +49,7 @@ public class GUIRBMKHeater extends GuiInfoContainer {
 		Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 
-		FFUtils.drawLiquid(rod.tanks[0], this.guiLeft, this.guiTop, this.zLevel, 14, 58, 68, 110);
-		FFUtils.drawLiquid(rod.tanks[1], this.guiLeft, this.guiTop, this.zLevel, 14, 58, 126, 110);
+		rod.feed.renderTank(guiLeft + 68, guiTop + 82, this.zLevel, 14, 58);
+		rod.steam.renderTank(guiLeft + 126, guiTop + 82, this.zLevel, 14, 58);
 	}
 }

@@ -31,7 +31,6 @@ public class EntityBalefire extends Entity implements IChunkLoader {
 	public ExplosionBalefire exp;
 	public int speed = 1;
 	public boolean did = false;
-	public boolean mute = false;
 	private Ticket loaderTicket;
 
 	@Override
@@ -40,7 +39,6 @@ public class EntityBalefire extends Entity implements IChunkLoader {
 		destructionRange = nbt.getInteger("destructionRange");
 		speed = nbt.getInteger("speed");
 		did = nbt.getBoolean("did");
-		mute = nbt.getBoolean("mute");
     	
 		exp = new ExplosionBalefire((int)this.posX, (int)this.posY, (int)this.posZ, this.world, this.destructionRange);
 		exp.readFromNbt(nbt, "exp_");
@@ -54,7 +52,6 @@ public class EntityBalefire extends Entity implements IChunkLoader {
 		nbt.setInteger("destructionRange", destructionRange);
 		nbt.setInteger("speed", speed);
 		nbt.setBoolean("did", did);
-		nbt.setBoolean("mute", mute);
 		
 		if(exp != null)
 			exp.saveToNbt(nbt, "exp_");
@@ -158,10 +155,5 @@ public class EntityBalefire extends Entity implements IChunkLoader {
                 ForgeChunkManager.forceChunk(loaderTicket, chunk);
             }
         }
-	}
-	
-	public EntityBalefire mute() {
-		this.mute = true;
-		return this;
 	}
 }

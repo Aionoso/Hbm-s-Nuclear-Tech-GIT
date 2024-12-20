@@ -12,7 +12,6 @@ import com.hbm.packet.PacketSpecialDeath;
 import com.hbm.particle.bullet_hit.ParticleDecalFlow;
 import com.hbm.render.util.BakedModelUtil;
 import com.hbm.render.util.BakedModelUtil.DecalType;
-import com.hbm.tileentity.conductor.TileEntityFFDuctBaseMk2;
 import com.hbm.tileentity.network.energy.TileEntityPylonBase;
 
 import com.hbm.util.I18nUtil;
@@ -68,9 +67,11 @@ public class ItemWandD extends Item {
 				MainRegistry.z--;
 			if (b == ModBlocks.red_pylon) {
 				TileEntityPylonBase te = (TileEntityPylonBase) world.getTileEntity(pos);
-				for(int i = 0; i < te.connected.size(); i++)
+				for(int i = 0; i < te.connected.size(); i++){
+					int[] coords = te.connected.get(i);
 					if(world.isRemote)
-						player.sendMessage(new TextComponentString(te.connected.get(i).getX() + " " + te.connected.get(i).getY() + " " + te.connected.get(i).getZ()));
+						player.sendMessage(new TextComponentString(coords[0] + " " + coords[1] + " " + coords[2]));
+				}
 			}
 			
 			if(player.isSneaking()){
@@ -91,10 +92,6 @@ public class ItemWandD extends Item {
 			}
 		} else {
 			clickClient(world, player, pos, hitX, hitY, hitZ);
-		}
-		if(b == ModBlocks.fluid_duct_mk2){
-			System.out.println("client: " + world.isRemote + " " + ((TileEntityFFDuctBaseMk2)world.getTileEntity(pos)).getNetwork() + " " + ((TileEntityFFDuctBaseMk2)world.getTileEntity(pos)).getNetwork().size());
-			System.out.println(((TileEntityFFDuctBaseMk2)world.getTileEntity(pos)).connections);
 		}
 		
 		/*int x = pos.getX();
